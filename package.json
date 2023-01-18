@@ -23,6 +23,7 @@
     "@midwayjs/validate": "^3.2.0",
     "@midwayjs/view-ejs": "^3.2.0",
     "cfork": "^1.8.0",
+    "convert-excel-to-json": "^1.7.0",
     "ipip-ipdb": "^0.6.0",
     "jsonwebtoken": "^8.5.1",
     "mini-svg-data-uri": "^1.4.4",

@@ -18,8 +18,10 @@ import { BaseSysRoleService } from '../../../service/sys/role';
       userId: ctx.admin.userId,
     };
   },
+
   pageQueryOp: {
     keyWordLikeFields: ['name', 'label'],
+    fieldEq: ['id'],
     where: async (ctx: Context) => {
       const { userId, roleIds, role } = ctx.admin;
       return [

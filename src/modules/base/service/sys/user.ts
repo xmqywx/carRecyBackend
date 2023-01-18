@@ -38,7 +38,7 @@ export class BaseSysUserService extends BaseService {
    * @param query
    */
   async page(query) {
-    const { keyWord, status, departmentIds = [] } = query;
+    const { keyWord, status, roleId, departmentIds = [] } = query;
     const permsDepartmentArr = await this.baseSysPermsService.departmentIds(
       this.ctx.admin.userId
     ); // 部门权限
@@ -53,6 +53,11 @@ export class BaseSysUserService extends BaseService {
             LEFT JOIN base_sys_role c ON b.roleId = c.id
             LEFT JOIN base_sys_department d on a.departmentId = d.id
         WHERE 1 = 1
+            ${this.setSql(
+              roleId,
+              'and b.roleId = ?',
+              [roleId]
+            )}
             ${this.setSql(
               !_.isEmpty(departmentIds),
               'and a.departmentId in (?)',
