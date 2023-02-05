@@ -1,11 +1,16 @@
 {
   "version": 2,
-
+  "builds": [
+    {
+      "src": "./bootstrap.js",
+      "use": "@vercel/node"
+    }
+  ],
 
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "bootstrap.js"
     }
   ]
 }
