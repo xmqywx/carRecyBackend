@@ -12,11 +12,8 @@ export default {
     username: 'uemik8l39ryyxwjz',
     password: 'TcRzxwBe7668Qtkp9ejM',
     database: 'b2opflmuihzchswhi8re',
-    // 自动建表 注意：线上部署的时候不要使用，有可能导致数据丢失
     synchronize: false,
-    // 打印日志
     logging: false,
-    // 字符集
     charset: 'utf8mb4',
   },
   cool: {
