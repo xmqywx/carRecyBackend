@@ -13,6 +13,9 @@ export class JobEntity extends BaseEntity {
   @Column({ comment: 'driverID', nullable: true})
   driverID: number;
 
+  @Column({ comment: 'yardID', nullable: true })
+  yardID: number;
+
   @Column({ comment: 'status', type: "tinyint"})
   status: number;
 

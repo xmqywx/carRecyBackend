@@ -10,6 +10,9 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'carID', nullable: true})
   carID: number;
 
+  @Column({ comment: 'yardID', nullable: true })
+  yardID: number;
+
   @Column({ comment: 'customer'})
   customerID: string;
 

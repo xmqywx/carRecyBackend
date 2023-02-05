@@ -21,6 +21,9 @@ export class BaseSysUserEntity extends BaseEntity {
   @Column({ comment: '密码' })
   password: string;
 
+  @Column({ comment: 'yardID', nullable: true })
+  yardID: number;
+
   @Column({
     comment: '密码版本, 作用是改完密码，让原来的token失效',
     default: 1,

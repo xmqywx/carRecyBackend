@@ -10,6 +10,10 @@ import {CarEntity} from "../../car/entity/base";
 export class CustomerProfileEntity extends BaseEntity {
   @Column({ comment: 'user name', length: 100 })
   firstName: string;
+
+  @Column({ comment: 'yardID', nullable: true })
+  yardID: number;
+
   @Column({ comment: 'user name', length: 100 })
   surname: string;
 

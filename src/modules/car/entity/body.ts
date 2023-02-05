@@ -9,6 +9,8 @@ import {Column} from 'typeorm';
 export class CarBodyEntity extends BaseEntity {
   @Column({ comment: 'Car ID', nullable: false })
   carID: number;
+  @Column({ comment: 'yardID', nullable: true })
+  yardID: number;
 
   @Column({ comment: 'QrCode', nullable: true, length: 100 })
   qrCode: string;

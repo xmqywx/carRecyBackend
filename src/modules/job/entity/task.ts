@@ -13,6 +13,9 @@ export class JobTaskEntity extends BaseEntity {
   @Column({ comment: 'carID' })
   jobID: number;
 
+  @Column({ comment: 'yardID', nullable: true })
+  yardID: number;
+
   @Column({ comment: 'driverID', nullable: true})
   driverID: string;
 

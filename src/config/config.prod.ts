@@ -7,11 +7,11 @@ import { MidwayConfig } from '@midwayjs/core';
 export default {
   orm: {
     type: 'mysql',
-    host: '127.0.0.1',
+    host: 'b2opflmuihzchswhi8re-mysql.services.clever-cloud.com',
     port: 3306,
-    username: 'root',
-    password: '123456',
-    database: 'cool',
+    username: 'uemik8l39ryyxwjz',
+    password: 'TcRzxwBe7668Qtkp9ejM',
+    database: 'b2opflmuihzchswhi8re',
     // 自动建表 注意：线上部署的时候不要使用，有可能导致数据丢失
     synchronize: false,
     // 打印日志

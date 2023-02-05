@@ -11,6 +11,9 @@ export class CarEntity extends BaseEntity {
   @Column({ comment: 'Customer ID', nullable: false })
   customerID: number;
 
+  @Column({ comment: 'yardID', nullable: true })
+  yardID: number;
+
   @ManyToOne(() => CustomerProfileEntity, target => target.car)
   theCustomer?: Promise<CustomerProfileEntity> | CustomerProfileEntity
 
@@ -29,6 +32,9 @@ export class CarEntity extends BaseEntity {
   @Column({ comment: 'colour', length: 100, nullable: true })
   colour: string;
 
+  @Column({ comment: 'image', nullable: true })
+  image: string;
+
   @Column({ comment: 'vinNumber', length: 100, nullable: true })
   vinNumber: string;
 
@@ -37,6 +43,9 @@ export class CarEntity extends BaseEntity {
 
   @Column({ comment: 'body Style', length: 24, nullable: true })
   bodyStyle: string;
+
+  @Column({ comment: 'engine', nullable: true })
+  engine: string;
 
   @Column({ comment: 'door number', nullable: true })
   doors: number;
