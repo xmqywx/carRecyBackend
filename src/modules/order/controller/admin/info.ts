@@ -18,10 +18,34 @@ import {CarRegEntity} from "../../../carReg/entity/info";
   entity: OrderInfoEntity,
 
   pageQueryOp: {
-    keyWordLikeFields: ['customerID'],
-    select: ['a.*', 'b.firstName', 'b.surname', 'b.phoneNumber', 'b.emailAddress',  'b.address', 'c.model', 'c.year', 'c.brand', 'c.colour', 'c.vinNumber'],
+    keyWordLikeFields: ['firstName', 'surname', 'name', 'model', 'year', 'brand'],
+    select: [
+      'a.*',
+      'b.firstName',
+      'b.surname',
+      'b.phoneNumber',
+      'b.emailAddress',
+      'b.address',
+      'b.licence',
+      'c.model',
+      'c.year',
+      'c.brand',
+      'c.colour',
+      'c.vinNumber',
+      'c.series',
+      'c.engine',
+      'c.name',
+      'c.bodyStyle',
+      'c.image',
+      'c.identificationSighted',
+      'c.registered',
+      'c.platesReturned',
+    ],
     // 多表关联，请求筛选字段与表字段不一致的情况
-    fieldEq: [{ column: 'a.createTime', requestParam: 'createTime' }, { column: 'a.status', requestParam: 'status' }],
+    fieldEq: [
+      { column: 'a.createTime', requestParam: 'createTime' },
+      { column: 'a.departmentId', requestParam: 'departmentId' },
+      { column: 'a.status', requestParam: 'status' }],
     join: [{
       entity: CustomerProfileEntity,
       alias: 'b',
@@ -32,7 +56,14 @@ import {CarRegEntity} from "../../../carReg/entity/info";
       alias: 'c',
       condition: 'a.carID = c.id',
       type: 'leftJoin'
-    }]
+    }],
+    where:  async (ctx) => {
+      const { startDate, endDate } = ctx.request.body;
+      return [
+        startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
+        endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
+      ]
+    },
   },
 })
 export class VehicleProfileController extends BaseController {
@@ -47,8 +78,6 @@ export class VehicleProfileController extends BaseController {
   @Post('/getCarInfo', { summary: '停止' })
   async getCarInfo(@Body('registrationNumber') registrationNumber: string,
                    @Body('state') state: string) {
-    console.log('registrationNumber', registrationNumber)
-    console.log('state', state)
     const carRegList = await this.carRegEntity.find({
       registrationNumber,
       state

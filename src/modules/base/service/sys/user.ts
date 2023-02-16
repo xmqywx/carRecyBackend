@@ -38,7 +38,7 @@ export class BaseSysUserService extends BaseService {
    * @param query
    */
   async page(query) {
-    const { keyWord, status, roleId, departmentIds = [] } = query;
+    const { keyWord, status, roleId, label, departmentIds = [] } = query;
     const permsDepartmentArr = await this.baseSysPermsService.departmentIds(
       this.ctx.admin.userId
     ); // 部门权限
@@ -57,6 +57,11 @@ export class BaseSysUserService extends BaseService {
               roleId,
               'and b.roleId = ?',
               [roleId]
+            )}
+            ${this.setSql(
+              label,
+              'and c.label = ?',
+              [label]
             )}
             ${this.setSql(
               !_.isEmpty(departmentIds),
@@ -97,11 +102,33 @@ export class BaseSysUserService extends BaseService {
    * 获得个人信息
    */
   async person() {
-    const info = await this.baseSysUserEntity.findOne({
+    const info: any = await this.baseSysUserEntity.findOne({
       id: this.ctx.admin?.userId,
     });
+    info.department = await this.baseSysDepartmentEntity.findOne({
+      id: info.departmentId
+    });
+    info.roles = await this.baseSysUserRoleEntity.find({
+      id: info.roleId
+    });
+
+    const sql = `
+        SELECT
+            a.id,a.name,a.nickName,a.headImg,a.email,a.remark,a.status,a.createTime,a.updateTime,a.username,a.phone,
+            GROUP_CONCAT(c.name) AS roleName, GROUP_CONCAT(c.id) as roleId, GROUP_CONCAT(c.label) as roleLabel,
+            GROUP_CONCAT(d.name) as departmentName, GROUP_CONCAT(d.id) as departmentId
+        FROM
+            base_sys_user a
+            LEFT JOIN base_sys_user_role b ON a.id = b.userId
+            LEFT JOIN base_sys_role c ON b.roleId = c.id
+            LEFT JOIN base_sys_department d on a.departmentId = d.id
+        WHERE 1 = 1
+        and a.id = ${this.ctx.admin?.userId}
+        GROUP BY a.id
+        `
+    const list = await this.nativeQuery(sql)
     delete info?.password;
-    return info;
+    return list[0];
   }
 
   /**

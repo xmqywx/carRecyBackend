@@ -36,4 +36,7 @@ export class JobEntity extends BaseEntity {
 
   @Column({ comment: 'note',  nullable: true})
   note: string;
+
+  @Column({ comment: '部门ID', type: 'bigint' })
+  departmentId: number;
 }

@@ -17,9 +17,13 @@ import {OrderInfoEntity} from "../../../order/entity/info";
 
   listQueryOp: {
     keyWordLikeFields: ['customerID'],
-    select: ['a.*', 'b.expectedDate', 'b.pickupAddress', 'c.model', 'c.year', 'c.brand', 'c.colour', 'c.vinNumber'],
+    select: ['a.*', 'b.expectedDate', 'b.pickupAddress', 'c.name', 'c.model', 'c.year', 'c.brand', 'c.colour', 'c.vinNumber', 'c.series', 'c.engine', 'c.image'],
     // 多表关联，请求筛选字段与表字段不一致的情况
-    fieldEq: [{ column: 'a.createTime', requestParam: 'createTime' },{ column: 'a.status', requestParam: 'status' },{ column: 'b.expectedDate', requestParam: 'expectedDate' }],
+    fieldEq: [
+      { column: 'a.createTime', requestParam: 'createTime' },
+      { column: 'a.status', requestParam: 'status' },
+      { column: 'a.departmentId', requestParam: 'departmentId' },
+    ],
     join: [{
       entity: OrderInfoEntity,
       alias: 'b',
@@ -36,13 +40,16 @@ import {OrderInfoEntity} from "../../../order/entity/info";
       condition: 'a.driverID = d.id',
       type: 'leftJoin'
     }],
-
   },
   pageQueryOp: {
     keyWordLikeFields: ['customerID'],
     select: ['a.*', 'b.expectedDate', 'b.pickupAddress', 'c.model', 'c.year', 'c.brand', 'c.colour', 'c.vinNumber', 'd.username'],
     // 多表关联，请求筛选字段与表字段不一致的情况
-    fieldEq: [{ column: 'a.createTime', requestParam: 'createTime' },{ column: 'a.status', requestParam: 'status' },{ column: 'b.expectedDate', requestParam: 'expectedDate' }],
+    fieldEq: [
+      { column: 'a.createTime', requestParam: 'createTime' },
+      { column: 'a.status', requestParam: 'status' },
+      { column: 'a.departmentId', requestParam: 'departmentId' },
+    ],
     join: [{
       entity: OrderInfoEntity,
       alias: 'b',
@@ -59,14 +66,20 @@ import {OrderInfoEntity} from "../../../order/entity/info";
       condition: 'a.driverID = d.id',
       type: 'leftJoin'
     }],
-    // where:  async (ctx: Context) => {
-    //   const { date } = ctx.request.body;
-    //   return [
-    //     model ? ['model like :model', {model: `%${model}%`}] : [],
-    //     brand ? ['brand like :brand', {brand: `%${brand}%`}]:[],
-    //   ]
-    //
-    // },
+    where:  async (ctx) => {
+      const { startDate, endDate, status } = ctx.request.body;
+      if (status === 0) {
+        return [
+          startDate ? ['a.updateTime >= :startDate', {startDate: new Date(startDate)}] : [],
+          endDate ? ['a.updateTime <= :endDate', {endDate: new Date(endDate)}]:[],
+        ]
+      } else {
+        return [
+          startDate ? ['a.schedulerStart >= :startDate', {startDate: startDate}] : [],
+          endDate ? ['a.schedulerStart <= :endDate', {endDate: endDate}]:[],
+        ]
+      }
+    },
   },
 })
 export class VehicleProfileController extends BaseController {

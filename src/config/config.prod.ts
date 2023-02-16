@@ -7,11 +7,11 @@ import { MidwayConfig } from '@midwayjs/core';
 export default {
   orm: {
     type: 'mysql',
-    host: 'b2opflmuihzchswhi8re-mysql.services.clever-cloud.com',
+    host: '127.0.0.1',
     port: 3306,
-    username: 'uemik8l39ryyxwjz',
-    password: 'TcRzxwBe7668Qtkp9ejM',
-    database: 'b2opflmuihzchswhi8re',
+    username: 'root',
+    password: '123456',
+    database: 'cool-admin',
     synchronize: false,
     logging: false,
     charset: 'utf8mb4',

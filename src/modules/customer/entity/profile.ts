@@ -29,6 +29,9 @@ export class CustomerProfileEntity extends BaseEntity {
   @Column({ comment: 'licence', length: 250, nullable: true })
   licence: string;
 
+  @Column({ comment: '部门ID', type: 'bigint' })
+  departmentId: number;
+
   @OneToMany(() => CarEntity, target => target.theCustomer, {
     eager: true
   })

@@ -15,7 +15,12 @@ import {CarEngineEntity} from "../../entity/engine";
 
   pageQueryOp: {
     select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber'],
-    fieldEq: [{ column: 'b.model', requestParam: 'model' },{ column: 'b.year', requestParam: 'year' },{ column: 'b.brand', requestParam: 'brand' }],
+    fieldEq: [
+      { column: 'b.model', requestParam: 'model' },
+      { column: 'b.departmentId', requestParam: 'departmentId' },
+      { column: 'b.year', requestParam: 'year' },
+      { column: 'b.brand', requestParam: 'brand' }
+    ],
     join: [{
       entity: CarEntity,
       alias: 'b',

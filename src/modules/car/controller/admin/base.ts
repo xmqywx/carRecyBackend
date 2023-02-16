@@ -11,10 +11,14 @@ import {InjectEntityModel} from "@midwayjs/orm";
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: CarEntity,
+  listQueryOp: {
+    keyWordLikeFields: ['name', 'year', 'departmentId'],
+    fieldEq: ['name', 'year', 'customerID', 'departmentId'],
+  },
 
   pageQueryOp: {
-    keyWordLikeFields: ['name', 'year'],
-    fieldEq: ['name', 'year', 'customerID'],
+    keyWordLikeFields: ['name', 'year', 'departmentId'],
+    fieldEq: ['name', 'year', 'customerID', 'departmentId'],
   },
 })
 export class CarBaseController extends BaseController {

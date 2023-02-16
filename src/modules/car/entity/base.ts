@@ -41,7 +41,7 @@ export class CarEntity extends BaseEntity {
   @Column({ comment: 'Series', length: 24, nullable: true })
   series: string;
 
-  @Column({ comment: 'body Style', length: 24, nullable: true })
+  @Column({ comment: 'body Style', length: 254, nullable: true })
   bodyStyle: string;
 
   @Column({ comment: 'engine', nullable: true })
@@ -79,4 +79,16 @@ export class CarEntity extends BaseEntity {
    */
   @Column({ comment: 'status', type:'tinyint', default: 1 })
   status: number;
+
+  @Column({ comment: 'Plates returned', type:'boolean', default: null })
+  platesReturned: boolean;
+
+  @Column({ comment: 'Registered', type:'boolean', default: null })
+  registered: boolean;
+
+  @Column({ comment: 'identificationSighted', type:'boolean', default: null })
+  identificationSighted: boolean;
+
+  @Column({ comment: '部门ID', type: 'bigint' })
+  departmentId: number;
 }

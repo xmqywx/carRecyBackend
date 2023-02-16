@@ -17,15 +17,15 @@ import {Context} from "vm";
   pageQueryOp: {
     keyWordLikeFields: ['name', 'year', 'model'],
     where:  async (ctx: Context) => {
-      const {model, brand} = ctx.request.body;
+      const { model, brand } = ctx.request.body;
       return [
         model ? ['model like :model', {model: `%${model}%`}] : [],
         brand ? ['brand like :brand', {brand: `%${brand}%`}]:[],
       ]
-
     },
     fieldEq: ['name', 'year']
   },
+
 })
 export class VehicleProfileController extends BaseController {
   @InjectEntityModel(VehicleProfileEntity)

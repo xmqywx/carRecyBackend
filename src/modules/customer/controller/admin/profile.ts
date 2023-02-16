@@ -14,7 +14,7 @@ import {InjectEntityModel} from "@midwayjs/orm";
 
   pageQueryOp: {
     keyWordLikeFields: ['firstName', 'surname', 'email', 'phoneNumber'],
-    fieldEq: ['firstName', 'surname'],
+    fieldEq: ['firstName', 'surname', 'departmentId'],
   },
 })
 export class CustomerProfileController extends BaseController {
