@@ -140,7 +140,7 @@ export class BaseSysUserService extends BaseService {
       return;
     }
     if (user.username === 'admin') {
-      throw new CoolCommException('非法操作~');
+      throw new CoolCommException('Illegal operation~');
     }
     await this.baseSysUserRoleEntity.delete({ userId: user.id });
     if (user.roleIdList) {
@@ -160,7 +160,7 @@ export class BaseSysUserService extends BaseService {
       username: param.username,
     });
     if (!_.isEmpty(exists)) {
-      throw new CoolCommException('用户名已经存在~');
+      throw new CoolCommException('User name already exists~');
     }
     param.password = md5(param.password);
     await this.baseSysUserEntity.save(param);
@@ -206,7 +206,7 @@ export class BaseSysUserService extends BaseService {
       param.password = md5(param.password);
       const userInfo = await this.baseSysUserEntity.findOne({ id: param.id });
       if (!userInfo) {
-        throw new CoolCommException('用户不存在');
+        throw new CoolCommException('User does not exist');
       }
       param.passwordV = userInfo.passwordV + 1;
       await this.cacheManager.set(
@@ -225,13 +225,13 @@ export class BaseSysUserService extends BaseService {
    */
   async update(param) {
     if (param.id && param.username === 'admin') {
-      throw new CoolCommException('非法操作~');
+      throw new CoolCommException('Illegal operation~');
     }
     if (!_.isEmpty(param.password)) {
       param.password = md5(param.password);
       const userInfo = await this.baseSysUserEntity.findOne({ id: param.id });
       if (!userInfo) {
-        throw new CoolCommException('用户不存在');
+        throw new CoolCommException('User does not exist');
       }
       param.passwordV = userInfo.passwordV + 1;
       await this.cacheManager.set(

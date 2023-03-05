@@ -53,15 +53,15 @@ export class BaseSysLoginService extends BaseService {
     if (user) {
       // 校验用户状态及密码
       if (user.status === 0 || user.password !== md5(password)) {
-        throw new CoolCommException('账户或密码不正确~');
+        throw new CoolCommException('Incorrect account or password~');
       }
     } else {
-      throw new CoolCommException('账户或密码不正确~');
+      throw new CoolCommException('Incorrect account or password~');
     }
     // 校验角色
     const roleIds = await this.baseSysRoleService.getByUser(user.id);
     if (_.isEmpty(roleIds)) {
-      throw new CoolCommException('该用户未设置任何角色，无法登录~');
+      throw new CoolCommException('The user don\'t have any role set and cannot log~');
     }
 
     // 生成token

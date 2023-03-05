@@ -42,7 +42,7 @@ import {OrderInfoEntity} from "../../../order/entity/info";
     }],
   },
   pageQueryOp: {
-    keyWordLikeFields: ['customerID'],
+    keyWordLikeFields: ['c.name','c.model','c.year',  'b.pickupAddress', 'd.username'],
     select: ['a.*', 'b.expectedDate', 'b.pickupAddress', 'c.model', 'c.year', 'c.brand', 'c.colour', 'c.vinNumber', 'd.username'],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [

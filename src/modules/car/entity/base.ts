@@ -41,6 +41,12 @@ export class CarEntity extends BaseEntity {
   @Column({ comment: 'Series', length: 24, nullable: true })
   series: string;
 
+  @Column({ comment: 'registrationNumber', length: 24, nullable: true })
+  registrationNumber: string;
+
+  @Column({ comment: 'state', length: 24, nullable: true })
+  state: string;
+
   @Column({ comment: 'body Style', length: 254, nullable: true })
   bodyStyle: string;
 

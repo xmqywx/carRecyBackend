@@ -9,6 +9,9 @@ import {OrderActionEntity} from "../../entity/action";
 import axios from 'axios';
 import * as xml2json from  'xml2json';
 import {CarRegEntity} from "../../../carReg/entity/info";
+import {JobEntity} from "../../../job/entity/info";
+import { startOfDay, endOfDay } from 'date-fns';
+import { Between } from "typeorm";
 /**
  * 图片空间信息
  */
@@ -28,6 +31,8 @@ import {CarRegEntity} from "../../../carReg/entity/info";
       'b.address',
       'b.licence',
       'c.model',
+      'c.registrationNumber',
+      'c.state',
       'c.year',
       'c.brand',
       'c.colour',
@@ -69,13 +74,53 @@ import {CarRegEntity} from "../../../carReg/entity/info";
 export class VehicleProfileController extends BaseController {
   @InjectEntityModel(OrderInfoEntity)
   orderInfoEntity: Repository<OrderInfoEntity>;
+  @InjectEntityModel(JobEntity)
+  jobEntity: Repository<JobEntity>;
   @InjectEntityModel(CarEntity)
   carEntity: Repository<CarEntity>;
   @InjectEntityModel(OrderActionEntity)
   orderActionEntity: Repository<OrderActionEntity>;
   @InjectEntityModel(CarRegEntity)
   carRegEntity: Repository<CarRegEntity>;
-  @Post('/getCarInfo', { summary: '停止' })
+
+  @Post('/getCountBooking')
+  async getCountBooking(@Body('status') status: number,
+                        @Body('departmentId') departmentId: number){
+    const count = await this.orderInfoEntity.count({
+      where: {
+        status,
+        departmentId
+      }
+    })
+    const countDay = await this.orderInfoEntity.count({
+      where: {
+        status,
+        departmentId,
+        createTime:Between(startOfDay(new Date()).toISOString(), endOfDay(new Date()).toISOString()),
+      }
+    })
+    return {
+      count,
+      countDay
+    }
+  }
+  @Post('/getCountJob')
+  async getCountJob(@Body('status') status: number,
+                        @Body('departmentId') departmentId: number){
+    const filter: any = {}
+    if (status != undefined) {
+      filter.status = status;
+    }
+    filter.departmentId = departmentId
+    // if (status != undefined) {
+    //   filter.departmentId = departmentId;
+    // }
+    const count = await this.jobEntity.count({
+      where: filter
+    })
+    return this.ok(count)
+  }
+  @Post('/getCarInfo')
   async getCarInfo(@Body('registrationNumber') registrationNumber: string,
                    @Body('state') state: string) {
     const carRegList = await this.carRegEntity.find({
