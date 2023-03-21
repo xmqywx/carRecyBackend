@@ -1,4 +1,4 @@
-import {Body, Post, Provide} from '@midwayjs/decorator';
+import {Body, Post, Provide, Inject} from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import {Repository} from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
@@ -12,6 +12,7 @@ import {CarRegEntity} from "../../../carReg/entity/info";
 import {JobEntity} from "../../../job/entity/info";
 import { startOfDay, endOfDay } from 'date-fns';
 import { Between } from "typeorm";
+import {OrderService} from "../../service/order";
 /**
  * 图片空间信息
  */
@@ -27,6 +28,7 @@ import { Between } from "typeorm";
       'b.firstName',
       'b.surname',
       'b.phoneNumber',
+      'b.secNumber',
       'b.emailAddress',
       'b.address',
       'b.licence',
@@ -72,6 +74,8 @@ import { Between } from "typeorm";
   },
 })
 export class VehicleProfileController extends BaseController {
+  @Inject()
+  orderService: OrderService;
   @InjectEntityModel(OrderInfoEntity)
   orderInfoEntity: Repository<OrderInfoEntity>;
   @InjectEntityModel(JobEntity)
@@ -120,6 +124,15 @@ export class VehicleProfileController extends BaseController {
     })
     return this.ok(count)
   }
+
+  @Post('/getCountMonth')
+  async getCountMonth(@Body('status') status: number,
+                        @Body('departmentId') departmentId: number){
+    const list = await this.orderService.getCountMonth(departmentId);
+    return this.ok(list)
+  }
+
+
   @Post('/getCarInfo')
   async getCarInfo(@Body('registrationNumber') registrationNumber: string,
                    @Body('state') state: string) {

@@ -28,6 +28,9 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'pickupAddress',  nullable: true})
   pickupAddress: string;
 
+  @Column({ comment: 'pickupAddress state',  nullable: true})
+  pickupAddressState: string;
+
   @Column({ comment: 'payMethod',  nullable: true})
   payMethod: string;
 
@@ -48,4 +51,28 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ comment: '部门ID', type: 'bigint' })
   departmentId: number;
+
+  @Column({ type: 'tinyint', nullable: true })
+  gotPapers: boolean;
+
+  @Column({ type: 'tinyint', nullable: true })
+  gotKey: boolean;
+
+  @Column({ type: 'tinyint', nullable: true })
+  gotOwner: boolean;
+
+  @Column({ type: 'tinyint', nullable: true })
+  gotRunning: boolean;
+
+  @Column({ type: 'tinyint', nullable: true })
+  gotLicense: boolean;
+
+  @Column({ type: 'tinyint', nullable: true })
+  gotFlat: boolean;
+
+  @Column({ type: 'tinyint', nullable: true })
+  gotEasy: boolean;
+
+  @Column({ type: 'tinyint', nullable: true })
+  gotBusy: boolean;
 }

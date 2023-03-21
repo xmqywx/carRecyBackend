@@ -7,10 +7,13 @@ import { MidwayConfig } from '@midwayjs/core';
 export default {
   orm: {
     type: 'mysql',
-    host: '127.0.0.1',
+    // host: '127.0.0.1',
+    host: 'database-pickcar.cra4apbybkan.ap-southeast-2.rds.amazonaws.com',
     port: 3306,
-    username: 'root',
-    password: '123456',
+    // username: 'root',
+    username: 'admin',
+    password: 'mysql123456',
+    // password: '123456',
     database: 'cool-admin',
     synchronize: false,
     logging: false,

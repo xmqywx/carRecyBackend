@@ -1,8 +1,8 @@
-import {Provide} from '@midwayjs/decorator';
+import {Provide, Inject} from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import {CustomerProfileEntity} from "../../entity/profile";
-import {Repository} from "typeorm";
-import {InjectEntityModel} from "@midwayjs/orm";
+
+import {CustomerProfileService} from "../../service/profile";
 
 /**
  * 图片空间信息
@@ -11,13 +11,15 @@ import {InjectEntityModel} from "@midwayjs/orm";
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: CustomerProfileEntity,
+  service: CustomerProfileService,
 
   pageQueryOp: {
     keyWordLikeFields: ['firstName', 'surname', 'emailAddress', 'phoneNumber'],
-    fieldEq: ['firstName', 'surname', 'departmentId', 'phoneNumber', 'emailAddress'],
+    fieldEq: ['firstName', 'surname', 'departmentId', 'phoneNumber', 'emailAddress', 'isDel'],
   },
 })
 export class CustomerProfileController extends BaseController {
-  @InjectEntityModel(CustomerProfileEntity)
-  customerProfileEntity: Repository<CustomerProfileEntity>
+  @Inject()
+  customerProfileService: CustomerProfileService
+
 }

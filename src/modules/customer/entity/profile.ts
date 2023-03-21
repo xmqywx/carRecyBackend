@@ -14,7 +14,7 @@ export class CustomerProfileEntity extends BaseEntity {
   @Column({ comment: 'yardID', nullable: true })
   yardID: number;
 
-  @Column({ comment: 'user name', length: 100 })
+  @Column({ comment: 'surname',  nullable: true, length: 100 })
   surname: string;
 
   @Column({ comment: 'Email Address', length: 50, nullable: true })
@@ -22,6 +22,9 @@ export class CustomerProfileEntity extends BaseEntity {
 
   @Column({ comment: 'phone Number', length: 50, nullable: true })
   phoneNumber: string;
+
+  @Column({ comment: 'Secondary phone Number', length: 50, nullable: true })
+  secNumber: string;
 
   @Column({ comment: 'address', length: 250, nullable: true })
   address: string;
@@ -31,6 +34,9 @@ export class CustomerProfileEntity extends BaseEntity {
 
   @Column({ comment: '部门ID', type: 'bigint' })
   departmentId: number;
+
+  @Column({ comment: '是否刪除', default: false })
+  isDel: boolean;
 
   @OneToMany(() => CarEntity, target => target.theCustomer, {
     eager: true

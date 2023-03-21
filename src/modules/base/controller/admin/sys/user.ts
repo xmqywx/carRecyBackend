@@ -15,7 +15,7 @@ import {BaseSysUserRoleEntity} from "../../../entity/sys/user_role";
   listQueryOp: {
     select: ['a.*', 'c.label'],
     // 多表关联，请求筛选字段与表字段不一致的情况
-    fieldEq: [{ column: 'c.label', requestParam: 'label' }],
+    fieldEq: [{ column: 'c.label', requestParam: 'label' }, { column: "a.departmentId", requestParam: "departmentId"}],
     join: [{
       entity: BaseSysUserRoleEntity,
       alias: 'b',
