@@ -31,6 +31,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },
       { column: 'a.status', requestParam: 'status' },
+      { column: 'a.driverID', requestParam: 'driverID' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
     ],
     join: [{

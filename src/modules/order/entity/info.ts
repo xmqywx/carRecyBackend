@@ -37,7 +37,7 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'overridePhoneNumber',  nullable: true})
   overridePhoneNumber: string;
 
-  @Column({ comment: 'recommendedPrice', type:"decimal"})
+  @Column({ comment: 'recommendedPrice', type:"decimal",  nullable: true, default: 0})
   recommendedPrice: string;
 
   @Column({ comment: 'ActualPaymentPrice', type:"decimal",  nullable: true})
