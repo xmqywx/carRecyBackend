@@ -11,7 +11,7 @@ export class JobEntity extends BaseEntity {
   orderID: number;
 
   @Column({ comment: 'driverID', nullable: true})
-  8: number;
+  driverID: number;
 
   @Column({ comment: 'yardID', nullable: true })
   yardID: number;

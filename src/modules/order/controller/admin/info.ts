@@ -13,6 +13,7 @@ import {JobEntity} from "../../../job/entity/info";
 import { startOfDay, endOfDay } from 'date-fns';
 import { Between } from "typeorm";
 import {OrderService} from "../../service/order";
+import { BaseSysUserEntity } from '../../../base/entity/sys/user';
 /**
  * 图片空间信息
  */
@@ -52,7 +53,9 @@ import {OrderService} from "../../service/order";
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
-      { column: 'a.status', requestParam: 'status' }],
+      { column: 'a.status', requestParam: 'status' },
+      {column: 'a.id', requestParam: 'id'}
+    ],
     join: [{
       entity: CustomerProfileEntity,
       alias: 'b',
@@ -63,7 +66,12 @@ import {OrderService} from "../../service/order";
       alias: 'c',
       condition: 'a.carID = c.id',
       type: 'leftJoin'
-    }],
+    },{
+      entity: BaseSysUserEntity,
+      alias: 'd',
+      condition: 'a.driverID = d.id',
+      type: 'leftJoin'
+    },],
     where:  async (ctx) => {
       const { startDate, endDate } = ctx.request.body;
       return [

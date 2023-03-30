@@ -33,6 +33,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
       { column: 'a.status', requestParam: 'status' },
       { column: 'a.driverID', requestParam: 'driverID' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
+      { column: 'a.id', requestParam: 'id' },
     ],
     join: [{
       entity: OrderInfoEntity,
