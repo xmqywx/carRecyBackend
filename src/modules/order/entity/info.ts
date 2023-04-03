@@ -75,4 +75,16 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ type: 'tinyint', nullable: true })
   gotBusy: boolean;
+
+  @Column({ comment: 'modelNumber', nullable: true})
+  modelNumber: string;
+
+  @Column({ comment: 'carColor',  nullable: true})
+  carColor: string;
+
+  @Column({ comment: 'imageFileDir', nullable: true})
+  imageFileDir: string;
+
+  @Column({ comment: 'signature',  nullable: true})
+  signature: string;
 }

@@ -17,7 +17,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
   entity: JobEntity,
 
   listQueryOp: {
-    keyWordLikeFields: ['customerID'],
+    keyWordLikeFields: ['c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
     select: [
       'a.*',
       'b.expectedDate',
@@ -57,12 +57,20 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
       type: 'leftJoin'
     }],
     where:  async (ctx) => {
-      const { startDate, endDate } = ctx.request.body;
-      return [
-        ['a.status != :status', {status  : 5}],
-        startDate ? ['a.updateTime >= :startDate', {startDate: new Date(startDate)}] : [],
-        endDate ? ['a.updateTime <= :endDate', {endDate: new Date(endDate)}]:[],
-      ]
+      const { startDate, endDate, status } = ctx.request.body;
+      if (status === 0) {
+        return [
+          ['a.status != :status', {status  : 5}],
+          startDate ? ['a.updateTime >= :startDate', {startDate: new Date(startDate)}] : [],
+          endDate ? ['a.updateTime <= :endDate', {endDate: new Date(endDate)}]:[],
+        ]
+      } else {
+        return [
+          ['a.status != :status', {status  : 5}],
+          startDate ? ['a.schedulerStart >= :startDate', {startDate: startDate}] : [],
+          endDate ? ['a.schedulerStart <= :endDate', {endDate: endDate}]:[],
+        ]
+      }
     },
   },
   pageQueryOp: {
@@ -73,6 +81,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
       { column: 'a.createTime', requestParam: 'createTime' },
       { column: 'a.status', requestParam: 'status' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
+      { column: 'a.driverID', requestParam: 'driverID' },
     ],
     join: [{
       entity: OrderInfoEntity,
