@@ -31,24 +31,6 @@ export class JobEntity extends BaseEntity {
   @Column({ comment: '实际 end time', type: 'timestamp',  nullable: true})
   end: string;
 
-  @Column({ comment: 'modelNumber', nullable: true})
-  modelNumber: string;
-
-  @Column({ comment: 'carColor',  nullable: true})
-  carColor: string;
-
-  @Column({ comment: 'actualPaymentPrice', nullable: true})
-  actualPaymentPrice: string;
-
-  @Column({ comment: 'payMethod',  nullable: true})
-  payMethod: string;
-
-  @Column({ comment: 'imageFileDir', nullable: true})
-  imageFileDir: string;
-
-  @Column({ comment: 'signature',  nullable: true})
-  signature: string;
-
   @Column({ comment: 'isAccept', type: 'boolean',  default: false})
   isAccept: boolean;
 
