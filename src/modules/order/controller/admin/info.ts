@@ -23,7 +23,9 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
   entity: OrderInfoEntity,
 
   pageQueryOp: {
-    keyWordLikeFields: ['firstName', 'surname', 'name', 'model', 'year', 'brand'],
+    keyWordLikeFields: [
+      'firstName',
+      'surname', 'c.name', 'model', 'year', 'brand'],
     select: [
       'a.*',
       'b.firstName',
