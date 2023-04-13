@@ -31,7 +31,7 @@ export class VehicleProfileController extends BaseController {
   @InjectEntityModel(VehicleProfileEntity)
   vehicleProfileEntity: Repository<VehicleProfileEntity>
 
-  @Post('/upload', { summary: '文件上传' })
+  @Post('/uploadExcel', { summary: '文件上传' })
   async upload() {
     const result = excelToJson({
       sourceFile: __dirname + '\\357671bb-5a6e-45c1-b49a-248377405281_car.xlsx',
