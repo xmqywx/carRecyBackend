@@ -28,7 +28,9 @@ import main from '../../../sendEmail/index';
   entity: OrderInfoEntity,
 
   pageQueryOp: {
-    keyWordLikeFields: ['firstName', 'surname', 'name', 'model', 'year', 'brand'],
+    keyWordLikeFields: [
+      'firstName',
+      'surname', 'c.name', 'model', 'year', 'brand'],
     select: [
       'a.*',
       'b.firstName',
@@ -78,8 +80,9 @@ import main from '../../../sendEmail/index';
       type: 'leftJoin'
     },],
     where:  async (ctx) => {
-      const { startDate, endDate } = ctx.request.body;
+      const { startDate, endDate, isPaid } = ctx.request.body;
       return [
+        isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice', {actualPaymentPrice: 0}]:[],
         startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
         endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
       ]
