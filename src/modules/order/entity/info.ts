@@ -31,6 +31,17 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'pickupAddress state',  nullable: true})
   pickupAddressState: string;
 
+  /***
+   * form.pickupAddressLat= res.geometry.location.lat();
+	form.pickupAddressLng= res.geometry.location.lng();
+   * 
+   */
+  @Column({ comment: 'pickupAddress lat',  nullable: true})
+  pickupAddressLat: string;
+
+  @Column({ comment: 'pickupAddress lng',  nullable: true})
+  pickupAddressLng: string;
+
   @Column({ comment: 'payMethod',  nullable: true})
   payMethod: string;
 

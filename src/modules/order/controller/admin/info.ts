@@ -14,6 +14,11 @@ import { startOfDay, endOfDay } from 'date-fns';
 import { Between } from "typeorm";
 import {OrderService} from "../../service/order";
 import { BaseSysUserEntity } from '../../../base/entity/sys/user';
+import main from '../../../sendEmail/index';
+// import nodemailer from 'nodemailer';
+
+
+
 /**
  * 图片空间信息
  */
@@ -80,7 +85,15 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       ]
     },
   },
+  
 })
+
+// @Post('/sendEmail')
+// async sendEmail(@Body('name') name: string, @Body('number') number: string, @Body('price') price: number) {
+//   const info = await main({name, number, price});
+//   return this.ok({info});
+// }
+
 export class VehicleProfileController extends BaseController {
   @Inject()
   orderService: OrderService;
@@ -181,3 +194,37 @@ export class VehicleProfileController extends BaseController {
   }
 
 }
+
+// // 使用async..await 创建执行函数
+// async function main() {
+//   // 如果你没有一个真实邮箱的话可以使用该方法创建一个测试邮箱
+ 
+//   // 创建Nodemailer传输器 SMTP 或者 其他 运输机制
+//   let transporter = nodemailer.createTransport({
+//     host: "smtp.gmail.com", // 第三方邮箱的主机地址
+//     port: 465,
+//     secure: true, // true for 465, false for other ports
+//     auth: {
+//       user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
+//       pass: "qxtevaozxibvalxj", // 邮箱授权密码
+//     },
+//   });
+//   // 定义transport对象并发送邮件
+//   const receiver = {
+//     from: '"Dooring ????" laurentliu0918@gmail.com', // 发送方邮箱的账号
+//     to: "480946994@qq.com", // 邮箱接受者的账号
+//     subject: "Hello Dooring", // Subject line
+//     text: "H5-Dooring?", // 文本内容
+//     html: "欢迎注册h5.dooring.cn, 您的邮箱验证码是:<b>aaaaaaaaaaaaaaaa</b>", // html 内容, 如果设置了html内容, 将忽略text内容
+//   };
+//   let info = await transporter.sendMail(receiver,(error,info) => {
+//     if (error) {
+//       return console.log('发送失败:', error);
+//   }
+//   transporter.close()
+//   console.log('发送成功:', info.response)
+
+
+//   });
+// }
+
