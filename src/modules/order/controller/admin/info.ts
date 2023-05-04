@@ -75,8 +75,9 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       type: 'leftJoin'
     },],
     where:  async (ctx) => {
-      const { startDate, endDate } = ctx.request.body;
+      const { startDate, endDate, isPaid } = ctx.request.body;
       return [
+        isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice', {actualPaymentPrice: 0}]:[],
         startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
         endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
       ]
