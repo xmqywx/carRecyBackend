@@ -93,7 +93,7 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'carColor',  nullable: true})
   carColor: string;
 
-  @Column({ comment: 'imageFileDir', nullable: true})
+  @Column({ comment: 'imageFileDir', nullable: true, length: 10000})
   imageFileDir: string;
 
   @Column({ comment: 'signature',  nullable: true})

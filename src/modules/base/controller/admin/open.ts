@@ -3,8 +3,10 @@ import { CoolController, BaseController, CoolEps } from '@cool-midway/core';
 import { LoginDTO } from '../../dto/login';
 import { BaseSysLoginService } from '../../service/sys/login';
 import { BaseSysParamService } from '../../service/sys/param';
+import { BaseWreckingSearchService } from '../../service/sys/wreckingSearch';
 import { Context } from '@midwayjs/koa';
 import { Validate } from '@midwayjs/validate';
+
 
 /**
  * 不需要登录的后台接口
@@ -17,6 +19,9 @@ export class BaseOpenController extends BaseController {
 
   @Inject()
   baseSysParamService: BaseSysParamService;
+
+  @Inject()
+  baseWreckingSearchService: BaseWreckingSearchService;
 
   @Inject()
   ctx: Context;
@@ -69,5 +74,24 @@ export class BaseOpenController extends BaseController {
   @Get('/refreshToken', { summary: '刷新token' })
   async refreshToken(@Query('refreshToken') refreshToken: string) {
     return this.ok(await this.baseSysLoginService.refreshToken(refreshToken));
+  }
+  /**
+   * 获取分解信息
+   * @param id 
+   * @returns 
+   */
+  @Get('/searchBody', { summary: "Search car body" })
+  async searchBody(@Query('id') id) {
+    return this.ok(await this.baseWreckingSearchService.getBody(id));
+  }
+
+  @Get('/searchEngine', { summary: "Search car engine" })
+  async searchEngine(@Query('id') id) {
+    return this.ok(await this.baseWreckingSearchService.getEngine(id));
+  }
+
+  @Get('/searchCatalyticConverter', { summary: "Search car catalytic converter" })
+  async searchCatalyticConverter(@Query('id') id) {
+    return this.ok(await this.baseWreckingSearchService.getCatalyticConverter(id));
   }
 }

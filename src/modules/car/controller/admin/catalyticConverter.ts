@@ -17,6 +17,7 @@ import {CarCatalyticConverterEntity} from "../../entity/catalyticConverter";
     select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber'],
     fieldEq: [
       { column: 'b.model', requestParam: 'model' },
+      { column: 'a.carID', requestParam: 'carID' },
       { column: 'b.departmentId', requestParam: 'departmentId' },
       { column: 'b.year', requestParam: 'year' },
       { column: 'b.brand', requestParam: 'brand' }

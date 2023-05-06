@@ -12,11 +12,11 @@ import {CarBodyEntity} from "../../entity/body";
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: CarBodyEntity,
-
   pageQueryOp: {
+    keyWordLikeFields: ['carID'],
     select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber'],
-
     fieldEq: [
+      { column: 'a.carID', requestParam: 'carID' },
       { column: 'b.model', requestParam: 'model' },
       { column: 'b.departmentId', requestParam: 'departmentId' },
       { column: 'b.year', requestParam: 'year' },

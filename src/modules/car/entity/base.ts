@@ -80,6 +80,9 @@ export class CarEntity extends BaseEntity {
   @Column({ comment: 'TareWeight', nullable: true })
   tareWeight: number;
 
+  @Column({ comment: 'Car info', nullable: true, length: 10000 })
+  carInfo: string;
+
   /**
    * 1. 已录入，未托运 2. 需要拆解 3. 已经拆解
    */

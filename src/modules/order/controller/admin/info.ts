@@ -55,6 +55,7 @@ import main from '../../../sendEmail/index';
       'c.identificationSighted',
       'c.registered',
       'c.platesReturned',
+      'c.carInfo',
     ],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [
