@@ -18,3 +18,4 @@ typings/
 public/uploads/
 cache/
 .vercel
+.env*
