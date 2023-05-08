@@ -3,7 +3,9 @@ const AWS = require('aws-sdk');
 const nodemailer = require('nodemailer');
 const puppeteer = require('puppeteer-core');
 const fs = require('fs');
-
+const dotenv = require('dotenv');
+const envFile = process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
+dotenv.config({ path: envFile });
 // 读取图片文件
 const imgPath = '../../../public/pickYourCar.png';
 fs.readFile(imgPath, (err, data) => {
@@ -19,9 +21,9 @@ fs.readFile(imgPath, (err, data) => {
 });
 // 配置 AWS SDK
 AWS.config.update({
-  region: 'ap-southeast-2',
-  accessKeyId: 'AKIAWV4HQIPSDD6Z6FL2',
-  secretAccessKey: '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'
+  region: process.env.NODE_REGION,
+  accessKeyId: process.env.NODE_ACCESS_KEY_ID,
+  secretAccessKey: process.env.NODE_SECRET_ACCESSKEY
 });
 
 // 创建 S3 实例
@@ -29,10 +31,13 @@ const s3 = new AWS.S3();
 // 创建ses 实例
 // const ses = new AWS.SES();
 // 电子邮件发送者和接收者
-const fromEmail = '480946994@qq.com';
+const fromEmail = process.env.NODE_MAIL_USER;
 const logoUrl = "http://52.65.93.81/pickYourCar.png";
 
 export default async function main({name, price, number, email}) {
+  console.log("----------------------");
+  console.log(process.env.NODE_MAIL_USER);
+  console.log("----------------------");
   const currentTime = moment().format('DD-MM-YYYY');
   const myName = "We pick your car";
   const qty = 1;
@@ -251,8 +256,8 @@ const invoiceHtml = `
     port: 465,
     secure: true,
     auth: {
-      user: "480946994@qq.com",
-      pass: "mfjmuvajltiacafj",
+      user: process.env.NODE_MAIL_USER,
+      pass: process.env.NODE_MAIL_PASS,
     },
     debug: true,
   });
