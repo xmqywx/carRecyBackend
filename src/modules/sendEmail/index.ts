@@ -27,7 +27,7 @@ AWS.config.update({
 // 创建 S3 实例
 const s3 = new AWS.S3();
 // 创建ses 实例
-const ses = new AWS.SES();
+// const ses = new AWS.SES();
 // 电子邮件发送者和接收者
 const fromEmail = '480946994@qq.com';
 const logoUrl = "http://52.65.93.81/pickYourCar.png";
@@ -111,7 +111,7 @@ const invoiceHtml = `
       </head>
       <body>
         <div id="invoice">
-          
+
           <h1>We Pick Your Car Invoice</h1>
           <div class="date themecolor">Issued on: ${currentTime}</div>
           <div class="sbt">
@@ -240,7 +240,7 @@ const invoiceHtml = `
     // // service: 'Gmail', // 使用 Gmail 作为示例，您可以更改为其他服务
     // auth: {
     //   user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
-    //   pass: "qxtevaozxibvalxj", 
+    //   pass: "qxtevaozxibvalxj",
     // },
     //     auth: {
     //         user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
@@ -271,7 +271,7 @@ const invoiceHtml = `
       }
     ]
   };
-  
+
   try {
     const info = await transport.sendMail(mailOptions);
     console.log('发票邮件已发送: %s', info.messageId);

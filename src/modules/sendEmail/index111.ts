@@ -1,8 +1,8 @@
 const nodemailer = require("nodemailer");
 
-const fs = require('fs');
-const pdf = require('html-pdf');
-const smtpTransport = require("nodemailer-smtp-transport");
+// const fs = require('fs');
+// const pdf = require('html-pdf');
+// const smtpTransport = require("nodemailer-smtp-transport");
 // 使用async..await 创建执行函数
 async function main({ name, price, number, email }) {
 

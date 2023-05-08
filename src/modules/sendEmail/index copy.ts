@@ -141,7 +141,7 @@ async function main() {
       </body>
       </html>`, // html 内容, 如果设置了html内容, 将忽略text内容
     };
-    let info = await transporter.sendMail(receiver, (error, info) => {
+    await transporter.sendMail(receiver, (error, info) => {
         if (error) {
             return console.log('发送失败:', error);
         }
@@ -245,7 +245,7 @@ export default main;
 //     subject: 'Invoice',
 //     text: 'Please find attached invoice',
 //     attachments: null,
-//     html: renderedHtml  
+//     html: renderedHtml
 //   };
 
 //   const attachment = {
@@ -264,7 +264,7 @@ export default main;
 //     } else {
 //       console.log('Email sent: ' + info.response);
 //     }
-    
+
 //   });
 // });
 // // const mailOptions = {
@@ -293,7 +293,7 @@ export default main;
 //   //   } else {
 //   //     console.log('Email sent: ' + info.response);
 //   //   }
-    
+
 //   // });
 // }
 
