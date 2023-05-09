@@ -14,7 +14,6 @@ import { startOfDay, endOfDay } from 'date-fns';
 import { Between } from "typeorm";
 import {OrderService} from "../../service/order";
 import { BaseSysUserEntity } from '../../../base/entity/sys/user';
-import main from '../../../sendEmail/index';
 // import nodemailer from 'nodemailer';
 
 
@@ -89,7 +88,7 @@ import main from '../../../sendEmail/index';
       ]
     },
   },
-  
+
 })
 
 // @Post('/sendEmail')
@@ -202,7 +201,7 @@ export class VehicleProfileController extends BaseController {
 // // 使用async..await 创建执行函数
 // async function main() {
 //   // 如果你没有一个真实邮箱的话可以使用该方法创建一个测试邮箱
- 
+
 //   // 创建Nodemailer传输器 SMTP 或者 其他 运输机制
 //   let transporter = nodemailer.createTransport({
 //     host: "smtp.gmail.com", // 第三方邮箱的主机地址

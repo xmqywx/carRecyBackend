@@ -1,5 +1,5 @@
 import { Inject, Provide, Config } from '@midwayjs/decorator';
-import { BaseService, CoolCommException, RESCODE } from '@cool-midway/core';
+import { BaseService } from '@cool-midway/core';
 import { CarBodyEntity } from '../../../car/entity/body';
 import { CarEngineEntity } from '../../../car/entity/engine';
 import { CarCatalyticConverterEntity } from '../../../car/entity/catalyticConverter';
