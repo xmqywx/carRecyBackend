@@ -12,7 +12,7 @@ export class CarBodyEntity extends BaseEntity {
   @Column({ comment: 'yardID', nullable: true })
   yardID: number;
 
-  @Column({ comment: 'QrCode', nullable: true, length: 100 })
+  @Column({ comment: 'QrCode', nullable: true, length: 10000 })
   qrCode: string;
 
   @Column({ comment: 'Price', nullable: true, type:"decimal" })

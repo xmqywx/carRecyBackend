@@ -14,7 +14,7 @@ import {CarBodyEntity} from "../../entity/body";
   entity: CarBodyEntity,
   pageQueryOp: {
     keyWordLikeFields: ['carID'],
-    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber'],
+    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber','b.name','b.registrationNumber','b.state','b.series','b.engine','b.bodyStyle'],
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'b.model', requestParam: 'model' },

@@ -14,7 +14,7 @@ import {CarEngineEntity} from "../../entity/engine";
   entity: CarEngineEntity,
 
   pageQueryOp: {
-    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber'],
+    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber','b.name','b.registrationNumber','b.state','b.series','b.engine','b.bodyStyle'],
     fieldEq: [
       { column: 'b.model', requestParam: 'model' },
       { column: 'a.carID', requestParam: 'carID' },
