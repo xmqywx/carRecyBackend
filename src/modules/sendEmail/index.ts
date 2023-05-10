@@ -2,24 +2,24 @@ const moment = require("moment");
 const AWS = require('aws-sdk');
 const nodemailer = require('nodemailer');
 // const puppeteer = require('puppeteer-core');
-const fs = require('fs');
+// const fs = require('fs');
 const dotenv = require('dotenv');
 const envFile = process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
 const pdf = require("html-pdf");
 dotenv.config({ path: envFile });
 // 读取图片文件
-const imgPath = '../../../public/pickYourCar.png';
-fs.readFile(imgPath, (err, data) => {
-  if (err) {
-    console.error(err);
-    return;
-  }
+// const imgPath = '../../../public/pickYourCar.png';
+// fs.readFile(imgPath, (err, data) => {
+//   if (err) {
+//     console.error(err);
+//     return;
+//   }
 
-  // 将图片数据转换成Base64编码
-  const base64 = Buffer.from(data).toString('base64');
+//   // 将图片数据转换成Base64编码
+//   const base64 = Buffer.from(data).toString('base64');
 
-  console.log(base64);
-});
+//   console.log(base64);
+// });
 // 配置 AWS SDK
 AWS.config.update({
   region: process.env.NODE_REGION,
@@ -250,6 +250,10 @@ const invoiceHtml = `
           filename: 'invoice.pdf',
           path: pdfUrl
         }
+        // {
+        //   filename: 'invoice.pdf',
+        //   content: pdfBuffer
+        // }
       ]
     };
   
