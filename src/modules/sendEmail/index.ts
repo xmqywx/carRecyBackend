@@ -33,7 +33,7 @@ const s3 = new AWS.S3();
 // const ses = new AWS.SES();
 // 电子邮件发送者和接收者
 const fromEmail = process.env.NODE_MAIL_USER;
-const logoUrl = "http://52.65.93.81/pickYourCar.png";
+const logoUrl = "http://13.54.137.62/pickYourCar.png";
 
 export default async function main({name, price, number, email}) {
   console.log("----------------------");
@@ -192,14 +192,77 @@ const invoiceHtml = `
   // await page.setContent(invoiceHtml);
   // const pdfBuffer = await page.pdf({ format: 'A4' });
   // await browser.close();
-  // let pdfBuffer;
+  let pdfBuffer;
 
   // pdf.create(invoiceHtml).toBuffer(function(err, buffer) {
   //   // buffer 即包含生成的 PDF 内容        
   //   pdfBuffer = buffer;
   // })
-  const pdfBuffer = await pdf.create(invoiceHtml).toBuffer();
+  // const pdfBuffer = await pdf.create(invoiceHtml).toBuffer();
+  // console.log(pdfBuffer);
+  pdf.create(invoiceHtml).toBuffer(async function(err, buffer){
+    console.log('This is a buffer:', buffer);
+    pdfBuffer = buffer;
+    const s3Params = {
+      Bucket: 'pickcar',
+      Key: `invoices/invoice-${Date.now()}.pdf`,
+      Body: pdfBuffer,
+      ContentType: 'application/pdf'
+    };
+    const s3Upload = await s3.upload(s3Params).promise();
+    const pdfUrl = s3Upload.Location;
+    console.log(pdfUrl);
+  
+    // 配置 Nodemailer
+    const transport = nodemailer.createTransport({
+      // host: "smtp.gmail.com", // 第三方邮箱的主机地址
+      // port: 465,
+      // secure: true, // true for 465, false for other ports
+      // // service: 'Gmail', // 使用 Gmail 作为示例，您可以更改为其他服务
+      // auth: {
+      //   user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
+      //   pass: "qxtevaozxibvalxj",
+      // },
+      //     auth: {
+      //         user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
+      //         pass: "qxtevaozxibvalxj", // 邮箱授权密码
+      //     },
+      host: "smtp.qq.com",
+      pool: true,
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.NODE_MAIL_USER,
+        pass: process.env.NODE_MAIL_PASS,
+      },
+      debug: true,
+    });
+  
+  
+    // 发送带有 PDF 附件的电子邮件
+    const mailOptions = {
+      from: fromEmail,
+      to: toEmail,
+      subject: '您的发票',
+      text: '请查看附件中的发票。',
+      attachments: [
+        {
+          filename: 'invoice.pdf',
+          path: pdfUrl
+        }
+      ]
+    };
+  
+    try {
+      const info = await transport.sendMail(mailOptions);
+      console.log('发票邮件已发送: %s', info.messageId);
+      return info;
+    } catch (error) {
+      console.error('发送发票邮件时出错: %s', error);
+      return error;
+    }
 
+  });
 //   // 发送电子邮件
 // ses.sendEmail({
 //   Source: fromEmail,
@@ -235,62 +298,5 @@ const invoiceHtml = `
 
 
   // 将 PDF 上传到 S3
-  const s3Params = {
-    Bucket: 'pickcar',
-    Key: `invoices/invoice-${Date.now()}.pdf`,
-    Body: pdfBuffer,
-    ContentType: 'application/pdf'
-  };
-  const s3Upload = await s3.upload(s3Params).promise();
-  const pdfUrl = s3Upload.Location;
-
-
-  // 配置 Nodemailer
-  const transport = nodemailer.createTransport({
-    // host: "smtp.gmail.com", // 第三方邮箱的主机地址
-    // port: 465,
-    // secure: true, // true for 465, false for other ports
-    // // service: 'Gmail', // 使用 Gmail 作为示例，您可以更改为其他服务
-    // auth: {
-    //   user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
-    //   pass: "qxtevaozxibvalxj",
-    // },
-    //     auth: {
-    //         user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
-    //         pass: "qxtevaozxibvalxj", // 邮箱授权密码
-    //     },
-    host: "smtp.qq.com",
-    pool: true,
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.NODE_MAIL_USER,
-      pass: process.env.NODE_MAIL_PASS,
-    },
-    debug: true,
-  });
-
-
-  // 发送带有 PDF 附件的电子邮件
-  const mailOptions = {
-    from: fromEmail,
-    to: toEmail,
-    subject: '您的发票',
-    text: '请查看附件中的发票。',
-    attachments: [
-      {
-        filename: 'invoice.pdf',
-        path: pdfUrl
-      }
-    ]
-  };
-
-  try {
-    const info = await transport.sendMail(mailOptions);
-    console.log('发票邮件已发送: %s', info.messageId);
-    return info;
-  } catch (error) {
-    console.error('发送发票邮件时出错: %s', error);
-    return error;
-  }
+  
 }
