@@ -38,6 +38,8 @@ const logoUrl = "http://13.54.137.62/pickYourCar.png";
 export default async function main({name, price, number, email}) {
   console.log("----------------------");
   console.log(process.env.NODE_MAIL_USER);
+  console.log(process.env.NODE_ACCESS_KEY_ID);
+  console.log(process.env.NODE_SECRET_ACCESSKEY);
   console.log("----------------------");
   const currentTime = moment().format('DD-MM-YYYY');
   const myName = "We pick your car";
