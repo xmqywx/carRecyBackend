@@ -5,6 +5,7 @@ const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const envFile = process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
+const pdf = require("html-pdf");
 dotenv.config({ path: envFile });
 // 读取图片文件
 const imgPath = '../../../public/pickYourCar.png';
@@ -182,15 +183,22 @@ const invoiceHtml = `
   if(email != null) {
     toEmail = email;
   }
-  // 将 HTML 转换为 PDF
-  const browser = await puppeteer.launch({
-    executablePath: 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe', // 使用适合你的系统的可执行文件路径
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  const page = await browser.newPage();
-  await page.setContent(invoiceHtml);
-  const pdfBuffer = await page.pdf({ format: 'A4' });
-  await browser.close();
+  // // 将 HTML 转换为 PDF
+  // const browser = await puppeteer.launch({
+  //   executablePath: 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe', // 使用适合你的系统的可执行文件路径
+  //   args: ['--no-sandbox', '--disable-setuid-sandbox']
+  // });
+  // const page = await browser.newPage();
+  // await page.setContent(invoiceHtml);
+  // const pdfBuffer = await page.pdf({ format: 'A4' });
+  // await browser.close();
+  // let pdfBuffer;
+
+  // pdf.create(invoiceHtml).toBuffer(function(err, buffer) {
+  //   // buffer 即包含生成的 PDF 内容        
+  //   pdfBuffer = buffer;
+  // })
+  const pdfBuffer = await pdf.create(invoiceHtml).toBuffer();
 
 //   // 发送电子邮件
 // ses.sendEmail({
