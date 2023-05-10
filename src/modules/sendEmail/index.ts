@@ -1,4 +1,4 @@
-// const moment = require("moment");
+const moment = require("moment");
 const AWS = require('aws-sdk');
 const nodemailer = require('nodemailer');
 // const puppeteer = require('puppeteer-core');
@@ -33,25 +33,151 @@ const s3 = new AWS.S3();
 // const ses = new AWS.SES();
 // 电子邮件发送者和接收者
 const fromEmail = process.env.NODE_MAIL_USER;
-// const logoUrl = "http://13.54.137.62/pickYourCar.png";
+const logoUrl = "http://13.54.137.62/pickYourCar.png";
 
 export default async function main({name, price, number, email}) {
   console.log("----------------------");
   console.log(process.env.NODE_MAIL_USER);
   console.log("----------------------");
-  // const currentTime = moment().format('DD-MM-YYYY');
-  // const myName = "We pick your car";
-  // const qty = 1;
-  // const gst = 0;
-  // let itemTotalPrice = qty * price - gst;
-  // let subtotal = itemTotalPrice;
-  // let Total = itemTotalPrice;
-  // let adjustments = 0;
-  // let invoiceNumber = number;
+  const currentTime = moment().format('DD-MM-YYYY');
+  const myName = "We pick your car";
+  const qty = 1;
+  const gst = 0;
+  let itemTotalPrice = qty * price - gst;
+  let subtotal = itemTotalPrice;
+  let Total = itemTotalPrice;
+  let adjustments = 0;
+  let invoiceNumber = number;
   // HTML 发票模板
 const invoiceHtml = `
-<h1>Simple test</h1> 
-<p>This is a test</p>
+<!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>发票</title>
+        <style>
+          body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            --custom-color: #820EB9;
+            --custom-txt:  #666;
+          }
+          #invoice {
+            margin: 0 auto;
+            max-width: 800px;
+            padding: 30px;
+            border: 1px solid #ccc;
+          }
+          #invoice h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+          }
+          #invoice .date {
+            font-size: 12px;
+            /* color: #666; */
+          }
+          #invoice table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+          }
+          #invoice table th {
+            background-color: #eee;
+            padding: 5px;
+            text-align: left;
+          }
+          #invoice table td {
+            padding: 5px;
+            border: 1px solid #ccc;
+          }
+          #invoice table tr:nth-child(even) td {
+            background-color: #f0f0f0;
+          }
+          #invoice .total {
+            margin-top: 20px;
+            text-align: right;
+          }
+          .sbt {
+            display: flex;
+            gap: 50px;
+          }
+          dd {
+            margin: 0;
+            color: var(--custom-txt);
+          }
+          .themecolor {
+            color: var(--custom-color);
+            font-weight: 700;
+          }
+          .logo {
+            width: 200px;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="invoice">
+
+          <h1>We Pick Your Car Invoice</h1>
+          <div class="date themecolor">Issued on: ${currentTime}</div>
+          <div class="sbt">
+            <img class="logo" src=${logoUrl} alt="">
+            <dl>
+              <dt>Invoice to</dt>
+              <dd>${name}</dd>
+              <dd>${email}</dd>
+            </dl>
+            <dl>
+              <dt>Payable to</dt>
+              <dd>${myName}</dd>
+            </dl>
+            <dl>
+              <dt>Company name</dt>
+              <dd>We Pick Your Car</dd>
+            </dl>
+            <dl>
+              <dt>Invoice #</dt>
+              <dd>${invoiceNumber}</dd>
+            </dl>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit price</th>
+                <th>Gst</th>
+                <th>Total price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>recovery vehicle</td>
+                <td>${qty}</td>
+                <td>$${price}</td>
+                <td>$${gst}</td>
+                <td>$${itemTotalPrice}</td>
+              </tr>
+              <!-- <tr>
+                <td>商品2</td>
+                <td>1</td>
+                <td>100.00</td>
+                <td>100.00</td>
+              </tr>
+              <tr>
+                <td>商品3</td>
+                <td>3</td>
+                <td>30.00</td>
+                <td>90.00</td>
+              </tr> -->
+            </tbody>
+          </table>
+          <div class="total">Subtotal:  $${subtotal}</div>
+          <div class="total">Adjustments:  $${adjustments}</div>
+          <div class="total">Total: $${Total}</div>
+        </div>
+      </body>
+      </html>
 `;
   let toEmail = '';
   if(email != null) {
