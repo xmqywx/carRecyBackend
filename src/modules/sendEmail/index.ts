@@ -228,7 +228,7 @@ const invoiceHtml = `
 
   // 将 PDF 上传到 S3
   const s3Params = {
-    Bucket: 'wepickyourcar',
+    Bucket: 'pickcar',
     Key: `invoices/invoice-${Date.now()}.pdf`,
     Body: pdfBuffer,
     ContentType: 'application/pdf'
