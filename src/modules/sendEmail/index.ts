@@ -202,6 +202,7 @@ const invoiceHtml = `
   // console.log(pdfBuffer);
   pdf.create(invoiceHtml).toBuffer(async function(err, buffer){
     console.log('This is a buffer:', buffer);
+    console.log(err);
     pdfBuffer = buffer;
     const s3Params = {
       Bucket: 'pickcar',
