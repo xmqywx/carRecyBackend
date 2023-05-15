@@ -35,12 +35,64 @@ const s3 = new AWS.S3();
 const fromEmail = process.env.NODE_MAIL_USER;
 const logoUrl = "http://13.54.137.62/pickYourCar.png";
 
-export default async function main({name, price, number, email}) {
+export default async function main({name, price, id, email, invoicePdf = null}) {
   console.log("----------------------");
   console.log(process.env.NODE_MAIL_USER);
   console.log(process.env.NODE_ACCESS_KEY_ID);
   console.log(process.env.NODE_SECRET_ACCESSKEY);
   console.log("----------------------");
+  let toEmail = '';
+  // 配置 Nodemailer
+  const transport = nodemailer.createTransport({
+    // host: "smtp.gmail.com", // 第三方邮箱的主机地址
+    // port: 465,
+    // secure: true, // true for 465, false for other ports
+    // // service: 'Gmail', // 使用 Gmail 作为示例，您可以更改为其他服务
+    // auth: {
+    //   user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
+    //   pass: "qxtevaozxibvalxj",
+    // },
+    //     auth: {
+    //         user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
+    //         pass: "qxtevaozxibvalxj", // 邮箱授权密码
+    //     },
+    host: "smtp.qq.com",
+    pool: true,
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.NODE_MAIL_USER,
+      pass: process.env.NODE_MAIL_PASS,
+    },
+    debug: true,
+  });
+  if(email != null) {
+    toEmail = email;
+  }
+  if(invoicePdf !== null) {
+    const mailOptions = {
+      from: fromEmail,
+      to: toEmail,
+      subject: 'Your invoice',
+      text: 'Please accept your invoice.' + invoicePdf,
+      // attachments: [
+      //   {
+      //     filename: 'invoice.pdf',
+      //     path: invoicePdf
+      //   }
+      // ]
+    };
+  
+    try {
+      const info = await transport.sendMail(mailOptions);
+      console.log('发票邮件已发送: %s', info.messageId);
+      return {...info, status: 'success'};
+    } catch (error) {
+      console.error('发送发票邮件时出错: %s', error);
+      return {error, status: 'failure'};
+    }
+    // return;
+  }
   const currentTime = moment().format('DD-MM-YYYY');
   const myName = "We pick your car";
   const qty = 1;
@@ -49,7 +101,7 @@ export default async function main({name, price, number, email}) {
   let subtotal = itemTotalPrice;
   let Total = itemTotalPrice;
   let adjustments = 0;
-  let invoiceNumber = number;
+  let invoiceNumber = id.toString().padStart(6, "0");;
   // HTML 发票模板
 const invoiceHtml = `
 <!DOCTYPE html>
@@ -181,10 +233,6 @@ const invoiceHtml = `
       </body>
       </html>
 `;
-  let toEmail = '';
-  if(email != null) {
-    toEmail = email;
-  }
   // // 将 HTML 转换为 PDF
   // const browser = await puppeteer.launch({
   //   executablePath: 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe', // 使用适合你的系统的可执行文件路径
@@ -221,57 +269,30 @@ const invoiceHtml = `
   const pdfUrl = s3Upload.Location;
   console.log(pdfUrl);
 
-  // 配置 Nodemailer
-  const transport = nodemailer.createTransport({
-    // host: "smtp.gmail.com", // 第三方邮箱的主机地址
-    // port: 465,
-    // secure: true, // true for 465, false for other ports
-    // // service: 'Gmail', // 使用 Gmail 作为示例，您可以更改为其他服务
-    // auth: {
-    //   user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
-    //   pass: "qxtevaozxibvalxj",
-    // },
-    //     auth: {
-    //         user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
-    //         pass: "qxtevaozxibvalxj", // 邮箱授权密码
-    //     },
-    host: "smtp.qq.com",
-    pool: true,
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.NODE_MAIL_USER,
-      pass: process.env.NODE_MAIL_PASS,
-    },
-    debug: true,
-  });
+  
 
 
   // 发送带有 PDF 附件的电子邮件
   const mailOptions = {
     from: fromEmail,
     to: toEmail,
-    subject: '您的发票',
-    text: '请查看附件中的发票。',
+    subject: 'Your invoice',
+    text: 'Please see the invoice in the attachment.',
     attachments: [
       {
         filename: 'invoice.pdf',
         path: pdfUrl
       }
-      // {
-      //   filename: 'invoice.pdf',
-      //   content: pdfBuffer
-      // }
     ]
   };
 
   try {
     const info = await transport.sendMail(mailOptions);
     console.log('发票邮件已发送: %s', info.messageId);
-    return info;
+    return {...info, status: 'success', invoicePdf: pdfUrl};
   } catch (error) {
     console.error('发送发票邮件时出错: %s', error);
-    return error;
+    return {error, status: 'failure'};
   }
 //   // 发送电子邮件
 // ses.sendEmail({

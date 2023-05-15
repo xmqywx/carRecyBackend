@@ -1,4 +1,4 @@
-import {Provide,Body, Post,} from '@midwayjs/decorator';
+import {Provide,Body, Post, Inject} from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import {Repository} from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
@@ -6,6 +6,7 @@ import {BaseSysUserEntity} from "../../../base/entity/sys/user";
 import {OrderActionEntity} from "../../entity/action";
 import {OrderInfoEntity} from "../../entity/info";
 import main from '../../../sendEmail';
+import {OrderService} from '../../service/order';
 /**
  * 图片空间信息
  */
@@ -34,9 +35,21 @@ import main from '../../../sendEmail';
 export class OrderActionController extends BaseController {
   @InjectEntityModel(OrderActionEntity)
   orderInfoEntity: Repository<OrderActionEntity>
+
+  @Inject()
+  orderService: OrderService;
+
   @Post('/sendEmail')
-  async sendEmail(@Body('name') name: string, @Body('number') number: string, @Body('email') email: string, @Body('price') price: number) {
-    const info = await main({name, number, price, email});
-    return this.ok({info});
+  async sendEmail(@Body('name') name: string, @Body('id') id: string, @Body('email') email: string, @Body('price') price: number ) {
+    const invoicePdf = await this.orderService.getInvoice(id);
+    // return this.ok({invoicePdf});
+    const info = await main({name, id, price, email, invoicePdf});
+    if(info.status === 'success') {
+      if(!invoicePdf) {
+        const saveInvoice = await this.orderService.saveInvoice(id, invoicePdf);
+        return this.ok({...info, saveInvoice});
+      }
+    }
+    return this.ok({...info});
   }
 }

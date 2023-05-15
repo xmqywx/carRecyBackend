@@ -24,4 +24,24 @@ export class OrderService extends BaseService {
       lead: list2
     }
   }
+  async getInvoice(id) {
+    const getInvoiceSql = `
+    SELECT * FROM \`order\` WHERE id = '${id}';
+    `;
+    const getInvoiceSqlRes = await this.nativeQuery(getInvoiceSql);
+    return getInvoiceSqlRes[0].invoice;
+  }
+  async saveInvoice(id,path) {
+    const updateSql = `
+      UPDATE \`order\` SET invoice = '${path}' WHERE id = '${id}';
+    `;
+    const selectSql = `
+      SELECT * FROM \`order\` WHERE id = '${id}';
+    `;
+    const updateSqlRes = await this.nativeQuery(updateSql);
+    const selectSqlRes = await this.nativeQuery(selectSql);
+    // return req;
+    console.log(updateSqlRes, selectSqlRes);
+    return selectSql;
+  }
 }

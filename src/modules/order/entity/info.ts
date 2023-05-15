@@ -98,4 +98,7 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ comment: 'signature',  nullable: true})
   signature: string;
+  
+  @Column({ comment: 'invoice',  nullable: true})
+  invoice: string;
 }
