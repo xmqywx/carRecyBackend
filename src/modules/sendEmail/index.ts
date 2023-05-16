@@ -86,6 +86,7 @@ export default async function main({name, price, id, email, invoicePdf = null}) 
     try {
       const info = await transport.sendMail(mailOptions);
       console.log('发票邮件已发送: %s', info.messageId);
+      console.log(invoicePdf);
       return {...info, status: 'success'};
     } catch (error) {
       console.error('发送发票邮件时出错: %s', error);

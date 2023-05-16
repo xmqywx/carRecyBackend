@@ -42,6 +42,6 @@ export class OrderService extends BaseService {
     const selectSqlRes = await this.nativeQuery(selectSql);
     // return req;
     console.log(updateSqlRes, selectSqlRes);
-    return selectSql;
+    return selectSqlRes;
   }
 }
