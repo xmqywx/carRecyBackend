@@ -47,7 +47,7 @@ export class OrderActionController extends BaseController {
     console.log(info);
     if(info.status === 'success') {
       if(!invoicePdf) {
-        const saveInvoice = await this.orderService.saveInvoice(id, invoicePdf);
+        const saveInvoice = await this.orderService.saveInvoice(id, info.invoicePdf);
         return this.ok({...info, saveInvoice});
       }
     }
