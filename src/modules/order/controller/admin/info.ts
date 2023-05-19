@@ -78,11 +78,15 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       alias: 'd',
       condition: 'a.driverID = d.id',
       type: 'leftJoin'
-    },],
+    },{
+      entity: JobEntity,
+      alias: 'e',
+      condition: 'a.id = e.orderID',
+    }],
     where:  async (ctx) => {
       const { startDate, endDate, isPaid } = ctx.request.body;
       return [
-        isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice', {actualPaymentPrice: 0}]:[],
+        isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice and e.status = 4', {actualPaymentPrice: 0}]:[],
         startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
         endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
       ]

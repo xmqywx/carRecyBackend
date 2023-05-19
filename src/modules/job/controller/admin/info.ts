@@ -26,7 +26,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
       'c.name', 'c.model', 'c.year',
       'c.brand', 'c.colour', 'c.vinNumber',
       'c.series', 'c.engine', 'c.image',
-      'e.phoneNumber'],
+      'e.phoneNumber','e.firstName'],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },
