@@ -101,7 +101,38 @@ export class OrderInfoEntity extends BaseEntity {
   
   @Column({ comment: 'invoice',  nullable: true})
   invoice: string;
-
+// -----------------
   @Column({ comment: 'aboutUs',  nullable: true})
   aboutUs: string;
+
+  @Column({ comment: 'deposit', nullable: true })
+  deposit: number;
+
+  @Column({ comment: 'customerName', nullable: true })
+  customerName: string;
+
+  @Column({ comment: 'bankName', nullable: true })
+  bankName: string;
+
+  @Column({ comment: 'bsbNo', nullable: true })
+  bsbNo: number;
+
+  @Column({ comment: 'accountsNo', nullable: true })
+  accountsNo: number;
+
+  @Column({ comment: 'totalAmount', nullable: true })
+  totalAmount: number;
+
+  @Column({ comment: 'gstAmount', nullable: true })
+  gstAmount: number;
+
+  @Column({ comment: 'deduction', nullable: true })
+  deduction: number;
+
+  @Column({ comment: 'comments', nullable: true })
+  comments: string;
+
+  @Column({ comment: 'commentText', nullable: true })
+  commentText: string;
+
 }

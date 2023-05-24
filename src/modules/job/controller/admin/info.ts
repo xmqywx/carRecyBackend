@@ -17,7 +17,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
   entity: JobEntity,
 
   listQueryOp: {
-    keyWordLikeFields: ['c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
+    keyWordLikeFields: ['a.*','c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
     select: [
       'a.*',
       'b.expectedDate',
@@ -34,6 +34,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
       { column: 'a.driverID', requestParam: 'driverID' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.id', requestParam: 'id' },
+      { column: 'a.orderID', requestParam: 'orderID' },
     ],
     join: [{
       entity: OrderInfoEntity,
@@ -74,7 +75,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
     },
   },
   pageQueryOp: {
-    keyWordLikeFields: ['c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
+    keyWordLikeFields: ['a.*','c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
     select: ['a.*', 'b.expectedDate', 'b.pickupAddress', 'b.pickupAddressState','b.pickupAddressLat','b.pickupAddressLng', 'c.model', 'c.year', 'c.brand', 'c.colour', 'c.vinNumber', 'd.username'],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [
@@ -82,6 +83,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
       { column: 'a.status', requestParam: 'status' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.driverID', requestParam: 'driverID' },
+      { column: 'a.orderID', requestParam: 'orderID' },
     ],
     join: [{
       entity: OrderInfoEntity,
