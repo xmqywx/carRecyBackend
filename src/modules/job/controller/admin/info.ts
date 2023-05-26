@@ -7,6 +7,7 @@ import {CarEntity} from "../../../car/entity/base";
 import {BaseSysUserEntity} from "../../../base/entity/sys/user";
 import {OrderInfoEntity} from "../../../order/entity/info";
 import {CustomerProfileEntity} from "../../../customer/entity/profile";
+import {JobService} from '../../service/job';
 
 /**
  * 图片空间信息
@@ -118,6 +119,7 @@ import {CustomerProfileEntity} from "../../../customer/entity/profile";
       }
     },
   },
+  service: JobService
 })
 export class VehicleProfileController extends BaseController {
   @InjectEntityModel(JobEntity)

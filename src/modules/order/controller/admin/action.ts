@@ -6,7 +6,7 @@ import {BaseSysUserEntity} from "../../../base/entity/sys/user";
 import {OrderActionEntity} from "../../entity/action";
 import {OrderInfoEntity} from "../../entity/info";
 import main from '../../../sendEmail';
-import {OrderService} from '../../service/order';
+import {OrderService, OrderActionService} from '../../service/order';
 /**
  * 图片空间信息
  */
@@ -31,6 +31,7 @@ import {OrderService} from '../../service/order';
       type: 'leftJoin'
     }]
   },
+  service: OrderActionService
 })
 export class OrderActionController extends BaseController {
   @InjectEntityModel(OrderActionEntity)

@@ -3,11 +3,14 @@ import {BaseService} from "@cool-midway/core";
 import {InjectEntityModel} from "@midwayjs/orm";
 import {Repository} from "typeorm";
 import {OrderInfoEntity} from "../entity/info";
+import { OrderActionEntity } from "../entity/action";
 
 @Provide()
 export class OrderService extends BaseService {
   @InjectEntityModel(OrderInfoEntity)
   orderInfoEntity: Repository<OrderInfoEntity>;
+  @InjectEntityModel(OrderActionEntity)
+  orderActionEntity: Repository<OrderActionEntity>;
   async getCountMonth(departmentId){
     const year = new Date().getFullYear();
     const sql = `
@@ -56,5 +59,21 @@ export class OrderService extends BaseService {
    */
   async add(params) {
     return this.orderInfoEntity.save(params)
+  }
+
+  // async add(params) {
+  //   // return this.
+  // }
+
+
+}
+
+@Provide()
+export class OrderActionService extends BaseService {
+  @InjectEntityModel(OrderActionEntity)
+  orderActionEntity: Repository<OrderActionEntity>;
+  
+  async add(params) {
+    return this.orderActionEntity.save(params);
   }
 }
