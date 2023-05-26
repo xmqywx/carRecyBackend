@@ -94,6 +94,7 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       ]
     },
   },
+  service: OrderService
 
 })
 
