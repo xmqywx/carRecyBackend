@@ -6,9 +6,9 @@ import { ModuleConfig } from '@cool-midway/core';
 export default () => {
   return {
     // 模块名称
-    name: '关联客户信息',
+    name: '客戶',
     // 模块描述
-    description: '关联客户信息',
+    description: '客戶詳情',
     // 中间件，只对本模块有效
     middlewares: [],
     // 中间件，全局有效

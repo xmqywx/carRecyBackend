@@ -38,6 +38,13 @@ export class CustomerProfileEntity extends BaseEntity {
   @Column({ comment: '是否刪除', default: false })
   isDel: boolean;
 
+  // ----------------
+  @Column({ comment: 'ABN', nullable: true })
+  abn: string;
+
+  @Column({ comment: 'work location', nullable: true })
+  workLocation: string;
+
   @OneToMany(() => CarEntity, target => target.theCustomer, {
     eager: true
   })

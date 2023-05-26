@@ -39,6 +39,8 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       'b.emailAddress',
       'b.address',
       'b.licence',
+      'b.abn',
+      'b.workLocation',
       'c.model',
       'c.registrationNumber',
       'c.state',

@@ -134,5 +134,14 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ comment: 'commentText', nullable: true })
   commentText: string;
+  // ----------- 新增
+  @Column({ comment: 'secondary person ID', type: 'bigint', nullable: true  })
+  secondaryID: number;
 
+  @Column({ comment: 'GST status', nullable: true  })
+  gstStatus: string;
+  
+  @Column({ comment: 'deposit payment', nullable: true  })
+  depositPayMethod: string;
+  
 }
