@@ -29,16 +29,16 @@ export class BaseSysDepartmentService extends BaseService {
    */
   async list() {
     // 部门权限
-    const permsDepartmentArr = await this.baseSysPermsService.departmentIds(
-      this.ctx.admin.userId
-    );
+    // const permsDepartmentArr = await this.baseSysPermsService.departmentIds(
+    //   this.ctx.admin.userId
+    // );
 
     // 过滤部门权限
     const find = this.baseSysDepartmentEntity.createQueryBuilder();
-    if (this.ctx.admin.username !== 'admin')
-      find.andWhere('id in (:ids)', {
-        ids: !_.isEmpty(permsDepartmentArr) ? permsDepartmentArr : [null],
-      });
+    // if (this.ctx.admin.username !== 'admin')
+    //   find.andWhere('id in (:ids)', {
+    //     ids: !_.isEmpty(permsDepartmentArr) ? permsDepartmentArr : [null],
+    //   });
     find.addOrderBy('orderNum', 'ASC');
     const departments: BaseSysDepartmentEntity[] = await find.getMany();
 
