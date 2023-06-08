@@ -251,7 +251,11 @@ const invoiceHtml = `
   // })
   // const pdfBuffer = await pdf.create(invoiceHtml).toBuffer();
   // console.log(pdfBuffer);
-  const htmlPdf = await pdf.create(invoiceHtml);
+  const options = {
+    landscape: true,
+    format: 'A4',
+  };
+  const htmlPdf = await pdf.create(invoiceHtml, options);
   const pdfBuffer = await htmlPdf.toBuffer();
   // pdf.create(invoiceHtml).toBuffer(async function(err, buffer){
   //   console.log('This is a buffer:', buffer);
@@ -259,7 +263,7 @@ const invoiceHtml = `
   //   pdfBuffer = buffer;
     
   // });
-  console.log(pdfBuffer);
+  
   const s3Params = {
     Bucket: 'pickcar',
     Key: `invoices/invoice-${Date.now()}.pdf`,
