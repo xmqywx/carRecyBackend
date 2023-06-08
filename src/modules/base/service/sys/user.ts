@@ -116,7 +116,7 @@ export class BaseSysUserService extends BaseService {
         SELECT
             a.id,a.name,a.nickName,a.headImg,a.email,a.remark,a.status,a.createTime,a.updateTime,a.username,a.phone,
             GROUP_CONCAT(c.name) AS roleName, GROUP_CONCAT(c.id) as roleId, GROUP_CONCAT(c.label) as roleLabel,
-            GROUP_CONCAT(d.name) as departmentName, GROUP_CONCAT(d.id) as departmentId
+            d.name as departmentName, d.id as departmentId
         FROM
             base_sys_user a
             LEFT JOIN base_sys_user_role b ON a.id = b.userId
