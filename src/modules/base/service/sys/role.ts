@@ -116,7 +116,8 @@ export class BaseSysRoleService extends BaseService {
         new Brackets(qb => {
           qb.where('id !=:id', { id: 1 }); // 超级管理员的角色不展示
           // 如果不是超管，只能看到自己新建的或者自己有的角色
-          if (this.ctx.admin.username !== 'admin') {
+          
+          if (this.ctx.admin.username !== 'admin' && !this.ctx.admin.roleIds.includes('10') && !this.ctx.admin.roleIds.includes('14')) {
             qb.andWhere('(userId=:userId or id in (:roleId))', {
               userId: this.ctx.admin.userId,
               roleId: this.ctx.admin.roleIds,
