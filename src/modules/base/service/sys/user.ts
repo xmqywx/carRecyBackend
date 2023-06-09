@@ -39,9 +39,9 @@ export class BaseSysUserService extends BaseService {
    */
   async page(query) {
     const { keyWord, status, roleId, label, departmentIds = [] } = query;
-    const permsDepartmentArr = await this.baseSysPermsService.departmentIds(
-      this.ctx.admin.userId
-    ); // 部门权限
+    // const permsDepartmentArr = await this.baseSysPermsService.departmentIds(
+    //   this.ctx.admin.userId
+    // ); // 部门权限
     const sql = `
         SELECT
             a.id,a.name,a.nickName,a.headImg,a.email,a.remark,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,
