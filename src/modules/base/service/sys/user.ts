@@ -74,14 +74,15 @@ export class BaseSysUserService extends BaseService {
               `%${keyWord}%`,
             ])}
             ${this.setSql(true, 'and a.username != ?', ['admin'])}
-            ${this.setSql(
-              this.ctx.admin.username !== 'admin',
-              'and a.departmentId in (?)',
-              [!_.isEmpty(permsDepartmentArr) ? permsDepartmentArr : [null]]
-            )}
+
         GROUP BY a.id
         `;
     return this.sqlRenderPage(sql, query);
+    // ${this.setSql(
+    //   this.ctx.admin.username !== 'admin',
+    //   'and a.departmentId in (?)',
+    //   [!_.isEmpty(permsDepartmentArr) ? permsDepartmentArr : [null]]
+    // )}
   }
 
   /**
