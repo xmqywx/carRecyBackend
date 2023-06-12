@@ -129,7 +129,7 @@ export class BaseSysUserService extends BaseService {
         `
     const list = await this.nativeQuery(sql)
     delete info?.password;
-    list.departmentId = list.departmentId + "";
+    list[0].departmentId = list.departmentId + "";
     return list[0];
   }
 
