@@ -123,8 +123,26 @@ export class BaseSysRoleService extends BaseService {
               roleId: this.ctx.admin.roleIds,
             });
           }
+          qb.andWhere('(id in (:roleId))', {
+            roleId: pushRoles(this.ctx.admin.roleIds),
+          });
         })
       )
       .getMany();
   }
+}
+
+const roleMap = {
+  '1': ['10', '11', '12', '13', '14'],
+  '10': ['11', '12', '13', '14'],
+  '14': ['11', '12', '13',]
+}
+
+function pushRoles(ids: string[]) {
+  let newIds = [];
+  ids.forEach((id: string) => {
+    if(roleMap[id])
+    newIds.push(...roleMap[id]);
+  });
+  return [...new Set(newIds)];
 }

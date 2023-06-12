@@ -203,6 +203,17 @@ export class VehicleProfileController extends BaseController {
     }
   }
 
+  @Post('/getcredits')
+  async getCredits(){
+    const data = await axios.get('https://www.regcheck.org.uk/ajax/getcredits.aspx?username=smtm2099');
+    console.log(data.data);
+    if(data.data !== null) {
+      return this.ok(data.data);
+    } else {
+      return this.fail();
+    }
+  }
+
 }
 
 // // 使用async..await 创建执行函数
