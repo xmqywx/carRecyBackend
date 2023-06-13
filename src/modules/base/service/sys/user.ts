@@ -229,6 +229,12 @@ export class BaseSysUserService extends BaseService {
     if (param.id && param.username === 'admin') {
       throw new CoolCommException('Illegal operation~');
     }
+    const exists = await this.baseSysUserEntity.findOne({
+      username: param.username,
+    });
+    if (!_.isEmpty(exists)) {
+      throw new CoolCommException('User name already exists~');
+    }
     if (!_.isEmpty(param.password)) {
       param.password = md5(param.password);
       const userInfo = await this.baseSysUserEntity.findOne({ id: param.id });
@@ -236,6 +242,7 @@ export class BaseSysUserService extends BaseService {
         throw new CoolCommException('User does not exist');
       }
       param.passwordV = userInfo.passwordV + 1;
+      
       await this.cacheManager.set(
         `admin:passwordVersion:${param.id}`,
         param.passwordV
