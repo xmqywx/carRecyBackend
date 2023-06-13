@@ -229,11 +229,13 @@ export class BaseSysUserService extends BaseService {
     if (param.id && param.username === 'admin') {
       throw new CoolCommException('Illegal operation~');
     }
+    // 检查新的用户名是否已经存在
     const exists = await this.baseSysUserEntity.findOne({
       username: param.username,
     });
-    if (!_.isEmpty(exists)) {
-      throw new CoolCommException('User name already exists~');
+    if (exists && exists.id !== param.id) {
+      // 如果用户名已经存在，并且不是当前用户的用户名，则抛出自定义错误
+      throw new CoolCommException('Username already exists');
     }
     if (!_.isEmpty(param.password)) {
       param.password = md5(param.password);
@@ -242,7 +244,6 @@ export class BaseSysUserService extends BaseService {
         throw new CoolCommException('User does not exist');
       }
       param.passwordV = userInfo.passwordV + 1;
-      
       await this.cacheManager.set(
         `admin:passwordVersion:${param.id}`,
         param.passwordV
