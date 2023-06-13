@@ -51,8 +51,11 @@ export class BaseSysLoginService extends BaseService {
     const user = await this.baseSysUserEntity.findOne({ username });
     // 校验用户
     if (user) {
+      if(user.status === 0) {
+        throw new CoolCommException('This user is currently inactive.');
+      }
       // 校验用户状态及密码
-      if (user.status === 0 || user.password !== md5(password)) {
+      if (user.password !== md5(password)) {
         throw new CoolCommException('Incorrect account or password~');
       }
     } else {
