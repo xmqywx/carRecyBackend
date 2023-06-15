@@ -63,7 +63,7 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       { column: 'a.createTime', requestParam: 'createTime' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.status', requestParam: 'status' },
-      {column: 'a.id', requestParam: 'id'}
+      { column: 'a.id', requestParam: 'id'}
     ],
     join: [{
       entity: CustomerProfileEntity,

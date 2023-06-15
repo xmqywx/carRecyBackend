@@ -58,7 +58,11 @@ export class OrderService extends BaseService {
    * @param param
    */
   async add(params) {
-    return this.orderInfoEntity.save(params)
+    return this.orderInfoEntity.save(params).then((savedOrder) => {
+      const quoteNumber = `WPYC${savedOrder.id.toString().padStart(7, '0')}`;
+      savedOrder.quoteNumber = quoteNumber;
+      return this.orderInfoEntity.save(savedOrder);
+    })
   }
 
   // async add(params) {

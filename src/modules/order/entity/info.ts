@@ -93,7 +93,7 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'carColor',  nullable: true})
   carColor: string;
 
-  @Column({ comment: 'imageFileDir', nullable: true, length: 10000})
+  @Column({ comment: 'imageFileDir', nullable: true, length: 5000})
   imageFileDir: string;
 
   @Column({ comment: 'signature',  nullable: true})
@@ -101,7 +101,7 @@ export class OrderInfoEntity extends BaseEntity {
   
   @Column({ comment: 'invoice',  nullable: true})
   invoice: string;
-// -----------------
+
   @Column({ comment: 'aboutUs',  nullable: true})
   aboutUs: string;
 
@@ -134,7 +134,7 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ comment: 'commentText', nullable: true })
   commentText: string;
-  // ----------- 新增
+
   @Column({ comment: 'secondary person ID', type: 'bigint', nullable: true  })
   secondaryID: number;
 
@@ -143,5 +143,20 @@ export class OrderInfoEntity extends BaseEntity {
   
   @Column({ comment: 'deposit payment', nullable: true  })
   depositPayMethod: string;
+
+  // -----------------
+  @Column({ comment: 'source', nullable: true  })
+  source: string;
   
+  @Column({ comment: 'kilometers', nullable: true  })
+  kilometers: number;
+  
+  @Column({ comment: 'askingPrice', nullable: true  })
+  askingPrice: number;
+  
+  @Column({ comment: 'paymentRemittance', nullable: true,  length: 5000})
+  paymentRemittance: string;
+  
+  @Column({ comment: 'quoteNumber', nullable: true })
+  quoteNumber: string;
 }
