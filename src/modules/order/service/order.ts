@@ -1,9 +1,10 @@
 import {Provide} from "@midwayjs/decorator";
-import {BaseService} from "@cool-midway/core";
+import {BaseService, CoolCommException} from "@cool-midway/core";
 import {InjectEntityModel} from "@midwayjs/orm";
 import {Repository} from "typeorm";
 import {OrderInfoEntity} from "../entity/info";
 import { OrderActionEntity } from "../entity/action";
+import * as jwt from 'jsonwebtoken';
 
 @Provide()
 export class OrderService extends BaseService {
@@ -68,7 +69,37 @@ export class OrderService extends BaseService {
   // async add(params) {
   //   // return this.
   // }
+  generateToken(payload) {
+    const secret = "XIONWHEREICAN";
+    const options = { expiresIn: '1h' }; // 令牌过期时间
+    const token = jwt.sign(payload, secret, options);
+    return token;
+  }
 
+  verifyToken(token) {
+    const secret = "XIONWHEREICAN";
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, secret, (err, payload) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(payload);
+        }
+      });
+    });
+  }
+
+  
+  async updateOrderById(id: number, updateData: Pick<OrderInfoEntity, 'registrationDoc' | 'driverLicense' | 'vehiclePhoto'>): Promise<OrderInfoEntity> {
+    const order = await this.orderInfoEntity.findOne(id);
+    if (!order) {
+      throw new CoolCommException(`Order with ID ${id} not found.`);
+    }
+    order.registrationDoc = updateData.registrationDoc ?? order.registrationDoc;
+    order.driverLicense = updateData.driverLicense ?? order.driverLicense;
+    order.vehiclePhoto = updateData.vehiclePhoto ?? order.vehiclePhoto;
+    return this.orderInfoEntity.save(order);
+  }
 
 }
 

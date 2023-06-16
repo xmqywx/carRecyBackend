@@ -6,8 +6,15 @@ import { BaseSysParamService } from '../../service/sys/param';
 import { BaseWreckingSearchService } from '../../service/sys/wreckingSearch';
 import { Context } from '@midwayjs/koa';
 import { Validate } from '@midwayjs/validate';
-
-
+import { CoolFile } from '@cool-midway/file';
+import { OrderService } from '../../../order/service/order';
+import getDocs from '../../../sendEmail/sendMailToGetDocs';
+const url = require('url');
+const querystring = require('querystring');
+interface JwtPayload {
+  orderID: number;
+  // Add other properties as needed
+}
 /**
  * 不需要登录的后台接口
  */
@@ -28,6 +35,12 @@ export class BaseOpenController extends BaseController {
 
   @Inject()
   eps: CoolEps;
+
+  @Inject()
+  coolFile: CoolFile;
+
+  @Inject()
+  orderService:OrderService
 
   /**
    * 实体信息与路径
@@ -93,5 +106,51 @@ export class BaseOpenController extends BaseController {
   @Get('/searchCatalyticConverter', { summary: "Search car catalytic converter" })
   async searchCatalyticConverter(@Query('id') id) {
     return this.ok(await this.baseWreckingSearchService.getCatalyticConverter(id));
+  }
+
+  @Get('/test', { summary: "test" })
+  async toTest() {
+    return this.ok("Success");
+  }
+
+  /**
+ * 文件上传
+ */
+  @Post('/upload', { summary: '文件上传' })
+  async upload() {
+    const urlObj = url.parse(this.ctx.request.header.referer);
+    const queryParams = querystring.parse(urlObj.query);
+    const token = queryParams.token;
+    console.log(token);
+    try{
+      await this.orderService.verifyToken(token);
+      return this.ok(await this.coolFile.upload(this.ctx));
+    } catch(e) {
+      return this.fail('The token verification has failed.',e);
+    }
+  }
+
+  
+  @Post('/sendEmailTogetDocs')
+  async sendEmailTogetDocs(@Body('name') name: string,@Body('email') email: string,@Body('orderID') orderID: string,) {
+    const token = this.orderService.generateToken({
+      orderID
+    });
+    const info = await getDocs({
+      email, name, token
+    });
+    return this.ok({...info});
+  }
+
+  @Post('/updateDocs')
+  async updateDocs(@Body('registrationDoc') registrationDoc: string,@Body('driverLicense') driverLicense: string,@Body('vehiclePhoto') vehiclePhoto: string,@Body('token') token: string,) {
+    try{
+      const tokenRes = await this.orderService.verifyToken(token) as JwtPayload;
+      const orderID = tokenRes.orderID;
+      await this.orderService.updateOrderById(orderID, {registrationDoc, driverLicense, vehiclePhoto});
+      return this.ok();
+    } catch(e) {
+      return this.fail('The token verification has failed.',e);
+    }
   }
 }

@@ -154,9 +154,20 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'askingPrice', nullable: true  })
   askingPrice: number;
   
-  @Column({ comment: 'paymentRemittance', nullable: true,  length: 5000})
+  @Column({ comment: 'paymentRemittance', nullable: true, type: 'text'})
   paymentRemittance: string;
   
   @Column({ comment: 'quoteNumber', nullable: true })
   quoteNumber: string;
+
+  // ----
+  @Column({ comment: 'registrationDoc', nullable: true, type: 'text'})
+  registrationDoc: string;
+
+  @Column({ comment: 'driverLicense', nullable: true, type: 'text'})
+  driverLicense: string;
+
+  @Column({ comment: 'vehiclePhoto', nullable: true, type: 'text'})
+  vehiclePhoto: string;
+  
 }
