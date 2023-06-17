@@ -59,8 +59,13 @@ export class OrderService extends BaseService {
    * @param param
    */
   async add(params) {
-    return this.orderInfoEntity.save(params).then((savedOrder) => {
-      const quoteNumber = `WPYC${savedOrder.id.toString().padStart(7, '0')}`;
+    return this.orderInfoEntity.save(params).then(async (savedOrder) => {
+      const getDepartment = `
+        SELECT * FROM \`base_sys_department\` WHERE id = '${savedOrder.departmentId}';
+      `;
+      const getDepartmentSearch = await this.nativeQuery(getDepartment);
+      const departName = getDepartmentSearch[0].name;
+      const quoteNumber = `${this.getInitials(departName)}${savedOrder.id.toString().padStart(7, '0')}`;
       savedOrder.quoteNumber = quoteNumber;
       return this.orderInfoEntity.save(savedOrder);
     })
@@ -89,6 +94,18 @@ export class OrderService extends BaseService {
     });
   }
 
+  getInitials(name) {
+    const words = name.split(' ');
+    let initials = '';
+  
+    words.forEach(word => {
+      if (word.length > 0) {
+        initials += word[0].toUpperCase();
+      }
+    });
+  
+    return initials;
+  }
   
   async updateOrderById(id: number, updateData: Pick<OrderInfoEntity, 'registrationDoc' | 'driverLicense' | 'vehiclePhoto'>): Promise<OrderInfoEntity> {
     const order = await this.orderInfoEntity.findOne(id);

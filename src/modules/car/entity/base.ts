@@ -100,4 +100,14 @@ export class CarEntity extends BaseEntity {
 
   @Column({ comment: '部门ID', type: 'bigint' })
   departmentId: number;
+
+  @Column({ comment: '车辆分解信息', type: 'json', nullable: true  })
+  CarWreckedInfo: {
+    dismantlingLabels: string[];
+    extraPartsExtract: string[];
+    catalyticConverter: boolean;
+  };
+
+  @Column({ comment: '是否 Vehicle for Parts', default: false })
+  isVFP: boolean;
 }

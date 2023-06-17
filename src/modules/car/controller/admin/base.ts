@@ -1,8 +1,11 @@
 import {Provide} from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import {CarEntity} from "../../entity/base";
+import { OrderInfoEntity } from '../../../order/entity/info';
+import { JobEntity } from '../../../job/entity/info';
 import {Repository} from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
+
 
 /**
  * 图片空间信息
@@ -11,14 +14,42 @@ import {InjectEntityModel} from "@midwayjs/orm";
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: CarEntity,
+
   listQueryOp: {
-    keyWordLikeFields: ['name', 'year', 'departmentId'],
-    fieldEq: ['name', 'year', 'customerID', 'departmentId'],
+    keyWordLikeFields: ['a.name', 'a.year', 'a.departmentId'],
+    fieldEq: ['a.name', 'a.year', 'a.customerID', 'a.departmentId'],
   },
 
   pageQueryOp: {
-    keyWordLikeFields: ['name', 'year', 'departmentId'],
-    fieldEq: ['name', 'year', 'customerID', 'departmentId'],
+    keyWordLikeFields: ['a.name', 'a.year', 'a.departmentId'],
+    select: [
+      'a.*',
+      'b.modelNumber',
+      'b.carColor',
+      'b.actualPaymentPrice'
+    ],
+    fieldEq: [
+      { column: 'a.createTime', requestParam: 'createTime' },
+      { column: 'a.departmentId', requestParam: 'departmentId' },
+      { column: 'a.isVFP', requestParam: 'isVFP' },
+      { column: 'a.id', requestParam: 'id'}
+    ],
+    join: [{
+      entity: OrderInfoEntity,
+      alias: 'b',
+      condition: 'a.id = b.carID',
+      type: 'leftJoin'
+    },{
+      entity: JobEntity,
+      alias: 'c',
+      condition: 'c.orderID = b.id',
+    }],
+    where:  async (ctx) => {
+      const { isCompleted } = ctx.request.body;
+      return [
+        isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
+      ]
+    },
   },
 })
 export class CarBaseController extends BaseController {
