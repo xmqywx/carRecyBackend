@@ -74,7 +74,7 @@ export class OrderService extends BaseService {
   // async add(params) {
   //   // return this.
   // }
-  generateToken(payload) {
+  async generateToken(payload) {
     const secret = "XIONWHEREICAN";
     const options = { expiresIn: '1h' }; // 令牌过期时间
     const token = jwt.sign(payload, secret, options);
@@ -112,10 +112,25 @@ export class OrderService extends BaseService {
     if (!order) {
       throw new CoolCommException(`Order with ID ${id} not found.`);
     }
+    if(!order.allowUpload) {
+      throw new CoolCommException(`You do not have the permission to perform updates.`);
+    }
     order.registrationDoc = updateData.registrationDoc ?? order.registrationDoc;
     order.driverLicense = updateData.driverLicense ?? order.driverLicense;
     order.vehiclePhoto = updateData.vehiclePhoto ?? order.vehiclePhoto;
+    order.allowUpload = false;
     return this.orderInfoEntity.save(order);
+  }
+
+  async updateOrderAllowUpload(id: number, allowUpload: boolean) {
+    const order = await this.orderInfoEntity.findOne(id);
+    order.allowUpload = allowUpload;
+    return this.orderInfoEntity.save(order);
+  }
+
+  async isAllowUpdate(id: number) {
+    const order = await this.orderInfoEntity.findOne(id);
+    return order.allowUpload;
   }
 
 }

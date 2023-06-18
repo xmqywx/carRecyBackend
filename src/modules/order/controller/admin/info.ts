@@ -25,7 +25,76 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: OrderInfoEntity,
-
+  listQueryOp: {
+    keyWordLikeFields: [
+      'firstName',
+      'surname', 'c.name', 'model', 'year', 'brand'],
+    select: [
+      'a.*',
+      'b.firstName',
+      'b.surname',
+      'b.phoneNumber',
+      'b.secNumber',
+      'b.emailAddress',
+      'b.address',
+      'b.licence',
+      'b.abn',
+      'b.workLocation',
+      'c.model',
+      'c.registrationNumber',
+      'c.state',
+      'c.year',
+      'c.brand',
+      'c.colour',
+      'c.vinNumber',
+      'c.series',
+      'c.engine',
+      'c.name',
+      'c.bodyStyle',
+      'c.image',
+      'c.identificationSighted',
+      'c.registered',
+      'c.platesReturned',
+      'c.carInfo',
+    ],
+    // 多表关联，请求筛选字段与表字段不一致的情况
+    fieldEq: [
+      { column: 'a.createTime', requestParam: 'createTime' },
+      { column: 'a.departmentId', requestParam: 'departmentId' },
+      { column: 'a.customerID', requestParam: 'customerID' },
+      { column: 'a.status', requestParam: 'status' },
+      { column: 'a.id', requestParam: 'id'}
+    ],
+    join: [{
+      entity: CustomerProfileEntity,
+      alias: 'b',
+      condition: 'a.customerID = b.id',
+      type: 'leftJoin'
+    }, {
+      entity: CarEntity,
+      alias: 'c',
+      condition: 'a.carID = c.id',
+      type: 'leftJoin'
+    },{
+      entity: BaseSysUserEntity,
+      alias: 'd',
+      condition: 'a.driverID = d.id',
+      type: 'leftJoin'
+    },{
+      entity: JobEntity,
+      alias: 'e',
+      condition: 'a.id = e.orderID',
+    }],
+    where:  async (ctx) => {
+      const { startDate, endDate, isPaid, notSchedule } = ctx.request.body;
+      return [
+        isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice and e.status = 4', {actualPaymentPrice: 0}]:[],
+        startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
+        endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
+        notSchedule ? ['e.driverID IS NULL', {}]: []
+      ]
+    },
+  },
   pageQueryOp: {
     keyWordLikeFields: [
       'firstName',
@@ -62,6 +131,7 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
+      { column: 'a.customerID', requestParam: 'customerID' },
       { column: 'a.status', requestParam: 'status' },
       { column: 'a.id', requestParam: 'id'}
     ],

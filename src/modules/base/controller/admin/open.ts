@@ -132,10 +132,11 @@ export class BaseOpenController extends BaseController {
 
   
   @Post('/sendEmailTogetDocs')
-  async sendEmailTogetDocs(@Body('name') name: string,@Body('email') email: string,@Body('orderID') orderID: string,) {
-    const token = this.orderService.generateToken({
+  async sendEmailTogetDocs(@Body('name') name: string,@Body('email') email: string,@Body('orderID') orderID: number,) {
+    const token = await this.orderService.generateToken({
       orderID
     });
+    await this.orderService.updateOrderAllowUpload(orderID, true);
     const info = await getDocs({
       email, name, token
     });
@@ -152,5 +153,14 @@ export class BaseOpenController extends BaseController {
     } catch(e) {
       return this.fail('The token verification has failed.',e);
     }
+  }
+
+  @Post("/isAllowUpdate")
+  async isAllowUpdate(@Body('token') token: string) {
+    console.log(token);
+    const tokenRes = await this.orderService.verifyToken(token) as JwtPayload;
+    const orderID = tokenRes.orderID;
+    const isAllow = await this.orderService.isAllowUpdate(orderID);
+    return isAllow;
   }
 }

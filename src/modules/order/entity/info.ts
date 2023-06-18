@@ -148,9 +148,6 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'source', nullable: true  })
   source: string;
   
-  @Column({ comment: 'kilometers', nullable: true  })
-  kilometers: number;
-  
   @Column({ comment: 'askingPrice', nullable: true  })
   askingPrice: number;
   
@@ -169,5 +166,15 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ comment: 'vehiclePhoto', nullable: true, type: 'text'})
   vehiclePhoto: string;
-  
+
+  // 新增
+  @Column({ comment: 'create by', nullable: true})
+  createBy: string;
+
+  @Column({ comment: 'allowUpload', nullable: true, default: false})
+  allowUpload: boolean;
+
+  // 更改
+  @Column({ type: 'decimal', comment: 'kilometers', nullable: true, precision: 10, scale: 2 })
+  kilometers: number;
 }
