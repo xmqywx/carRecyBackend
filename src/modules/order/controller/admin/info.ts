@@ -63,7 +63,7 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.customerID', requestParam: 'customerID' },
       { column: 'a.status', requestParam: 'status' },
-      { column: 'a.id', requestParam: 'id'}
+      { column: 'a.id', requestParam: 'id'},
     ],
     join: [{
       entity: CustomerProfileEntity,
@@ -86,12 +86,13 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       condition: 'a.id = e.orderID',
     }],
     where:  async (ctx) => {
-      const { startDate, endDate, isPaid, notSchedule } = ctx.request.body;
+      const { startDate, endDate, isPaid, notSchedule, searchRegistrationNumber } = ctx.request.body;
       return [
         isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice and e.status = 4', {actualPaymentPrice: 0}]:[],
         startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
         endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
-        notSchedule ? ['e.driverID IS NULL', {}]: []
+        notSchedule ? ['e.driverID IS NULL', {}]: [],
+        searchRegistrationNumber ? ['c.registrationNumber LIKE :registrationNumber', {registrationNumber: `%${searchRegistrationNumber}%`}]: [],
       ]
     },
   },
