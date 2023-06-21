@@ -1,26 +1,47 @@
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <style>
+    main {
+      width: 500px;
+      margin: auto;
+    }
+
     a {
-      display: inline-block;
+      /* display: block; */
+      float: left;
       line-height: 50px;
-      padding: 0 20px;
+      padding: 0px 20px;
       color: #FFF;
       font-weight: 500;
       background-color: chocolate;
       text-decoration: none;
     }
+
     a:hover {
       opacity: 0.8;
     }
+
+    p {
+      text-indent: 2em;
+    }
+
+    .to-upload {}
   </style>
 </head>
+
 <body>
-  <div>
-    <a href="http://192.168.0.102:9000/customer_provide_files?token=qqwewerwertoiojsofdj;lojsd;lfgj;sdfgj">TO UPLOAD</a>
-  </div>
+  <main>
+    <h3>Dear ${name}.</h3>
+    <p>${textToSend}</p>
+    <p>Please click here to upload some proof documents.</p>
+    <div class="to-upload">
+      <a href="http://13.54.137.62/customer_provide_files?token=${token}">TO UPLOAD</a>
+    </div>
+  </main>
 </body>
+
 </html>

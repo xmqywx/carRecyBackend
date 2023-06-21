@@ -132,13 +132,13 @@ export class BaseOpenController extends BaseController {
 
   
   @Post('/sendEmailTogetDocs')
-  async sendEmailTogetDocs(@Body('name') name: string,@Body('email') email: string,@Body('orderID') orderID: number,) {
+  async sendEmailTogetDocs(@Body('name') name: string,@Body('email') email: string,@Body('orderID') orderID: number,@Body('textToSend') textToSend: string) {
     const token = await this.orderService.generateToken({
       orderID
     });
     await this.orderService.updateOrderAllowUpload(orderID, true);
     const info = await getDocs({
-      email, name, token
+      email, name, token, textToSend
     });
     return this.ok({...info});
   }

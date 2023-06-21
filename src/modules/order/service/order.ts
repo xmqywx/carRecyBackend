@@ -133,6 +133,17 @@ export class OrderService extends BaseService {
     return order.allowUpload;
   }
 
+
+  async update(param) {
+    const order = await this.orderInfoEntity.findOne(param.id);
+    if (!order) {
+      throw new CoolCommException(`Order with ID ${param.id} not found.`);
+    }
+    if(param.updateCreateTime) {
+      param.createTime = () => 'NOW()';
+    }
+    return await this.orderInfoEntity.save(param);
+  }
 }
 
 @Provide()

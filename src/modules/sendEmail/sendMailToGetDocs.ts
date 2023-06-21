@@ -9,7 +9,7 @@ dotenv.config({ path: envFile });
 const fromEmail = process.env.NODE_MAIL_USER;
 
 
-export default async function getDocs({ email, name, token}) {
+export default async function getDocs({ email, name, token, textToSend}) {
 
     let toEmail = '';
     // 配置 Nodemailer
@@ -30,33 +30,54 @@ export default async function getDocs({ email, name, token}) {
     const mailOptions = {
         from: fromEmail,
         to: toEmail,
-        subject: 'Provide some proof materials.',
+        subject: 'Please provide some proof materials.',
         text: `Dear ${name}.Please click here to upload some proof documents.`,
         html: `<html lang="en">
+
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Document</title>
           <style>
+            main {
+              width: 500px;
+              margin: auto;
+            }
+        
             a {
-              display: inline-block;
+              /* display: block; */
+              float: left;
               line-height: 50px;
-              padding: 0 20px;
+              padding: 0px 20px;
               color: #FFF;
               font-weight: 500;
               background-color: chocolate;
               text-decoration: none;
             }
+        
             a:hover {
               opacity: 0.8;
             }
+        
+            p {
+              text-indent: 2em;
+            }
+        
+            .to-upload {}
           </style>
         </head>
+        
         <body>
-          <div>
-            <a href="http://13.54.137.62/customer_provide_files?token=${token}">TO UPLOAD</a>
-          </div>
+          <main>
+            <h3>Dear ${name}.</h3>
+            <p>${textToSend}</p>
+            <p>Please click here to upload some proof documents.</p>
+            <div class="to-upload">
+              <a href="http://13.54.137.62/customer_provide_files?token=${token}">TO UPLOAD</a>
+            </div>
+          </main>
         </body>
+        
         </html>`
     };
     try {
