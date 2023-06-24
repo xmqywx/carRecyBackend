@@ -26,7 +26,16 @@ import {InjectEntityModel} from "@midwayjs/orm";
       'a.*',
       'b.modelNumber',
       'b.carColor',
-      'b.actualPaymentPrice'
+      'b.actualPaymentPrice',
+      'b.imageFileDir',
+      'b.paymentRemittance',
+      'b.payMethod',
+      'b.deposit',
+      'b.depositPayMethod',
+      'b.deduction',
+      'b.gstStatus',
+      'b.gstAmount',
+      // 'b.catalyticConverterPhotos'
     ],
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },

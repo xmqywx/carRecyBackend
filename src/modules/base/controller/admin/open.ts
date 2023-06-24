@@ -40,7 +40,7 @@ export class BaseOpenController extends BaseController {
   coolFile: CoolFile;
 
   @Inject()
-  orderService:OrderService
+  orderService: OrderService
 
   /**
    * 实体信息与路径
@@ -122,36 +122,46 @@ export class BaseOpenController extends BaseController {
     const queryParams = querystring.parse(urlObj.query);
     const token = queryParams.token;
     console.log(token);
-    try{
+    try {
       await this.orderService.verifyToken(token);
       return this.ok(await this.coolFile.upload(this.ctx));
-    } catch(e) {
-      return this.fail('The token verification has failed.',e);
+    } catch (e) {
+      return this.fail('The token verification has failed.', e);
     }
   }
 
-  
+
   @Post('/sendEmailTogetDocs')
-  async sendEmailTogetDocs(@Body('name') name: string,@Body('email') email: string,@Body('orderID') orderID: number,@Body('textToSend') textToSend: string) {
+  async sendEmailTogetDocs(@Body('name') name: string, @Body('email') email: string[], @Body('orderID') orderID: number, @Body('textToSend') textToSend: string, @Body('giveUploadBtn') giveUploadBtn: boolean) {
     const token = await this.orderService.generateToken({
       orderID
     });
     await this.orderService.updateOrderAllowUpload(orderID, true);
-    const info = await getDocs({
-      email, name, token, textToSend
+    // 发送邮件
+    const emailPromises = email.map((v: string) => {
+      return getDocs({
+        email: v, name, token, textToSend, giveUploadBtn
+      });
     });
-    return this.ok({...info});
+    const emailResults = await Promise.all(emailPromises);
+    // 检查是否所有邮件都成功发送
+    const isAllEmailSent = emailResults.every((result) => result.status === 'success');
+    if (isAllEmailSent) {
+      return this.ok({ message: "All emails have been sent successfully." });
+    } else {
+      return this.fail("Failed to send some emails.");
+    }
   }
 
   @Post('/updateDocs')
-  async updateDocs(@Body('registrationDoc') registrationDoc: string,@Body('driverLicense') driverLicense: string,@Body('vehiclePhoto') vehiclePhoto: string,@Body('token') token: string,) {
-    try{
+  async updateDocs(@Body('registrationDoc') registrationDoc: string, @Body('driverLicense') driverLicense: string, @Body('vehiclePhoto') vehiclePhoto: string, @Body('token') token: string,) {
+    try {
       const tokenRes = await this.orderService.verifyToken(token) as JwtPayload;
       const orderID = tokenRes.orderID;
-      await this.orderService.updateOrderById(orderID, {registrationDoc, driverLicense, vehiclePhoto});
+      await this.orderService.updateOrderById(orderID, { registrationDoc, driverLicense, vehiclePhoto });
       return this.ok();
-    } catch(e) {
-      return this.fail('The token verification has failed.',e);
+    } catch (e) {
+      return this.fail('The token verification has failed.', e);
     }
   }
 

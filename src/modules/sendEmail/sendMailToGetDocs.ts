@@ -9,7 +9,7 @@ dotenv.config({ path: envFile });
 const fromEmail = process.env.NODE_MAIL_USER;
 
 
-export default async function getDocs({ email, name, token, textToSend}) {
+export default async function getDocs({ email, name, token, textToSend, giveUploadBtn}) {
 
     let toEmail = '';
     // 配置 Nodemailer
@@ -44,7 +44,7 @@ export default async function getDocs({ email, name, token, textToSend}) {
               margin: auto;
             }
         
-            a {
+            .to-upload a {
               /* display: block; */
               float: left;
               line-height: 50px;
@@ -70,11 +70,13 @@ export default async function getDocs({ email, name, token, textToSend}) {
         <body>
           <main>
             <h3>Dear ${name}.</h3>
-            <p>${textToSend}</p>
-            <p>Please click here to upload some proof documents.</p>
-            <div class="to-upload">
-              <a href="http://13.54.137.62/customer_provide_files?token=${token}">TO UPLOAD</a>
-            </div>
+            <div>${textToSend}</div>
+            ${
+              giveUploadBtn ? `<p>Please click here to upload some proof documents.</p>
+              <div class="to-upload">
+                <a href="http://13.54.137.62/customer_provide_files?token=${token}">TO UPLOAD</a>
+              </div>` : ''
+            }
           </main>
         </body>
         

@@ -110,4 +110,5 @@ export class CarEntity extends BaseEntity {
 
   @Column({ comment: 'Vehicle for Parts标识', default: false })
   isVFP: boolean;
+
 }

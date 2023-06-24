@@ -177,4 +177,7 @@ export class OrderInfoEntity extends BaseEntity {
   // 更改
   @Column({ type: 'decimal', comment: 'kilometers', nullable: true, precision: 10, scale: 2 })
   kilometers: number;
+
+  
+  
 }

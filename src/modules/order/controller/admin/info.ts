@@ -127,6 +127,7 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       'c.registered',
       'c.platesReturned',
       'c.carInfo',
+      'e.status as job_status'
     ],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [
