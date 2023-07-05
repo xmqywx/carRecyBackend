@@ -74,7 +74,7 @@ export default async function getDocs({ email, name, token, textToSend, giveUplo
             ${
               giveUploadBtn ? `<p>Please click here to upload some proof documents.</p>
               <div class="to-upload">
-                <a href="http://13.54.137.62/customer_provide_files?token=${token}">TO UPLOAD</a>
+                <a href="http://http://13.54.137.62/customer_provide_files?token=${token}">TO UPLOAD</a>
               </div>` : ''
             }
           </main>

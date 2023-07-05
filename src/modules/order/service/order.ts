@@ -54,6 +54,9 @@ export class OrderService extends BaseService {
     return selectSqlRes;
   }
 
+  async getInvoiceInfo(id) {
+    return await this.orderInfoEntity.findOne(id);
+  }
   /**
    * 新增
    * @param param

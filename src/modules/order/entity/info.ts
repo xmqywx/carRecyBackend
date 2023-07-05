@@ -7,57 +7,58 @@ import { Column } from 'typeorm';
  */
 @EntityModel('order')
 export class OrderInfoEntity extends BaseEntity {
-  @Column({ comment: 'carID', nullable: true})
+  @Column({ comment: 'carID', nullable: true })
   carID: number;
 
   @Column({ comment: 'yardID', nullable: true })
   yardID: number;
 
-  @Column({ comment: 'customer'})
+  @Column({ comment: 'customer' })
   customerID: string;
 
-  @Column({ comment: 'driverID', nullable: true})
+  @Column({ comment: 'driverID', nullable: true })
   driverID: string;
 
-  @Column({ comment: 'status', type: "tinyint"})
+  @Column({ comment: 'status', type: "tinyint" })
   status: number;
 
-  @Column({ comment: 'OverrideEmailAddress',  nullable: true})
+  @Column({ comment: 'OverrideEmailAddress', nullable: true })
   overrideEmailAddress: string;
 
-  @Column({ comment: 'pickupAddress',  nullable: true})
+  @Column({ comment: 'pickupAddress', nullable: true })
   pickupAddress: string;
 
-  @Column({ comment: 'pickupAddress state',  nullable: true})
+  @Column({ comment: 'pickupAddress state', nullable: true })
   pickupAddressState: string;
 
   /***
    * form.pickupAddressLat= res.geometry.location.lat();
-	form.pickupAddressLng= res.geometry.location.lng();
+  form.pickupAddressLng= res.geometry.location.lng();
    * 
    */
-  @Column({ comment: 'pickupAddress lat',  nullable: true})
+  @Column({ comment: 'pickupAddress lat', nullable: true })
   pickupAddressLat: string;
 
-  @Column({ comment: 'pickupAddress lng',  nullable: true})
+  @Column({ comment: 'pickupAddress lng', nullable: true })
   pickupAddressLng: string;
 
-  @Column({ comment: 'payMethod',  nullable: true})
+  @Column({ comment: 'payMethod', nullable: true })
   payMethod: string;
 
-  @Column({ comment: 'overridePhoneNumber',  nullable: true})
+  @Column({ comment: 'overridePhoneNumber', nullable: true })
   overridePhoneNumber: string;
 
-  @Column({ comment: 'recommendedPrice', type:"decimal",  nullable: true, default: 0})
+  @Column({ comment: 'recommendedPrice', type: "decimal", nullable: true, default: 0 })
   recommendedPrice: string;
 
-  @Column({ comment: 'ActualPaymentPrice', type:"decimal",  nullable: true})
+  // 加小数
+  @Column({  type: 'decimal',comment: 'ActualPaymentPrice', type: "decimal", nullable: true, })
   actualPaymentPrice: string;
 
-  @Column({ comment: 'expectedDate', length: 20,  nullable: true})
+  @Column({ comment: 'expectedDate', length: 20, nullable: true })
   expectedDate: string;
 
-  @Column({ comment: 'note',  nullable: true})
+  @Column({ comment: 'note', nullable: true })
   note: string;
 
   @Column({ comment: '部门ID', type: 'bigint' })
@@ -87,25 +88,26 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ type: 'tinyint', nullable: true })
   gotBusy: boolean;
 
-  @Column({ comment: 'modelNumber', nullable: true})
+  @Column({ comment: 'modelNumber', nullable: true })
   modelNumber: string;
 
-  @Column({ comment: 'carColor',  nullable: true})
+  @Column({ comment: 'carColor', nullable: true })
   carColor: string;
 
-  @Column({ comment: 'imageFileDir', nullable: true, length: 5000})
+  @Column({ comment: 'imageFileDir', nullable: true, length: 5000 })
   imageFileDir: string;
 
-  @Column({ comment: 'signature',  nullable: true})
+  @Column({ comment: 'signature', nullable: true })
   signature: string;
-  
-  @Column({ comment: 'invoice',  nullable: true})
+
+  @Column({ comment: 'invoice', nullable: true })
   invoice: string;
 
-  @Column({ comment: 'aboutUs',  nullable: true})
+  @Column({ comment: 'aboutUs', nullable: true })
   aboutUs: string;
 
-  @Column({ comment: 'deposit', nullable: true })
+  //加小数
+  @Column({  type: 'decimal',comment: 'deposit', nullable: true, precision: 10, scale: 2 })
   deposit: number;
 
   @Column({ comment: 'customerName', nullable: true })
@@ -120,13 +122,16 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'accountsNo', nullable: true })
   accountsNo: number;
 
-  @Column({ comment: 'totalAmount', nullable: true })
+  // 加小数
+  @Column({  type: 'decimal',comment: 'totalAmount', nullable: true, precision: 10, scale: 2 })
   totalAmount: number;
 
-  @Column({ comment: 'gstAmount', nullable: true })
+  // 加小数
+  @Column({  type: 'decimal',comment: 'gstAmount', nullable: true, precision: 10, scale: 2 })
   gstAmount: number;
 
-  @Column({ comment: 'deduction', nullable: true })
+  // 加小数
+  @Column({  type: 'decimal',comment: 'deduction', nullable: true, precision: 10, scale: 2 })
   deduction: number;
 
   @Column({ comment: 'comments', nullable: true })
@@ -135,49 +140,54 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'commentText', nullable: true })
   commentText: string;
 
-  @Column({ comment: 'secondary person ID', type: 'bigint', nullable: true  })
+  @Column({ comment: 'secondary person ID', type: 'bigint', nullable: true })
   secondaryID: number;
 
-  @Column({ comment: 'GST status', nullable: true  })
+  @Column({ comment: 'GST status', nullable: true })
   gstStatus: string;
-  
-  @Column({ comment: 'deposit payment', nullable: true  })
+
+  @Column({ comment: 'deposit payment', nullable: true })
   depositPayMethod: string;
 
   // -----------------
-  @Column({ comment: 'source', nullable: true  })
+  @Column({ comment: 'source', nullable: true })
   source: string;
-  
-  @Column({ comment: 'askingPrice', nullable: true  })
+
+  // 加小数
+  @Column({  type: 'decimal',comment: 'askingPrice', nullable: true, precision: 10, scale: 2 })
   askingPrice: number;
-  
-  @Column({ comment: 'paymentRemittance', nullable: true, type: 'text'})
+
+  @Column({ comment: 'paymentRemittance', nullable: true, type: 'text' })
   paymentRemittance: string;
-  
+
   @Column({ comment: 'quoteNumber', nullable: true })
   quoteNumber: string;
 
   // ----
-  @Column({ comment: 'registrationDoc', nullable: true, type: 'text'})
+  @Column({ comment: 'registrationDoc', nullable: true, type: 'text' })
   registrationDoc: string;
 
-  @Column({ comment: 'driverLicense', nullable: true, type: 'text'})
+  @Column({ comment: 'driverLicense', nullable: true, type: 'text' })
   driverLicense: string;
 
-  @Column({ comment: 'vehiclePhoto', nullable: true, type: 'text'})
+  @Column({ comment: 'vehiclePhoto', nullable: true, type: 'text' })
   vehiclePhoto: string;
 
-  // 新增
-  @Column({ comment: 'create by', nullable: true})
+  @Column({ comment: 'create by', nullable: true })
   createBy: string;
 
-  @Column({ comment: 'allowUpload', nullable: true, default: false})
+  @Column({ comment: 'allowUpload', nullable: true, default: false })
   allowUpload: boolean;
 
   // 更改
   @Column({ type: 'decimal', comment: 'kilometers', nullable: true, precision: 10, scale: 2 })
   kilometers: number;
 
-  
-  
+  //新增
+  @Column({ type: 'decimal', comment: 'gst', nullable: true, precision: 10, scale: 2 })
+  gst: number;
+
+  //新增
+  @Column({ type: 'decimal', comment: 'priceIncGst', nullable: true, precision: 10, scale: 2 })
+  priceIncGst: number;
 }

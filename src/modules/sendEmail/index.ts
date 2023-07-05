@@ -35,7 +35,8 @@ const s3 = new AWS.S3();
 const fromEmail = process.env.NODE_MAIL_USER;
 const logoUrl = "http://13.54.137.62/pickYourCar.png";
 
-export default async function main({name, price, id, email, invoicePdf = null}) {
+export default async function main({name, price, id, email, invoicePdf = null, info}) {
+  console.log(invoicePdf);
   let toEmail = '';
   // 配置 Nodemailer
   const transport = nodemailer.createTransport({
@@ -92,7 +93,7 @@ export default async function main({name, price, id, email, invoicePdf = null}) 
   const currentTime = moment().format('DD-MM-YYYY');
   const myName = "We pick your car";
   const qty = 1;
-  const gst = 0;
+  const gst = info.gst;
   let itemTotalPrice = qty * price - gst;
   let subtotal = itemTotalPrice;
   let Total = itemTotalPrice;
@@ -204,9 +205,9 @@ const invoiceHtml = `
               <tr>
                 <td>recovery vehicle</td>
                 <td>${qty}</td>
-                <td>$${price}</td>
-                <td>$${gst}</td>
-                <td>$${itemTotalPrice}</td>
+                <td>$${info.priceExGST}</td>
+                <td>$${info.gst}</td>
+                <td>$${info.gstAmount}</td>
               </tr>
               <!-- <tr>
                 <td>商品2</td>
@@ -222,9 +223,9 @@ const invoiceHtml = `
               </tr> -->
             </tbody>
           </table>
-          <div class="total">Subtotal:  $${subtotal}</div>
-          <div class="total">Adjustments:  $${adjustments}</div>
-          <div class="total">Total: $${Total}</div>
+          <div class="total">Subtotal:  $${info.gstAmount}</div>
+          <div class="total">Adjustments:  $${0}</div>
+          <div class="total">Total: $${info.gstAmount}</div>
         </div>
       </body>
       </html>

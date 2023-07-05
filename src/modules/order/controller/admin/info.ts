@@ -160,7 +160,8 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
     where:  async (ctx) => {
       const { startDate, endDate, isPaid, notSchedule } = ctx.request.body;
       return [
-        isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice and e.status = 4', {actualPaymentPrice: 0}]:[],
+        // isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice and e.status = 4', {actualPaymentPrice: 0}]:[],
+        isPaid ? ['e.status = 4', {}]:[],
         startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
         endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
         notSchedule ? ['e.driverID IS NULL', {}]: []

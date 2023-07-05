@@ -44,12 +44,12 @@ export class OrderActionController extends BaseController {
 
   @Post('/sendEmail')
   async sendEmail(@Body('name') name: string, @Body('id') id: string, @Body('email') email: string, @Body('price') price: number ) {
-    const invoicePdf = await this.orderService.getInvoice(id);
-    // return this.ok({invoicePdf});
-    const info = await main({name, id, price, email, invoicePdf});
-    console.log(info);
+    const orderInfo = await this.orderService.getInvoiceInfo(id);
+    console.log(orderInfo);
+    return this.ok({orderInfo});
+    const info = await main({name, id, price, email, invoicePdf: orderInfo.invoice, info: orderInfo});
     if(info.status === 'success') {
-      if(!invoicePdf) {
+      if(!orderInfo.invoice) {
         const saveInvoice = await this.orderService.saveInvoice(id, info.invoicePdf);
         return this.ok({...info, saveInvoice});
       }
