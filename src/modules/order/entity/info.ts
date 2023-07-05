@@ -52,7 +52,7 @@ export class OrderInfoEntity extends BaseEntity {
   recommendedPrice: string;
 
   // 加小数
-  @Column({  type: 'decimal',comment: 'ActualPaymentPrice', type: "decimal", nullable: true, })
+  @Column({  type: 'decimal',comment: 'ActualPaymentPrice', nullable: true, })
   actualPaymentPrice: string;
 
   @Column({ comment: 'expectedDate', length: 20, nullable: true })
