@@ -93,11 +93,11 @@ export default async function main({name, price, id, email, invoicePdf = null, i
   const currentTime = moment().format('DD-MM-YYYY');
   const myName = "We pick your car";
   const qty = 1;
-  const gst = info.gst;
-  let itemTotalPrice = qty * price - gst;
-  let subtotal = itemTotalPrice;
-  let Total = itemTotalPrice;
-  let adjustments = 0;
+  // const gst = info.gst;
+  // let itemTotalPrice = qty * price - gst;
+  // let subtotal = itemTotalPrice;
+  // let Total = itemTotalPrice;
+  // let adjustments = 0;
   let invoiceNumber = id.toString().padStart(6, "0");;
   // HTML 发票模板
 const invoiceHtml = `
