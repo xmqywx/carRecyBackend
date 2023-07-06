@@ -188,6 +188,6 @@ export class OrderInfoEntity extends BaseEntity {
   gst: number;
 
   //新增
-  @Column({ type: 'decimal', comment: 'priceIncGst', nullable: true, precision: 10, scale: 2 })
-  priceIncGst: number;
+  @Column({ type: 'decimal', comment: 'priceExGST', nullable: true, precision: 10, scale: 2 })
+  priceExGST: number;
 }
