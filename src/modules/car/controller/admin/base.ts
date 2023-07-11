@@ -35,6 +35,9 @@ import {InjectEntityModel} from "@midwayjs/orm";
       'b.deduction',
       'b.gstStatus',
       'b.gstAmount',
+      'b.id as orderID',
+      'b.createBy',
+      'b.pickupAddress'
       // 'b.catalyticConverterPhotos'
     ],
     fieldEq: [
@@ -56,7 +59,8 @@ import {InjectEntityModel} from "@midwayjs/orm";
     where:  async (ctx) => {
       const { isCompleted } = ctx.request.body;
       return [
-        isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
+        isCompleted ? ['c.status = 4', {}]:[],
+        // isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
       ]
     },
   },
