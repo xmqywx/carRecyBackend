@@ -12,7 +12,7 @@ import {CustomerProfileService} from "../../service/profile";
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: CustomerProfileEntity,
   service: CustomerProfileService,
-
+  
   pageQueryOp: {
     keyWordLikeFields: ['firstName', 'surname', 'emailAddress', 'phoneNumber'],
     fieldEq: ['firstName', 'surname', 'departmentId', 'phoneNumber', 'emailAddress', 'isDel'],

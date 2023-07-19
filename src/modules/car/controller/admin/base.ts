@@ -36,7 +36,6 @@ import {InjectEntityModel} from "@midwayjs/orm";
       'b.gstStatus',
       'b.gstAmount',
       'b.id as orderID',
-      'b.createTime as orderCreateTime',
       'b.createBy',
       'b.pickupAddress'
       // 'b.catalyticConverterPhotos'
