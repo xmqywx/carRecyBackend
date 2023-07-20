@@ -1,14 +1,27 @@
 import { EntityModel } from '@midwayjs/orm';
 import { BaseEntity } from '@cool-midway/core';
-import {Column,} from 'typeorm';
+import {Column} from 'typeorm';
 
 /**
  * 系统用户
  */
 @EntityModel('car_wrecked')
-export class CarEntity extends BaseEntity {
+export class CarWreckedEntity extends BaseEntity {
     @Column({ comment: 'Car ID', nullable: false })
     carID: number;
 
-    
+    @Column({ comment: 'Disassembling information', nullable: true,})
+    disassmblingInformation: string;
+
+    @Column({ comment: 'Disassembly description', nullable: true,})
+    disassemblyDescription: string;
+
+    @Column({ comment: 'Disassembly images', nullable: true, length: 5000 })
+    disassemblyImages: string;
+
+    @Column({ comment: 'Disassembly category', nullable: true,})
+    disassemblyCategory: string;
+
+    @Column({ comment: 'Disassembly number', nullable: true,})
+    disassemblyNumber: string;
 }
