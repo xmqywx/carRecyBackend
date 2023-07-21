@@ -18,6 +18,7 @@ import {InjectEntityModel} from "@midwayjs/orm";
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.disassemblyCategory', requestParam: 'disassemblyCategory' },
+      { column: 'a.disassemblyNumber', requestParam: 'disassemblyNumber' },
       { column: 'b.model', requestParam: 'model' },
       { column: 'b.departmentId', requestParam: 'departmentId' },
       { column: 'b.year', requestParam: 'year' },
@@ -30,6 +31,25 @@ import {InjectEntityModel} from "@midwayjs/orm";
       type: 'leftJoin'
     }]
   },
+  listQueryOp: {
+    keyWordLikeFields: ['carID'],
+    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber','b.name','b.registrationNumber','b.state','b.series','b.engine','b.bodyStyle', 'b.carInfo'],
+    fieldEq: [
+      { column: 'a.carID', requestParam: 'carID' },
+      { column: 'a.disassemblyCategory', requestParam: 'disassemblyCategory' },
+      { column: 'a.disassemblyNumber', requestParam: 'disassemblyNumber' },
+      { column: 'b.model', requestParam: 'model' },
+      { column: 'b.departmentId', requestParam: 'departmentId' },
+      { column: 'b.year', requestParam: 'year' },
+      { column: 'b.brand', requestParam: 'brand' }
+    ],
+    join: [{
+      entity: CarEntity,
+      alias: 'b',
+      condition: 'a.carID = b.id',
+      type: 'leftJoin'
+    }]
+  }
 
 })
 export class CarWreckedController extends BaseController {
