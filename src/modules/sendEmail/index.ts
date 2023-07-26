@@ -195,7 +195,7 @@ const invoiceHtml = `
             <thead>
               <tr>
                 <th>Description</th>
-                <th>Price amount</th>
+                <th>Aamount</th>
                 <th>Price (ex GST)</th>
                 <th>Gst</th>
                 <th>Price (inc GST)</th>
@@ -204,7 +204,7 @@ const invoiceHtml = `
             <tbody>
               <tr>
                 <td>recovery vehicle</td>
-                <td>${qty}</td>
+                <td>${info.totalAmount}</td>
                 <td>$${info.priceExGST}</td>
                 <td>$${info.gst}</td>
                 <td>$${info.gstAmount}</td>
