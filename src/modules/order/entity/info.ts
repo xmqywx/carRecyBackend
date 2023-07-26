@@ -48,12 +48,12 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'overridePhoneNumber', nullable: true })
   overridePhoneNumber: string;
 
-  @Column({ comment: 'recommendedPrice', type: "decimal", nullable: true, default: 0 })
-  recommendedPrice: string;
+  @Column({ comment: 'recommendedPrice', type: "decimal", nullable: true, precision: 10, scale: 2 })
+  recommendedPrice: number;
 
   // 加小数
-  @Column({  type: 'decimal',comment: 'ActualPaymentPrice', nullable: true, })
-  actualPaymentPrice: string;
+  @Column({  type: 'decimal',comment: 'ActualPaymentPrice', nullable: true,  precision: 12, scale: 2})
+  actualPaymentPrice: number;
 
   @Column({ comment: 'expectedDate', length: 20, nullable: true })
   expectedDate: string;

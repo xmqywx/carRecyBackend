@@ -10,13 +10,13 @@ export class CarWreckedEntity extends BaseEntity {
     @Column({ comment: 'Car ID', nullable: false })
     carID: number;
 
-    @Column({ comment: 'Disassembling information', nullable: true,})
+    @Column({ comment: 'Disassembling information', nullable: true, type: 'text'})
     disassmblingInformation: string;
 
     @Column({ comment: 'Disassembly description', nullable: true,})
     disassemblyDescription: string;
 
-    @Column({ comment: 'Disassembly images', nullable: true, length: 5000 })
+    @Column({ comment: 'Disassembly images', nullable: true, type: 'text'})
     disassemblyImages: string;
 
     @Column({ comment: 'Disassembly category', nullable: true,})
