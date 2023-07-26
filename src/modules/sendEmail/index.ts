@@ -151,7 +151,7 @@ const invoiceHtml = `
           }
           .sbt {
             display: flex;
-            gap: 50px;
+            gap: 30px;
           }
           dd {
             margin: 0;
@@ -195,10 +195,10 @@ const invoiceHtml = `
             <thead>
               <tr>
                 <th>Description</th>
-                <th>Qty</th>
-                <th>Unit price</th>
+                <th>Price amount</th>
+                <th>Price (ex GST)</th>
                 <th>Gst</th>
-                <th>Total price</th>
+                <th>Price (inc GST)</th>
               </tr>
             </thead>
             <tbody>
@@ -223,9 +223,9 @@ const invoiceHtml = `
               </tr> -->
             </tbody>
           </table>
-          <div class="total">Subtotal:  $${info.gstAmount}</div>
-          <div class="total">Adjustments:  $${0}</div>
-          <div class="total">Total: $${info.gstAmount}</div>
+          <div class="total">Price (ex GST):  $${info.priceExGST}</div>
+          <div class="total">Gst:  $${info.gst}</div>
+          <div class="total">Price (inc GST): $${info.gstAmount}</div>
         </div>
       </body>
       </html>

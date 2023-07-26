@@ -48,7 +48,7 @@
           }
           .sbt {
             display: flex;
-            gap: 50px;
+            gap: 30px;
           }
           dd {
             margin: 0;
@@ -92,19 +92,19 @@
             <thead>
               <tr>
                 <th>Description</th>
-                <th>Qty</th>
-                <th>Unit price</th>
+                <th>Price amount</th>
+                <th>Price (ex GST)</th>
                 <th>Gst</th>
-                <th>Total price</th>
+                <th>Price (inc GST)</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>recovery vehicle</td>
                 <td>${qty}</td>
-                <td>$${price}</td>
-                <td>$${gst}</td>
-                <td>$${itemTotalPrice}</td>
+                <td>$${info.priceExGST}</td>
+                <td>$${info.gst}</td>
+                <td>$${info.gstAmount}</td>
               </tr>
               <!-- <tr>
                 <td>商品2</td>
@@ -120,9 +120,9 @@
               </tr> -->
             </tbody>
           </table>
-          <div class="total">Subtotal:  $${subtotal}</div>
-          <div class="total">Adjustments:  $${adjustments}</div>
-          <div class="total">Total: $${Total}</div>
+          <div class="total">Price (ex GST):  $${info.priceExGST}</div>
+          <div class="total">Gst:  $${gst}</div>
+          <div class="total">Price (inc GST): $${info.gstAmount}</div>
         </div>
       </body>
       </html>
