@@ -37,7 +37,8 @@ import {InjectEntityModel} from "@midwayjs/orm";
       'b.gstAmount',
       'b.id as orderID',
       'b.createBy',
-      'b.pickupAddress'
+      'b.pickupAddress',
+      'b.expectedDate'
       // 'b.catalyticConverterPhotos'
     ],
     fieldEq: [
