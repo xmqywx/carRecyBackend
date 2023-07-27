@@ -9,6 +9,7 @@ import { Validate } from '@midwayjs/validate';
 import { CoolFile } from '@cool-midway/file';
 import { OrderService } from '../../../order/service/order';
 import getDocs from '../../../sendEmail/sendMailToGetDocs';
+import { CarWreckedService } from '../../../car/service/car';
 const url = require('url');
 const querystring = require('querystring');
 interface JwtPayload {
@@ -41,6 +42,10 @@ export class BaseOpenController extends BaseController {
 
   @Inject()
   orderService: OrderService
+
+  @Inject()
+  carWreckedService: CarWreckedService
+
 
   /**
    * 实体信息与路径
@@ -172,5 +177,10 @@ export class BaseOpenController extends BaseController {
     const orderID = tokenRes.orderID;
     const isAllow = await this.orderService.isAllowUpdate(orderID);
     return isAllow;
+  }
+
+  @Get("/wrecked_parts")
+  async getWreckedParts(@Query('dn') dn: string) {
+    return this.carWreckedService.getWreckedInfo(dn);
   }
 }
