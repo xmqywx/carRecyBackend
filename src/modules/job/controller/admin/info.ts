@@ -76,7 +76,7 @@ import {JobService} from '../../service/job';
     },
   },
   pageQueryOp: {
-    keyWordLikeFields: ['a.*','c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
+    keyWordLikeFields: ['c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
     select: ['a.*', 'b.expectedDate', 'b.pickupAddress', 'b.pickupAddressState','b.pickupAddressLat','b.pickupAddressLng', 'c.model', 'c.year', 'c.brand', 'c.colour', 'c.vinNumber', 'd.username'],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [

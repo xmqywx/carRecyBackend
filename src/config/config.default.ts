@@ -53,7 +53,7 @@ export default {
       mode: MODETYPE.LOCAL,
       // 本地上传 文件地址前缀，当且仅当mode为LOCAL时生效
       domain: 'http://13.54.137.62/api/',
-      // domain: 'http://192.168.0.103:8001',
+      // domain: 'http://192.168.0.102:8001',
     },
   } as CoolConfig,
 } as
