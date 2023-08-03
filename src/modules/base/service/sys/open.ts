@@ -109,6 +109,19 @@ export class BaseOpenService extends BaseService {
                         </div>
                         `;
                     }
+                    if(v.label === 'disassemblyImages') {
+                        const imgArr = JSON.parse(v.value);
+                        return `
+                        <div class='row'>
+                            <div class='label'>${toTitleCase(v.label)}:</div>
+                        </div>
+                        <div class='row'>
+                            ${
+                                imgArr.map(i => `<img src="${i}" alt="car">`).join('')
+                            }
+                        </div>
+                        `;
+                    }
                     return `<div class='row'>
                         <div class='label'>${toTitleCase(v.label)} :</div>
                         <div class='value'>${v.value}</div>
@@ -166,5 +179,7 @@ let replaceLabel = {
     'Disassembly Number': 'NO.',
     'Registration Number': "REGO",
     'Car I D': "Car ID",
-    'Id': 'ID'
+    'Id': 'ID',
+    'Disassembly Description': 'Part Description',
+    'Disassembly Images': 'Part Images'
 }
