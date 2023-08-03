@@ -46,32 +46,44 @@ export class BaseOpenService extends BaseService {
             margin: 0 auto;
             width: 100%;
             max-width: 800px;
+            box-sizing: border-box;
+            padding: 10px;
         }
         .w h3 {
-            text-align: center;
-        }
-        .row {
-            display: flex;
-            gap: 20px;
-            align-items: center;
+            // text-align: center;
         }
         .row .label {
-            text-align: right;
-            min-width: 100px;
+            text-align: left;
         }
         .row .value {
             flex: 1;
             white-space: pre-wrap;
             word-break: break-all;
+            color: #4165d7;
+            border-bottom: 1px solid #000000;
         }
         .imgContainer {
             width: 100%;
         }
         img {
-            margin: auto;
-            display: block;
+            // margin: auto;
+            // display: block;
             width: 200px;
+            max-height: 200px;
+            object-fit: contain;
         }
+        @media (min-width: 500px) {
+            /* 在屏幕宽度大于等于 500px 时应用的样式 */
+            .row {
+                display: flex;
+                gap: 20px;
+                align-items: center;
+            }
+            .row .label {
+                text-align: right;
+                min-width: 200px;
+            }
+          }
     </style>
     <body>
         <div class="w">
@@ -81,14 +93,14 @@ export class BaseOpenService extends BaseService {
                     if(!v.value) {
                         return null;
                     }
-                    if(['customerID', 'CarWreckedInfo', 'isVFP'].includes(v.label)) {
+                    if(['customerID', 'CarWreckedInfo', 'isVFP', 'createTime', 'updateTime'].includes(v.label)) {
                         return null;
                     }
                     if(v.label === 'disassmblingInformation' && partData.disassemblyCategory === 'Catalytic Converter') {
                         const imgArr = JSON.parse(v.value);
                         return `
                         <div class='row'>
-                            <div class='label'>${v.label}:</div>
+                            <div class='label'>${toTitleCase(v.label)}:</div>
                         </div>
                         <div class='row'>
                             ${
@@ -98,7 +110,7 @@ export class BaseOpenService extends BaseService {
                         `;
                     }
                     return `<div class='row'>
-                        <div class='label'>${v.label}:</div>
+                        <div class='label'>${toTitleCase(v.label)}:</div>
                         <div class='value'>${v.value}</div>
                     </div>`
                 }).join('')
@@ -109,7 +121,7 @@ export class BaseOpenService extends BaseService {
                     if(!v.value) {
                         return null;
                     }
-                    if(['customerID', 'CarWreckedInfo', 'isVFP'].includes(v.label)) {
+                    if(['customerID', 'CarWreckedInfo', 'isVFP', 'createTime', 'updateTime', 'departmentId', 'status'].includes(v.label)) {
                         return null;
                     }
                     if(v.label === 'carInfo') {
@@ -123,7 +135,7 @@ export class BaseOpenService extends BaseService {
                         `;
                     }
                     return `<div class='row'>
-                        <div class='label'>${v.label}:</div>
+                        <div class='label'>${toTitleCase(v.label)}:</div>
                         <div class='value'>${v.value}</div>
                     </div>`
                 }).join('')
@@ -136,3 +148,14 @@ export class BaseOpenService extends BaseService {
 
 }
 
+function toTitleCase(str) {
+    if (!str) {
+      return '';
+    }
+    if (str.toLowerCase() === 'carid') {
+      return 'Car ID';
+    }
+    const words = str.split(/(?=[A-Z])/);
+    const title = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    return title;
+  }
