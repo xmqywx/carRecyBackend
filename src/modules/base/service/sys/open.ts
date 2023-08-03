@@ -152,10 +152,19 @@ function toTitleCase(str) {
     if (!str) {
       return '';
     }
-    if (str.toLowerCase() === 'carid') {
-      return 'Car ID';
-    }
     const words = str.split(/(?=[A-Z])/);
-    const title = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    let title = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    if(Object.keys(replaceLabel).includes(title)) {
+        title = replaceLabel[title];
+    }
     return title;
   }
+
+let replaceLabel = {
+    'Disassmbling Information' : 'Part info',
+    'Disassembly Category': 'Category',
+    'Disassembly Number': 'NO.',
+    'Registration Number': "REGO",
+    'Car I D': "Car ID",
+    'Id': 'ID'
+}
