@@ -4,6 +4,7 @@ import {InjectEntityModel} from "@midwayjs/orm";
 import {Repository} from "typeorm";
 import { CarCommentEntity } from "../entity/comment";
 import { CarWreckedEntity } from "../entity/carWrecked";
+import { CarEntity } from "../entity/base";
 
 @Provide()
 export class CarCommentService extends BaseService {
@@ -22,5 +23,15 @@ export class CarWreckedService extends BaseService {
 
   async getWreckedInfo(dn: string) {
     return this.carWreckedEntity.findOne({ disassemblyNumber: dn });
+  }
+}
+
+@Provide()
+export class CarBaseService extends BaseService {
+  @InjectEntityModel(CarEntity)
+  carEntity: Repository<CarEntity>;
+
+  async getOneCarInfo(id: number) {
+    return this.carEntity.findOne({id});
   }
 }

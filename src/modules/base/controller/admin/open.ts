@@ -9,7 +9,9 @@ import { Validate } from '@midwayjs/validate';
 import { CoolFile } from '@cool-midway/file';
 import { OrderService } from '../../../order/service/order';
 import getDocs from '../../../sendEmail/sendMailToGetDocs';
-import { CarWreckedService } from '../../../car/service/car';
+import { CarWreckedService, CarBaseService } from '../../../car/service/car';
+import { BaseOpenService } from '../../service/sys/open';
+
 const url = require('url');
 const querystring = require('querystring');
 interface JwtPayload {
@@ -46,6 +48,11 @@ export class BaseOpenController extends BaseController {
   @Inject()
   carWreckedService: CarWreckedService
 
+  @Inject()
+  carBaseService: CarBaseService
+
+  @Inject()
+  baseOpenService: BaseOpenService
 
   /**
    * 实体信息与路径
@@ -181,6 +188,11 @@ export class BaseOpenController extends BaseController {
 
   @Get("/wrecked_parts")
   async getWreckedParts(@Query('dn') dn: string) {
-    return this.carWreckedService.getWreckedInfo(dn);
+    let queryInfo = await this.carWreckedService.getWreckedInfo(dn);
+    let carInfo;
+    if(queryInfo && queryInfo.carID) {
+      carInfo = await this.carBaseService.getOneCarInfo(queryInfo.carID);
+    }
+    return this.baseOpenService.returnPartsInfo(queryInfo, carInfo);
   }
 }
