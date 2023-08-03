@@ -60,6 +60,12 @@ export default async function getDocs({ email, name, token, textToSend, giveUplo
         }
     
         .to-upload {}
+        img {
+          display: block;
+          width: 300px;
+          max-height: 300px;
+          margin: auto;
+        }
       </style>
     </head>
     
