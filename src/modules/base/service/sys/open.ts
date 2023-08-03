@@ -110,7 +110,7 @@ export class BaseOpenService extends BaseService {
                         `;
                     }
                     return `<div class='row'>
-                        <div class='label'>${toTitleCase(v.label)}:</div>
+                        <div class='label'>${toTitleCase(v.label)} :</div>
                         <div class='value'>${v.value}</div>
                     </div>`
                 }).join('')
@@ -135,7 +135,7 @@ export class BaseOpenService extends BaseService {
                         `;
                     }
                     return `<div class='row'>
-                        <div class='label'>${toTitleCase(v.label)}:</div>
+                        <div class='label'>${toTitleCase(v.label)} :</div>
                         <div class='value'>${v.value}</div>
                     </div>`
                 }).join('')
