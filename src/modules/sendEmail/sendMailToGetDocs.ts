@@ -36,8 +36,8 @@ export default async function getDocs({ email, name, token, textToSend, giveUplo
       <title>Document</title>
       <style>
         main {
-          width: 500px;
           margin: auto;
+          width: 100%;
         }
     
         .to-upload a {
@@ -55,8 +55,10 @@ export default async function getDocs({ email, name, token, textToSend, giveUplo
           opacity: 0.8;
         }
     
-        p {
-          text-indent: 2em;
+        p, pre {
+          // text-indent: 2em;
+          white-space: pre-wrap;
+          word-break: break-all;
         }
     
         .to-upload {}
@@ -65,6 +67,12 @@ export default async function getDocs({ email, name, token, textToSend, giveUplo
           width: 300px;
           max-height: 300px;
           margin: auto;
+        }
+        .no-show {
+          display: none;
+        }
+        .show {
+          display: block;
         }
       </style>
     </head>

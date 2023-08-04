@@ -195,4 +195,10 @@ export class BaseOpenController extends BaseController {
     }
     return this.baseOpenService.returnPartsInfo(queryInfo, carInfo);
   }
+  @Get("/wrecked_infos")
+  async getWreckedInfo(@Query('disassemblyCategory') disassemblyCategory: string, @Query('carID') carID: number) {
+    let carInfo = await this.carBaseService.getOneCarInfo(carID);
+    let queryInfos = await this.carWreckedService.getWreckedInfos(carID, disassemblyCategory);
+    return this.baseOpenService.returnWreckedInfo(queryInfos, carInfo);
+  }
 }

@@ -21,7 +21,7 @@ import {InjectEntityModel} from "@midwayjs/orm";
   },
 
   pageQueryOp: {
-    keyWordLikeFields: ['a.name', 'a.year', 'a.departmentId'],
+    keyWordLikeFields: ['a.name', 'a.year', 'a.registrationNumber', 'a.state'],
     select: [
       'a.*',
       'b.modelNumber',

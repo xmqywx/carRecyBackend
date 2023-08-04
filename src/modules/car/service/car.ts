@@ -24,6 +24,14 @@ export class CarWreckedService extends BaseService {
   async getWreckedInfo(dn: string) {
     return this.carWreckedEntity.findOne({ disassemblyNumber: dn });
   }
+
+  async getWreckedInfos(carID: number, disassemblyCategory?: string) {
+    const searchData: {[key: string]: any} = {carID};
+    if(disassemblyCategory) {
+      searchData.disassemblyCategory = disassemblyCategory;
+    }
+    return this.carWreckedEntity.find(searchData);
+  }
 }
 
 @Provide()

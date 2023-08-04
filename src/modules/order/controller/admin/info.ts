@@ -99,6 +99,7 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
   pageQueryOp: {
     keyWordLikeFields: [
       'firstName',
+      'c.registrationNumber','c.state',
       'surname', 'c.name', 'model', 'year', 'brand'],
     select: [
       'a.*',

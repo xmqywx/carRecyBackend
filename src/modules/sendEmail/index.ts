@@ -98,7 +98,7 @@ export default async function main({name, price, id, email, invoicePdf = null, i
   // let subtotal = itemTotalPrice;
   // let Total = itemTotalPrice;
   // let adjustments = 0;
-  let invoiceNumber = id.toString().padStart(6, "0");;
+  let invoiceNumber = id.toString().padStart(6, "0");
   // HTML 发票模板
 const invoiceHtml = `
 <!DOCTYPE html>
