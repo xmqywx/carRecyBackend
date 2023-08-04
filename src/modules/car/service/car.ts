@@ -26,7 +26,7 @@ export class CarWreckedService extends BaseService {
   }
 
   async getWreckedInfos(carID: number, disassemblyCategory?: string) {
-    const searchData: {[key: string]: any} = {carID};
+    const searchData: {[key: string]: any} = {carID: Number(carID)};
     if(disassemblyCategory) {
       searchData.disassemblyCategory = disassemblyCategory;
     }
