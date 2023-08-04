@@ -30,8 +30,7 @@ export class CarWreckedService extends BaseService {
     if(disassemblyCategory) {
       searchData.disassemblyCategory = disassemblyCategory;
     }
-    console.log(this.carWreckedEntity.find(searchData));
-    return this.carWreckedEntity.find(searchData);
+    return await this.carWreckedEntity.find(searchData);
   }
 }
 
