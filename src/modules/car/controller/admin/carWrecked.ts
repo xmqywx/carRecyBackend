@@ -4,6 +4,7 @@ import {CarWreckedEntity} from "../../entity/carWrecked";
 import {CarEntity} from "../../entity/base";
 import {Repository} from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
+import { CarWreckedService } from '../../service/car';
 
 /**
  * 图片空间信息
@@ -49,8 +50,8 @@ import {InjectEntityModel} from "@midwayjs/orm";
       condition: 'a.carID = b.id',
       type: 'leftJoin'
     }]
-  }
-
+  },
+  service: CarWreckedService
 })
 export class CarWreckedController extends BaseController {
   @InjectEntityModel(CarWreckedEntity)

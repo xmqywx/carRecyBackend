@@ -22,7 +22,7 @@ export class CarWreckedService extends BaseService {
   carWreckedEntity: Repository<CarWreckedEntity>;
 
   async getWreckedInfo(dn: string) {
-    return this.carWreckedEntity.findOne({ disassemblyNumber: dn });
+    return this.carWreckedEntity.findOne({ id: Number(dn) });
   }
 
   async getWreckedInfos(carID: number, disassemblyCategory?: string) {
@@ -43,8 +43,25 @@ export class CarWreckedService extends BaseService {
     console.log(searchData, await this.carWreckedEntity.find(searchData));
     return await this.carWreckedEntity.find(searchData);
   }
-}
 
+  // /**
+  //  * 新增
+  //  * @param param
+  //  */
+  // async add(params) {
+  //   return this.carWreckedEntity.save(params).then(async (wreckedInfo) => {
+  //     const cate = disassemblyCategorys[wreckedInfo.disassemblyCategory];
+  //     wreckedInfo.disassemblyNumber = wreckedInfo.id + cate;
+  //     await this.carWreckedEntity.save(wreckedInfo);
+  //     return wreckedInfo;
+  //   })
+  // }
+}
+// const disassemblyCategorys = {
+//   'Dismantling Labels': 'DL',
+//   'Extra Parts to Extract': 'EPE',
+//   'Converter Photos': 'CP'
+// }
 @Provide()
 export class CarBaseService extends BaseService {
   @InjectEntityModel(CarEntity)
