@@ -15,7 +15,7 @@ export class BaseOpenService extends BaseService {
             let carInfoArr: {label: string, value: any}[] = [];
             carDataArr = [...carDataArr, ...carInfoArr];
         }
-        return partMapData;
+        return {partMapData, carDataArr};
         return `
         <html lang="en">
         <head>
