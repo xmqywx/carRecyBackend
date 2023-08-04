@@ -6,6 +6,7 @@ import { BaseService } from '@cool-midway/core';
 export class BaseOpenService extends BaseService {
     // 返回汽车拆解内容
     async returnWreckedInfo(partData: any, carData?: any) {
+        console.log(partData);
         let partMapData = partData.map((v, index) =>  Object.keys(partData[index]).map(key => ({ label: key, value: partData[index][key] })))
         let carDataArr: {label: string, value: any}[] = [];
         if(carData) {
@@ -15,7 +16,6 @@ export class BaseOpenService extends BaseService {
             let carInfoArr: {label: string, value: any}[] = [];
             carDataArr = [...carDataArr, ...carInfoArr];
         }
-        return {partMapData, carDataArr};
         return `
         <html lang="en">
         <head>
