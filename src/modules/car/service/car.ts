@@ -40,6 +40,6 @@ export class CarBaseService extends BaseService {
   carEntity: Repository<CarEntity>;
 
   async getOneCarInfo(id: number) {
-    return this.carEntity.findOne({id});
+    return await this.carEntity.findOne({id});
   }
 }
