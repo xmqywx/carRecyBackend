@@ -28,7 +28,17 @@ export class CarWreckedService extends BaseService {
   async getWreckedInfos(carID: number, disassemblyCategory?: string) {
     const searchData: {[key: string]: any} = {carID: Number(carID)};
     if(disassemblyCategory) {
-      searchData.disassemblyCategory = disassemblyCategory;
+      let category = '';
+      if(disassemblyCategory === 'CatalyticConverter') {
+        category = 'Catalytic Converter';
+      } else if(disassemblyCategory === 'ExtraPartstoExtract') {
+        category = 'Extra Parts to Extract';
+      } else if(disassemblyCategory === 'DismantlingLabels') {
+        category = 'Dismantling Labels';
+      } else {
+        category = disassemblyCategory;
+      }
+      searchData.disassemblyCategory = category;
     }
     console.log(searchData, await this.carWreckedEntity.find(searchData));
     return await this.carWreckedEntity.find(searchData);
