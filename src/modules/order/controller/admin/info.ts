@@ -137,7 +137,8 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.customerID', requestParam: 'customerID' },
       { column: 'a.status', requestParam: 'status' },
-      { column: 'a.id', requestParam: 'id'}
+      { column: 'a.id', requestParam: 'id'},
+      { column: 'e.status', requestParam: 'job_status'},
     ],
     join: [{
       entity: CustomerProfileEntity,
@@ -161,12 +162,29 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
     }],
     where:  async (ctx) => {
       const { startDate, endDate, isPaid, notSchedule } = ctx.request.body;
+      let isNotScheduleSearch = [];
+      if(notSchedule !== undefined) {
+        if(notSchedule === 0) {
+          isNotScheduleSearch = [
+            '(e.driverID IS NULL OR (e.driverID IS NOT NULL AND e.status = 4))', {}
+          ];
+        } else if(notSchedule === 1) {
+          isNotScheduleSearch = ['e.driverID IS NOT NULL and e.status = 4', {}];
+        } else if(notSchedule === 2) {
+          isNotScheduleSearch = ['e.driverID IS NULL', {}];
+        } else {
+          isNotScheduleSearch = [];
+        }
+      } else {
+        isNotScheduleSearch = [];
+      }
       return [
         // isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice and e.status = 4', {actualPaymentPrice: 0}]:[],
         isPaid ? ['e.status = 4', {}]:[],
         startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
         endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
-        notSchedule ? ['e.driverID IS NULL', {}]: []
+        isNotScheduleSearch,
+        // notSchedule ? ['e.driverID IS NULL', {}]: (notSchedule === undefined ? [] : ['e.driverID IS NOT NULL', {}]),
       ]
     },
   },

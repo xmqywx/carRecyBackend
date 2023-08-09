@@ -7,19 +7,6 @@ const dotenv = require('dotenv');
 const envFile = process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
 const pdf = require('html-pdf-chrome');
 dotenv.config({ path: envFile });
-// 读取图片文件
-// const imgPath = '../../../public/pickYourCar.png';
-// fs.readFile(imgPath, (err, data) => {
-//   if (err) {
-//     console.error(err);
-//     return;
-//   }
-
-//   // 将图片数据转换成Base64编码
-//   const base64 = Buffer.from(data).toString('base64');
-
-//   console.log(base64);
-// });
 // 配置 AWS SDK
 AWS.config.update({
   region: process.env.NODE_REGION,

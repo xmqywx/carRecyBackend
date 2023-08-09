@@ -84,7 +84,7 @@ export class BaseOpenService extends BaseService {
                             if(!v.value) {
                                 return null;
                             }
-                            if(['customerID', 'CarWreckedInfo', 'isVFP', 'createTime', 'updateTime', 'carID', 'disassemblyNumber'].includes(v.label)) {
+                            if(['customerID', 'CarWreckedInfo', 'isVFP', 'createTime', 'updateTime', 'carID'].includes(v.label)) {
                                 return null;
                             }
                             const disassemblyCategory = partDataArr.find(v => v.label === 'disassemblyCategory').value;
@@ -238,7 +238,7 @@ export class BaseOpenService extends BaseService {
                     if(!v.value) {
                         return null;
                     }
-                    if(['customerID', 'CarWreckedInfo', 'isVFP', 'createTime', 'updateTime', 'disassemblyNumber'].includes(v.label)) {
+                    if(['customerID', 'CarWreckedInfo', 'isVFP', 'createTime', 'updateTime'].includes(v.label)) {
                         return null;
                     }
                     if(v.label === 'disassmblingInformation' && partData.disassemblyCategory === 'Catalytic Converter') {

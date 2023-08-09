@@ -14,7 +14,7 @@ import { CarWreckedService } from '../../service/car';
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: CarWreckedEntity,
   pageQueryOp: {
-    keyWordLikeFields: ['carID'],
+    keyWordLikeFields: ['carID', 'disassemblyNumber', 'disassemblyCategory', 'disassmblingInformation'],
     select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber','b.name','b.registrationNumber','b.state','b.series','b.engine','b.bodyStyle', 'b.carInfo'],
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },

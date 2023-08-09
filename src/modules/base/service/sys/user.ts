@@ -69,9 +69,12 @@ export class BaseSysUserService extends BaseService {
               [departmentIds]
             )}
             ${this.setSql(status, 'and a.status = ?', [status])}
-            ${this.setSql(keyWord, 'and (a.name LIKE ? or a.username LIKE ?)', [
+            ${this.setSql(keyWord, 'and (a.name LIKE ? or a.username LIKE ? or a.phone LIKE ? or a.email LIKE ? or a.remark LIKE ?)', [
               `%${keyWord}%`,
               `%${keyWord}%`,
+              `%${keyWord}%`,
+              `%${keyWord}%`,
+              `%${keyWord}%`
             ])}
             ${this.setSql(true, 'and a.username != ?', ['admin'])}
 
