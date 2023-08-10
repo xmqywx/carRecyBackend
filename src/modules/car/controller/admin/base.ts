@@ -44,7 +44,6 @@ import {InjectEntityModel} from "@midwayjs/orm";
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
-      { column: 'a.isVFP', requestParam: 'isVFP' },
       { column: 'a.id', requestParam: 'id'}
     ],
     join: [{
@@ -58,9 +57,10 @@ import {InjectEntityModel} from "@midwayjs/orm";
       condition: 'c.orderID = b.id',
     }],
     where:  async (ctx) => {
-      const { isCompleted } = ctx.request.body;
+      const { isCompleted, isVFP } = ctx.request.body;
       return [
         isCompleted ? ['c.status = 4', {}]:[],
+        isVFP ? ['a.isVFP = true', {}] : ['(a.isVFP is NULL or a.isVFP = false)', {}]
         // isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
       ]
     },
