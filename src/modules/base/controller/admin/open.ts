@@ -8,7 +8,7 @@ import { Context } from '@midwayjs/koa';
 import { Validate } from '@midwayjs/validate';
 import { CoolFile } from '@cool-midway/file';
 import { OrderService } from '../../../order/service/order';
-import getDocs from '../../../sendEmail/sendMailToGetDocs';
+import getDocs,{outPutPdf, saveS3} from '../../../sendEmail/sendMailToGetDocs';
 import { CarWreckedService, CarBaseService } from '../../../car/service/car';
 import { BaseOpenService } from '../../service/sys/open';
 
@@ -150,15 +150,24 @@ export class BaseOpenController extends BaseController {
     });
     await this.orderService.updateOrderAllowUpload(orderID, true);
     // 发送邮件
+    let attachment: any = {};
+    if(!giveUploadBtn) {
+      const buffer = await outPutPdf({textToSend});
+      attachment = await saveS3(buffer);
+    }
     const emailPromises = email.map((v: string) => {
       return getDocs({
-        email: v, name, token, textToSend, giveUploadBtn
+        email: v, name, token, giveUploadBtn, attachment
       });
     });
     const emailResults = await Promise.all(emailPromises);
     // 检查是否所有邮件都成功发送
     const isAllEmailSent = emailResults.every((result) => result.status === 'success');
     if (isAllEmailSent) {
+      if(attachment.path) {
+        await this.orderService.saveInvoice(orderID, attachment.path);
+      }
+      await this.orderService.updateEmailStatus(orderID, giveUploadBtn);
       return this.ok({ message: "All emails have been sent successfully." });
     } else {
       return this.fail("Failed to send some emails.");

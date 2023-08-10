@@ -125,6 +125,38 @@ export class OrderService extends BaseService {
     return this.orderInfoEntity.save(order);
   }
 
+  async updateEmailStatus(id: number, giveUploadBtn: boolean): Promise<OrderInfoEntity> {
+    const order = await this.orderInfoEntity.findOne(id);
+    if (!order) {
+      throw new CoolCommException(`Order with ID ${id} not found.`);
+    }
+    if(!order.allowUpload) {
+      throw new CoolCommException(`You do not have the permission to perform updates.`);
+    }
+    if(!giveUploadBtn) {
+      order.emailStatus = 1;
+    }
+    return this.orderInfoEntity.save(order);
+  }
+  // async updateEmailStatus(id: number, giveUploadBtn: boolean): Promise<OrderInfoEntity> {
+  //   const order = await this.orderInfoEntity.findOne(id);
+  //   if (!order) {
+  //     throw new CoolCommException(`Order with ID ${id} not found.`);
+  //   }
+  //   if (!order.allowUpload) {
+  //     throw new CoolCommException(`You do not have the permission to perform updates.`);
+  //   }
+  
+  //   let status: number;
+  //   if (giveUploadBtn) {
+  //     status = (order.emailStatus === 1 || order.emailStatus === 3) ? 3 : 2;
+  //   } else {
+  //     status = (order.emailStatus === 2 || order.emailStatus === 3) ? 3 : 1;
+  //   }
+  
+  //   order.emailStatus = status;
+  //   return this.orderInfoEntity.save(order);
+  // }
   async updateOrderAllowUpload(id: number, allowUpload: boolean) {
     const order = await this.orderInfoEntity.findOne(id);
     order.allowUpload = allowUpload;

@@ -77,7 +77,7 @@ import {JobService} from '../../service/job';
   },
   pageQueryOp: {
     keyWordLikeFields: ['c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
-    select: ['a.*', 'b.expectedDate', 'b.pickupAddress', 'b.pickupAddressState','b.pickupAddressLat','b.pickupAddressLng', 'c.model', 'c.year', 'c.brand', 'c.colour', 'c.vinNumber', 'd.username'],
+    select: ['a.*', 'b.expectedDate','c.name', 'b.pickupAddress', 'b.pickupAddressState','b.pickupAddressLat','b.pickupAddressLng', 'c.model', 'c.year', 'c.brand', 'c.colour', 'c.vinNumber', 'd.username'],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },

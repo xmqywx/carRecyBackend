@@ -103,6 +103,10 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'invoice', nullable: true })
   invoice: string;
 
+  // 0 1 2 3
+  @Column({ comment: 'emailStatus', nullable: true })
+  emailStatus: number;
+
   @Column({ comment: 'aboutUs', nullable: true })
   aboutUs: string;
 
