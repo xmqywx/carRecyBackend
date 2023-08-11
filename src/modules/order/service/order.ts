@@ -130,9 +130,6 @@ export class OrderService extends BaseService {
     if (!order) {
       throw new CoolCommException(`Order with ID ${id} not found.`);
     }
-    if(!order.allowUpload) {
-      throw new CoolCommException(`You do not have the permission to perform updates.`);
-    }
     if(!giveUploadBtn) {
       order.emailStatus = 1;
     }
