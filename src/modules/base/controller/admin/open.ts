@@ -148,13 +148,16 @@ export class BaseOpenController extends BaseController {
     const token = await this.orderService.generateToken({
       orderID
     });
-    await this.orderService.updateOrderAllowUpload(orderID, true);
+
     // 发送邮件
     let attachment: any = {};
     if(!giveUploadBtn) {
       const buffer = await outPutPdf({textToSend});
       attachment = await saveS3(buffer);
+    } else {
+      await this.orderService.updateOrderAllowUpload(orderID, true);
     }
+    
     const emailPromises = email.map((v: string) => {
       return getDocs({
         email: v, name, token, giveUploadBtn, attachment
