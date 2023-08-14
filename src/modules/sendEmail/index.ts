@@ -147,134 +147,142 @@ We Pick Your Car</pre>
   let invoiceNumber = id.toString().padStart(6, "0");
   // HTML 发票模板
   const invoiceHtml = `
-<!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>发票</title>
-        <style>
-          body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 14px;
-            line-height: 1.5;
-            --custom-color: #820EB9;
-            --custom-txt:  #666;
-          }
-          #invoice {
-            margin: 0 auto;
-            max-width: 800px;
-            padding: 30px;
-            border: 1px solid #ccc;
-          }
-          #invoice h1 {
-            font-size: 28px;
-            margin-bottom: 15px;
-          }
-          #invoice .date {
-            font-size: 12px;
-            /* color: #666; */
-          }
-          #invoice table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-          }
-          #invoice table th {
-            background-color: #eee;
-            padding: 5px;
-            text-align: left;
-          }
-          #invoice table td {
-            padding: 5px;
-            border: 1px solid #ccc;
-          }
-          #invoice table tr:nth-child(even) td {
-            background-color: #f0f0f0;
-          }
-          #invoice .total {
-            margin-top: 20px;
-            text-align: right;
-          }
-          .sbt {
-            display: flex;
-            gap: 30px;
-          }
-          dd {
-            margin: 0;
-            color: var(--custom-txt);
-          }
-          .themecolor {
-            color: var(--custom-color);
-            font-weight: 700;
-          }
-          .logo {
-            width: 200px;
-          }
-        </style>
-      </head>
-      <body>
-        <div id="invoice">
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <title>发票</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        --custom-color: #820EB9;
+        --custom-txt:  #666;
+      }
+      #invoice {
+        margin: 0 auto;
+        max-width: 800px;
+        padding: 30px;
+        border: 1px solid #ccc;
+      }
+      #invoice h1 {
+        font-size: 28px;
+        margin-bottom: 15px;
+      }
+      #invoice .date {
+        font-size: 12px;
+        /* color: #666; */
+      }
+      #invoice table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      #invoice table th {
+        background-color: #eee;
+        padding: 5px;
+        text-align: left;
+      }
+      #invoice table td {
+        padding: 5px;
+        border: 1px solid #ccc;
+      }
+      #invoice table tr:nth-child(even) td {
+        background-color: #f0f0f0;
+      }
+      #invoice .total {
+        margin-top: 20px;
+        text-align: right;
+      }
+      .sbt {
+        display: flex;
+        gap: 30px;
+      }
+      .sbt-right dl {
+        display: flex;
+      }
+      .sbt-right dl dt {
+        width: 150px;
+      }
+      dd {
+        margin: 0;
+        color: var(--custom-txt);
+      }
+      .themecolor {
+        color: var(--custom-color);
+        font-weight: 700;
+      }
+      .logo {
+        width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="invoice">
 
-          <h1>We Pick Your Car Invoice</h1>
-          <div class="date themecolor">Issued on: ${currentTime}</div>
-          <div class="sbt">
-            <img class="logo" src=${logoUrl} alt="">
-            <dl>
-              <dt>Invoice to</dt>
-              <dd>${name}</dd>
-              <dd>${email}</dd>
-            </dl>
-            <dl>
-              <dt>Payable to</dt>
-              <dd>${myName}</dd>
-            </dl>
-            <dl>
-              <dt>Company name</dt>
-              <dd>We Pick Your Car</dd>
-            </dl>
-            <dl>
-              <dt>Invoice #</dt>
-              <dd>${invoiceNumber}</dd>
-            </dl>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Price (ex GST)</th>
-                <th>Gst</th>
-                <th>Price (inc GST)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>recovery vehicle</td>
-                <td>${info.totalAmount}</td>
-                <td>$${info.priceExGST}</td>
-                <td>$${info.gst}</td>
-                <td>$${info.gstAmount}</td>
-              </tr>
-              <!-- <tr>
-                <td>商品2</td>
-                <td>1</td>
-                <td>100.00</td>
-                <td>100.00</td>
-              </tr>
-              <tr>
-                <td>商品3</td>
-                <td>3</td>
-                <td>30.00</td>
-                <td>90.00</td>
-              </tr> -->
-            </tbody>
-          </table>
-          <div class="total">Price (ex GST):  $${info.priceExGST}</div>
-          <div class="total">Gst:  $${info.gst}</div>
-          <div class="total">Price (inc GST): $${info.gstAmount}</div>
+      <h1>We Pick Your Car Invoice</h1>
+      <div class="date themecolor">Issued on: ${currentTime}</div>
+      <div class="sbt">
+        <img class="logo" src=${logoUrl} alt="">
+        <div class="sbt-right">
+          <dl>
+            <dt>Invoice to</dt>
+            <dd>${name}</dd>
+            <dd>${email}</dd>
+          </dl>
+          <dl>
+            <dt>Payable to</dt>
+            <dd>${myName}</dd>
+          </dl>
+          <dl>
+            <dt>Company name</dt>
+            <dd>We Pick Your Car</dd>
+          </dl>
+          <dl>
+            <dt>Invoice #</dt>
+            <dd>${invoiceNumber}</dd>
+          </dl>
         </div>
-      </body>
-      </html>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Price (ex GST)</th>
+            <th>Gst</th>
+            <th>Price (inc GST)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>recovery vehicle</td>
+            <td>${info.totalAmount}</td>
+            <td>$${info.priceExGST}</td>
+            <td>$${info.gst}</td>
+            <td>$${info.gstAmount}</td>
+          </tr>
+          <!-- <tr>
+            <td>商品2</td>
+            <td>1</td>
+            <td>100.00</td>
+            <td>100.00</td>
+          </tr>
+          <tr>
+            <td>商品3</td>
+            <td>3</td>
+            <td>30.00</td>
+            <td>90.00</td>
+          </tr> -->
+        </tbody>
+      </table>
+      <div class="total">Price (ex GST):  $${info.priceExGST}</div>
+      <div class="total">Gst:  $${info.gst}</div>
+      <div class="total">Price (inc GST): $${info.gstAmount}</div>
+    </div>
+  </body>
+  </html>
 `;
   // // 将 HTML 转换为 PDF
   // const browser = await puppeteer.launch({
