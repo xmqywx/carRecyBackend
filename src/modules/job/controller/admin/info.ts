@@ -18,7 +18,7 @@ import {JobService} from '../../service/job';
   entity: JobEntity,
 
   listQueryOp: {
-    keyWordLikeFields: ['a.*','c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
+    keyWordLikeFields: ['c.name','c.model','c.year',  'b.pickupAddress', 'b.pickupAddressState', 'd.username'],
     select: [
       'a.*',
       'b.expectedDate',

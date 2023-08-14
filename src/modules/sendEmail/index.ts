@@ -334,7 +334,7 @@ We Pick Your Car</pre>
                         type="number" autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div>
                     <!-- append slot --><!--v-if-->
                   </div>
-                  <div class="show value" data-v-3a5883f0="">${info.totalAmount}</div>
+                  <div class="show value" data-v-3a5883f0="">$${info.totalAmount}</div>
                 </td>
                 <td data-v-3a5883f0="" style="padding: 5px; border: 1px solid rgb(204, 204, 204);">
                   <div class="el-input no-show" data-v-3a5883f0=""><!-- input --><!-- prepend slot --><!--v-if-->
