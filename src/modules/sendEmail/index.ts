@@ -58,10 +58,10 @@ export default async function main({ name, price, id, email, invoicePdf = null, 
       to: toEmail,
       subject: 'Invoice from WePickYourCar',
       text: 'Invoice from WePickYourCar',
-      attatchment: {
+      attachments: [{
         filename: 'Invoice.pdf',
-        path: invoicePdf
-      },
+        path: invoicePdf,
+      }],
       html: `
         <html lang="en">
     <head>

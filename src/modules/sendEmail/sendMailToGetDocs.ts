@@ -91,11 +91,11 @@ export async function outPutPdf({ textToSend }) {
 }
 
 export async function saveS3(buffer) {
-  return {
-    filename: 'Invoice.pdf',
-    content: buffer, // 传入 PDF 的二进制数据
-    contentType: 'application/pdf'
-  };
+  // return {
+  //   filename: 'Invoice.pdf',
+  //   content: buffer, // 传入 PDF 的二进制数据
+  //   contentType: 'application/pdf'
+  // };
   let attachment;
   try {
     const s3Params = {
@@ -108,7 +108,8 @@ export async function saveS3(buffer) {
     const pdfUrl = s3Upload.Location;
     attachment = {
       filename: 'Invoice.pdf',
-      path: pdfUrl
+      path: pdfUrl,
+      contentType: 'application/pdf'
     };
   } catch(e) {
     attachment = {
