@@ -45,8 +45,7 @@ export class OrderActionController extends BaseController {
   @Post('/sendEmail')
   async sendEmail(@Body('name') name: string, @Body('id') id: string, @Body('email') email: string, @Body('price') price: number ) {
     const orderInfo = await this.orderService.getInvoiceInfo(id);
-    console.log(orderInfo);
-    // return this.ok({orderInfo});
+    if(!orderInfo) return this.fail('The job cannot be found.');
     const info = await main({name, id, price, email, invoicePdf: orderInfo.invoice, info: orderInfo});
     if(info.status === 'success') {
       if(!orderInfo.invoice) {
