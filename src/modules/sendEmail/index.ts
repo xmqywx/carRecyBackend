@@ -22,7 +22,7 @@ const s3 = new AWS.S3();
 const fromEmail = process.env.NODE_MAIL_USER;
 const logoUrl = "http://13.54.137.62/pickYourCar.png";
 
-export default async function main({name, price, id, email, invoicePdf = null, info}) {
+export default async function main({ name, price, id, email, invoicePdf = null, info }) {
   console.log(invoicePdf);
   let toEmail = '';
   // 配置 Nodemailer
@@ -49,31 +49,90 @@ export default async function main({name, price, id, email, invoicePdf = null, i
     },
     debug: true,
   });
-  if(email != null) {
+  if (email != null) {
     toEmail = email;
   }
-  if(invoicePdf !== null) {
+  if (invoicePdf !== null) {
     const mailOptions = {
       from: fromEmail,
       to: toEmail,
-      subject: 'Your invoice',
-      text: 'Please accept your invoice.' + invoicePdf,
-      // attachments: [
-      //   {
-      //     filename: 'invoice.pdf',
-      //     path: invoicePdf
-      //   }
-      // ]
+      subject: 'Invoice from WePickYourCar',
+      text: 'Invoice from WePickYourCar',
+      attatchment: {
+        filename: 'Invoice.pdf',
+        path: invoicePdf
+      },
+      html: `
+        <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+      <style>
+        main {
+          margin: auto;
+          width: 100%;
+        }
+    
+        .to-upload a {
+          /* display: block; */
+          float: left;
+          line-height: 50px;
+          padding: 0px 20px;
+          color: #FFF;
+          font-weight: 500;
+          background-color: chocolate;
+          text-decoration: none;
+        }
+    
+        a:hover {
+          opacity: 0.8;
+        }
+    
+        p, pre {
+          // text-indent: 2em;
+          white-space: pre-wrap;
+          word-break: break-all;
+        }
+    
+        .to-upload {}
+        img {
+          display: block;
+          width: 300px;
+          max-height: 300px;
+          margin: auto;
+        }
+        .no-show {
+          display: none;
+        }
+        .show {
+          display: block;
+        }
+      </style>
+    </head>
+    
+    <body>
+      <main>
+        <h3>Dear ${name}.</h3>
+<pre>Please see attached invoice for your car.
+
+Thanks for your business.
+
+We Pick Your Car</pre>
+      </main>
+    </body>
+    </html>
+        `
     };
-  
+
     try {
       const info = await transport.sendMail(mailOptions);
       console.log('发票邮件已发送: %s', info.messageId);
       console.log(invoicePdf);
-      return {...info, status: 'success'};
+      return { ...info, status: 'success' };
     } catch (error) {
       console.error('发送发票邮件时出错: %s', error);
-      return {error, status: 'failure'};
+      return { error, status: 'failure' };
     }
     // return;
   }
@@ -87,7 +146,7 @@ export default async function main({name, price, id, email, invoicePdf = null, i
   // let adjustments = 0;
   let invoiceNumber = id.toString().padStart(6, "0");
   // HTML 发票模板
-const invoiceHtml = `
+  const invoiceHtml = `
 <!DOCTYPE html>
       <html>
       <head>
@@ -244,9 +303,9 @@ const invoiceHtml = `
   //   console.log('This is a buffer:', buffer);
   //   console.log(err);
   //   pdfBuffer = buffer;
-    
+
   // });
-  
+
   const s3Params = {
     Bucket: 'pickcar',
     Key: `invoices/invoice-${Date.now()}.pdf`,
@@ -257,65 +316,126 @@ const invoiceHtml = `
   const pdfUrl = s3Upload.Location;
   console.log(pdfUrl);
 
-  
+
 
 
   // 发送带有 PDF 附件的电子邮件
   const mailOptions = {
     from: fromEmail,
     to: toEmail,
-    subject: 'Your invoice',
-    text: 'Please see the invoice in the attachment.',
+    subject: 'Invoice from WePickYourCar',
+    text: 'Invoice from WePickYourCar',
     attachments: [
       {
         filename: 'invoice.pdf',
         path: pdfUrl
       }
-    ]
+    ],
+    html: `
+        <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+      <style>
+        main {
+          margin: auto;
+          width: 100%;
+        }
+    
+        .to-upload a {
+          /* display: block; */
+          float: left;
+          line-height: 50px;
+          padding: 0px 20px;
+          color: #FFF;
+          font-weight: 500;
+          background-color: chocolate;
+          text-decoration: none;
+        }
+    
+        a:hover {
+          opacity: 0.8;
+        }
+    
+        p, pre {
+          // text-indent: 2em;
+          white-space: pre-wrap;
+          word-break: break-all;
+        }
+    
+        .to-upload {}
+        img {
+          display: block;
+          width: 300px;
+          max-height: 300px;
+          margin: auto;
+        }
+        .no-show {
+          display: none;
+        }
+        .show {
+          display: block;
+        }
+      </style>
+    </head>
+    
+    <body>
+      <main>
+        <h3>Dear ${name}.</h3>
+<pre>Please see attached invoice for your car.
+
+Thanks for your business.
+
+We Pick Your Car</pre>
+      </main>
+    </body>
+    </html>
+        `
   };
 
   try {
     const info = await transport.sendMail(mailOptions);
     console.log('发票邮件已发送: %s', info.messageId);
-    return {...info, status: 'success', invoicePdf: pdfUrl};
+    return { ...info, status: 'success', invoicePdf: pdfUrl };
   } catch (error) {
     console.error('发送发票邮件时出错: %s', error);
-    return {error, status: 'failure'};
+    return { error, status: 'failure' };
   }
-//   // 发送电子邮件
-// ses.sendEmail({
-//   Source: fromEmail,
-//   Destination: {
-//     ToAddresses: ['haojiahuo971226@163.com']
-//   },
-//   Message: {
-//     Subject: {
-//       Data: 'We pick your car! Invoice'
-//     },
-//     Body: {
-//       Html: {
-//         Data: invoiceHtml
-//       }
-//     }
-//   },
-//   // Attachments: [
-//   //   {
-//   //     Filename: 'invoice',
-//   //     Content: pdfBuffer,
-//   //     ContentType: 'application/pdf'
-//   //   }
-//   // ]
-// }, (err, data) => {
-//   if (err) {
-//     console.log(err);
-//     return err;
-//   } else {
-//     console.log(data);
-//     return data;
-//   }
-// });
+  //   // 发送电子邮件
+  // ses.sendEmail({
+  //   Source: fromEmail,
+  //   Destination: {
+  //     ToAddresses: ['haojiahuo971226@163.com']
+  //   },
+  //   Message: {
+  //     Subject: {
+  //       Data: 'We pick your car! Invoice'
+  //     },
+  //     Body: {
+  //       Html: {
+  //         Data: invoiceHtml
+  //       }
+  //     }
+  //   },
+  //   // Attachments: [
+  //   //   {
+  //   //     Filename: 'invoice',
+  //   //     Content: pdfBuffer,
+  //   //     ContentType: 'application/pdf'
+  //   //   }
+  //   // ]
+  // }, (err, data) => {
+  //   if (err) {
+  //     console.log(err);
+  //     return err;
+  //   } else {
+  //     console.log(data);
+  //     return data;
+  //   }
+  // });
 
 
   // 将 PDF 上传到 S3
-  
+
 }
