@@ -137,7 +137,7 @@ We Pick Your Car</pre>
     // return;
   }
   const currentTime = moment().format('DD-MM-YYYY');
-  const myName = "We pick your car";
+  // const myName = "We pick your car";
   // const qty = 1;
   // const gst = info.gst;
   // let itemTotalPrice = qty * price - gst;
@@ -147,140 +147,239 @@ We Pick Your Car</pre>
   let invoiceNumber = id.toString().padStart(6, "0");
   // HTML 发票模板
   const invoiceHtml = `
-  <!DOCTYPE html>
-  <html>
+  <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>发票</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
     <style>
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 14px;
-        line-height: 1.5;
-        --custom-color: #820EB9;
-        --custom-txt:  #666;
-      }
-      #invoice {
-        margin: 0 auto;
-        max-width: 800px;
-        padding: 30px;
-        border: 1px solid #ccc;
-      }
-      #invoice h1 {
-        font-size: 28px;
-        margin-bottom: 15px;
-      }
-      #invoice .date {
-        font-size: 12px;
-        /* color: #666; */
-      }
-      #invoice table {
+      main {
+        margin: auto;
         width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
       }
-      #invoice table th {
-        background-color: #eee;
-        padding: 5px;
-        text-align: left;
+  
+      .to-upload a {
+        /* display: block; */
+        float: left;
+        line-height: 50px;
+        padding: 0px 20px;
+        color: #FFF;
+        font-weight: 500;
+        background-color: chocolate;
+        text-decoration: none;
       }
-      #invoice table td {
-        padding: 5px;
-        border: 1px solid #ccc;
+  
+      a:hover {
+        opacity: 0.8;
       }
-      #invoice table tr:nth-child(even) td {
-        background-color: #f0f0f0;
+  
+      p,
+      pre {
+        white-space: pre-wrap;
+        word-break: break-all;
       }
-      #invoice .total {
-        margin-top: 20px;
-        text-align: right;
+  
+  
+      img {
+        display: block;
+        width: 300px;
+        max-height: 300px;
+        margin: auto;
       }
-      .sbt {
-        display: flex;
-        gap: 30px;
+  
+      .no-show {
+        display: none;
       }
-      .sbt-right dl {
-        display: flex;
+  
+      .show {
+        display: block;
       }
-      .sbt-right dl dt {
-        width: 150px;
+  
+      .key {
+        font-size: 14px;
+        font-weight: bold;
+        color: #000000;
       }
-      dd {
-        margin: 0;
-        color: var(--custom-txt);
-      }
-      .themecolor {
-        color: var(--custom-color);
-        font-weight: 700;
-      }
-      .logo {
-        width: 200px;
+  
+      .value {
+        font-size: 14px;
+        color: #000000;
       }
     </style>
   </head>
+  
   <body>
-    <div id="invoice">
-
-      <h1>We Pick Your Car Invoice</h1>
-      <div class="date themecolor">Issued on: ${currentTime}</div>
-      <div class="sbt">
-        <img class="logo" src=${logoUrl} alt="">
-        <div class="sbt-right">
-          <dl>
-            <dt>Invoice to</dt>
-            <dd>${name}</dd>
-            <dd>${email}</dd>
-          </dl>
-          <dl>
-            <dt>Payable to</dt>
-            <dd>${myName}</dd>
-          </dl>
-          <dl>
-            <dt>Company name</dt>
-            <dd>We Pick Your Car</dd>
-          </dl>
-          <dl>
-            <dt>Invoice #</dt>
-            <dd>${invoiceNumber}</dd>
-          </dl>
+    <main>
+      <div>
+        <div data-v-3a5883f0="" style="width: 800px; margin: auto; border: 1px solid rgb(0, 0, 0); padding: 10px;">
+          <h1 data-v-3a5883f0="" style="text-align: start; color: rgb(0, 0, 0);">We Pick Your Car Invoice <button
+              class="el-button el-button--primary no-show" aria-disabled="false" type="button" data-v-3a5883f0=""
+              style="float: right;"><!--v-if--><span class="">Priview</span></button></h1>
+          <div data-v-3a5883f0="" style="display: flex; gap: 10px; margin: 10px 0px; align-items: center;">
+            <div data-v-3a5883f0=""><img src=${logoUrl} alt="" data-href="" data-v-3a5883f0=""
+                style="width: 200px;"></div>
+            <div data-v-3a5883f0="" style="flex: 1 1 0%;">
+              <pre class="show value" data-v-3a5883f0="">[ABN]
+          [Business Address]
+          [Suburb] [State] [Postcode]
+          [Business Phone Number]
+          [Business Email Address]</pre>
+              <div class="el-textarea no-show" data-v-3a5883f0=""><!-- input --><!-- textarea --><textarea
+                  class="el-textarea__inner" rows="5" tabindex="0" autocomplete="off"></textarea><!--v-if--></div>
+            </div>
+          </div>
+          <hr data-v-3a5883f0="">
+          <hr data-v-3a5883f0="" style="margin-bottom: 10px;">
+          <div data-v-3a5883f0="" style="display: flex; justify-content: space-between;">
+            <div data-v-3a5883f0="" style="display: flex; gap: 10px; justify-content: space-between;">
+              <div data-v-3a5883f0="">
+                <div class="el-input no-show" data-v-3a5883f0="" style="width: 100px;">
+                  <!-- input --><!-- prepend slot --><!--v-if-->
+                  <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner" type="text"
+                      autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div><!-- append slot --><!--v-if-->
+                </div>
+                <div class="show key" data-v-3a5883f0="">Invoice to</div>
+              </div>
+              <div data-v-3a5883f0="">
+                <div class="el-textarea no-show" data-v-3a5883f0="" style="width: 200px;">
+                  <!-- input --><!-- textarea --><textarea class="el-textarea__inner" rows="4" tabindex="0"
+                    autocomplete="off"></textarea><!--v-if-->
+                </div>
+                <pre class="show" data-v-3a5883f0="" style="width: 200px;">${name}
+                  ${email}</pre>
+              </div>
+            </div>
+            <div data-v-3a5883f0="">
+              <div data-v-3a5883f0="" style="display: flex; gap: 10px;">
+                <div class="el-input no-show" data-v-3a5883f0="" style="width: 190px;">
+                  <!-- input --><!-- prepend slot --><!--v-if-->
+                  <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner" type="text"
+                      autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div><!-- append slot --><!--v-if-->
+                </div>
+                <div class="el-input no-show" data-v-3a5883f0="" style="width: 190px;">
+                  <!-- input --><!-- prepend slot --><!--v-if-->
+                  <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner" type="text"
+                      readonly="" autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div>
+                  <!-- append slot --><!--v-if-->
+                </div>
+                <div class="show key" data-v-3a5883f0="" style="width: 150px; text-align: right;">Invoice number</div>
+                <div class="show" data-v-3a5883f0="" style="width: 100px; text-align: right;">${invoiceNumber}</div>
+              </div>
+              <div data-v-3a5883f0="" style="display: flex; gap: 10px;">
+                <div class="el-input no-show" data-v-3a5883f0="" style="width: 190px;">
+                  <!-- input --><!-- prepend slot --><!--v-if-->
+                  <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner" type="text"
+                      autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div><!-- append slot --><!--v-if-->
+                </div>
+                <div class="el-input no-show" data-v-3a5883f0="" style="width: 190px;">
+                  <!-- input --><!-- prepend slot --><!--v-if-->
+                  <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner" type="text"
+                      autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div><!-- append slot --><!--v-if-->
+                </div>
+                <div class="show key" data-v-3a5883f0="" style="width: 150px; text-align: right;">Date</div>
+                <div class="show" data-v-3a5883f0="" style="width: 100px; text-align: right;">${currentTime}</div>
+              </div>
+            </div>
+          </div>
+          <table cell-padding="0" data-v-3a5883f0=""
+            style="width: 100%; margin-top: 10px; border-collapse: collapse; border-spacing: 0px;">
+            <thead data-v-3a5883f0="">
+              <tr data-v-3a5883f0="">
+                <th class="key" data-v-3a5883f0=""
+                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left; width: 200px;">Description
+                </th>
+                <th class="key" data-v-3a5883f0=""
+                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Amount</th>
+                <th class="key" data-v-3a5883f0=""
+                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Price (ex GST)</th>
+                <th class="key" data-v-3a5883f0=""
+                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Gst</th>
+                <th class="key" data-v-3a5883f0=""
+                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Price (inc GST)</th>
+                <th class="key no-show" data-v-3a5883f0=""
+                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">
+                  <div class="el-select" data-v-3a5883f0="">
+                    <div class="select-trigger el-tooltip__trigger el-tooltip__trigger"><!--v-if-->
+                      <div class="el-input el-input--suffix"><!-- input --><!-- prepend slot --><!--v-if-->
+                        <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner"
+                            type="text" readonly="" autocomplete="off" tabindex="0"
+                            placeholder="Select"><!-- suffix slot --><span class="el-input__suffix"><span
+                              class="el-input__suffix-inner"><i class="el-icon el-select__caret el-select__icon"><svg
+                                  viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                                  <path fill="currentColor"
+                                    d="M831.872 340.864 512 652.672 192.128 340.864a30.592 30.592 0 0 0-42.752 0 29.12 29.12 0 0 0 0 41.6L489.664 714.24a32 32 0 0 0 44.672 0l340.288-331.712a29.12 29.12 0 0 0 0-41.728 30.592 30.592 0 0 0-42.752 0z">
+                                  </path>
+                                </svg></i><!--v-if--><!--v-if--><!--v-if--><!--v-if--><!--v-if--><!--v-if--></span></span>
+                        </div>
+                        <!-- append slot --><!--v-if-->
+                      </div>
+                    </div>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody data-v-3a5883f0="">
+              <tr data-v-3a5883f0="">
+                <td data-v-3a5883f0="" style="padding: 5px; border: 1px solid rgb(204, 204, 204);">
+                  <div class="el-input no-show" data-v-3a5883f0=""><!-- input --><!-- prepend slot --><!--v-if-->
+                    <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner"
+                        type="text" autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div>
+                    <!-- append slot --><!--v-if-->
+                  </div>
+                  <div class="show value" data-v-3a5883f0="">Recovery vehicle</div>
+                </td>
+                <td data-v-3a5883f0="" style="padding: 5px; border: 1px solid rgb(204, 204, 204);">
+                  <div class="el-input no-show" data-v-3a5883f0=""><!-- input --><!-- prepend slot --><!--v-if-->
+                    <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner"
+                        type="number" autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div>
+                    <!-- append slot --><!--v-if-->
+                  </div>
+                  <div class="show value" data-v-3a5883f0="">${info.totalAmount}</div>
+                </td>
+                <td data-v-3a5883f0="" style="padding: 5px; border: 1px solid rgb(204, 204, 204);">
+                  <div class="el-input no-show" data-v-3a5883f0=""><!-- input --><!-- prepend slot --><!--v-if-->
+                    <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner"
+                        type="number" autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div>
+                    <!-- append slot --><!--v-if-->
+                  </div>
+                  <div class="show value" data-v-3a5883f0="">$${info.priceExGST}</div>
+                </td>
+                <td data-v-3a5883f0="" style="padding: 5px; border: 1px solid rgb(204, 204, 204);">
+                  <div class="el-input no-show" data-v-3a5883f0=""><!-- input --><!-- prepend slot --><!--v-if-->
+                    <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner"
+                        type="number" autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div>
+                    <!-- append slot --><!--v-if-->
+                  </div>
+                  <div class="show value" data-v-3a5883f0="">$${info.gst}</div>
+                </td>
+                <td data-v-3a5883f0="" style="padding: 5px; border: 1px solid rgb(204, 204, 204);">
+                  <div class="el-input no-show" data-v-3a5883f0=""><!-- input --><!-- prepend slot --><!--v-if-->
+                    <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner"
+                        type="number" autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div>
+                    <!-- append slot --><!--v-if-->
+                  </div>
+                  <div class="show value" data-v-3a5883f0="">$${info.gstAmount}</div>
+                </td>
+                <td class="no-show" data-v-3a5883f0=""
+                  style="padding: 5px; border: 1px solid rgb(204, 204, 204); text-align: center;"><button
+                    class="el-button el-button--danger is-disabled no-show" aria-disabled="true" disabled="" type="button"
+                    data-v-3a5883f0="" style="margin: 10px 0px;"><!--v-if--><span class="">Delete</span></button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div data-v-3a5883f0="" style="display: flex; justify-content: space-between;">
+            <div data-v-3a5883f0=""><button class="el-button el-button--primary no-show" aria-disabled="false"
+                type="button" data-v-3a5883f0="" style="margin: 10px 0px;"><!--v-if--><span class="">Add
+                  Line</span></button></div>
+            <div data-v-3a5883f0="" style="margin-top: 10px;">
+              <div class="key" data-v-3a5883f0="">Price (ex GST): <span class="value" data-v-3a5883f0="">$${info.priceExGST}</span></div>
+              <div class="key" data-v-3a5883f0="">Gst: <span class="value" data-v-3a5883f0="">$${info.gst}</span></div>
+              <div class="key" data-v-3a5883f0="">Price (inc GST): <span class="value" data-v-3a5883f0="">$${info.gstAmount}</span></div>
+            </div>
+          </div>
         </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Price (ex GST)</th>
-            <th>Gst</th>
-            <th>Price (inc GST)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>recovery vehicle</td>
-            <td>${info.totalAmount}</td>
-            <td>$${info.priceExGST}</td>
-            <td>$${info.gst}</td>
-            <td>$${info.gstAmount}</td>
-          </tr>
-          <!-- <tr>
-            <td>商品2</td>
-            <td>1</td>
-            <td>100.00</td>
-            <td>100.00</td>
-          </tr>
-          <tr>
-            <td>商品3</td>
-            <td>3</td>
-            <td>30.00</td>
-            <td>90.00</td>
-          </tr> -->
-        </tbody>
-      </table>
-      <div class="total">Price (ex GST):  $${info.priceExGST}</div>
-      <div class="total">Gst:  $${info.gst}</div>
-      <div class="total">Price (inc GST): $${info.gstAmount}</div>
-    </div>
+    </main>
   </body>
   </html>
 `;
