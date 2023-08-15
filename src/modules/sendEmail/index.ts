@@ -246,7 +246,7 @@ We Pick Your Car</pre>
                     autocomplete="off"></textarea><!--v-if-->
                 </div>
                 <pre class="show" data-v-3a5883f0="" style="width: 200px;">${name}
-                  ${email}</pre>
+${email}</pre>
               </div>
             </div>
             <div data-v-3a5883f0="">
