@@ -113,11 +113,11 @@ export default async function main({ name, price, id, email, invoicePdf = null, 
     
     <body>
       <main>
-        <h3>Dear ${name}.</h3>
+        <h3>Dear ${name},</h3>
 <pre>Please see attached invoice for your car.
+Thank you for choosing our services.
 
-Thanks for your business.
-
+Best regards,
 We Pick Your Car</pre>
       </main>
     </body>
@@ -489,11 +489,11 @@ ${email}</pre>
     
     <body>
       <main>
-        <h3>Dear ${name}.</h3>
+        <h3>Dear ${name},</h3>
 <pre>Please see attached invoice for your car.
+Thank you for choosing our services.
 
-Thanks for your business.
-
+Best regards,
 We Pick Your Car</pre>
       </main>
     </body>

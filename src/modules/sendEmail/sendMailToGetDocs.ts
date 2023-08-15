@@ -269,11 +269,11 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
     
     <body>
       <main>
-        <h3>Dear ${name}.</h3>
+        <h3>Dear ${name},</h3>
 <pre>Please see attached invoice for your car.
+Thank you for choosing our services.
 
-Thanks for your business.
-
+Best regards,
 We Pick Your Car</pre>
       </main>
     </body>
