@@ -166,10 +166,10 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       if(notSchedule !== undefined) {
         if(notSchedule === 0) {
           isNotScheduleSearch = [
-            '(e.driverID IS NULL OR (e.driverID IS NOT NULL AND e.status = 4))', {}
+            '(e.driverID IS NULL OR e.driverID IS NOT NULL)', {}
           ];
         } else if(notSchedule === 1) {
-          isNotScheduleSearch = ['e.driverID IS NOT NULL and e.status = 4', {}];
+          isNotScheduleSearch = ['e.driverID IS NOT NULL', {}];
         } else if(notSchedule === 2) {
           isNotScheduleSearch = ['e.driverID IS NULL', {}];
         } else {
