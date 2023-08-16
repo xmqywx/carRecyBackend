@@ -143,7 +143,7 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
     const mailOptions = {
       from: fromEmail,
       to: toEmail,
-      subject: 'Provide some proof materials for WePickYourCar',
+      subject: 'Proof materails requests from WePickYourCar',
       html: `
         <html lang="en">
     <head>
@@ -195,11 +195,13 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
     
     <body>
       <main>
-        <h3>Dear ${name}.</h3>
-        <p>Please click here to upload some proof documents.</p>
-          <div class="to-upload">
-            <a href="http://13.54.137.62/customer_provide_files?token=${token}">TO UPLOAD</a>
-          </div>
+        <p>Dear ${name},</p>
+        <p>Please click the link below to upload related Proof materails.</p>
+        <p>Thank you for choosing our services.</p>
+        <br />
+        <p>Best regards,</p>
+        <p>We Pick Your Car</p>
+        <p>Please click <a href="http://13.54.137.62/customer_provide_files?token=${token}" style="font-weight: bold;">here</a> to upload the documents</p>
       </main>
     </body>
     </html>
@@ -269,12 +271,12 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
     
     <body>
       <main>
-        <h3>Dear ${name},</h3>
-<pre>Please see attached invoice for your car.
-Thank you for choosing our services.
-
-Best regards,
-We Pick Your Car</pre>
+      <p>Dear ${name},</p>
+      <p>Please see attached invoice for your car.</p>
+      <p>Thank you for choosing our services.</p>
+      <br />
+      <p>Best regards,</p>
+      <p>We Pick Your Car</p>
       </main>
     </body>
     </html>

@@ -32,7 +32,7 @@ export class CarWreckedService extends BaseService {
       if(disassemblyCategory === 'CatalyticConverter') {
         category = 'Catalytic Converter';
       } else if(disassemblyCategory === 'ExtraPartstoExtract') {
-        category = 'Extra Parts to Extract';
+        category = 'Extra Part Extraction';
       } else if(disassemblyCategory === 'DismantlingLabels') {
         category = 'Dismantling Labels';
       } else {
@@ -58,7 +58,7 @@ export class CarWreckedService extends BaseService {
 }
 const disassemblyCategorys = {
   'Dismantling Labels': 'DL',
-  'Extra Parts to Extract': 'EPE',
+  'Extra Part Extraction': 'EPE',
   'Catalytic Converter': 'CP'
 }
 @Provide()

@@ -113,7 +113,7 @@ export default async function main({ name, price, id, email, invoicePdf = null, 
     
     <body>
       <main>
-        <h3>Dear ${name},</h3>
+        <p>Dear ${name},</p>
 <pre>Please see attached invoice for your car.
 Thank you for choosing our services.
 
@@ -291,11 +291,11 @@ ${email}</pre>
                 <th class="key" data-v-3a5883f0=""
                   style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Amount</th>
                 <th class="key" data-v-3a5883f0=""
-                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Price (ex GST)</th>
+                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Price</th>
                 <th class="key" data-v-3a5883f0=""
                   style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Gst</th>
                 <th class="key" data-v-3a5883f0=""
-                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Price (inc GST)</th>
+                  style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">Total</th>
                 <th class="key no-show" data-v-3a5883f0=""
                   style="background-color: rgb(221, 221, 221); padding: 5px; text-align: left;">
                   <div class="el-select" data-v-3a5883f0="">
@@ -372,9 +372,9 @@ ${email}</pre>
                 type="button" data-v-3a5883f0="" style="margin: 10px 0px;"><!--v-if--><span class="">Add
                   Line</span></button></div>
             <div data-v-3a5883f0="" style="margin-top: 10px;">
-              <div class="key" data-v-3a5883f0="">Price (ex GST): <span class="value" data-v-3a5883f0="">$${info.priceExGST}</span></div>
+              <div class="key" data-v-3a5883f0="">Price: <span class="value" data-v-3a5883f0="">$${info.priceExGST}</span></div>
               <div class="key" data-v-3a5883f0="">Gst: <span class="value" data-v-3a5883f0="">$${info.gst}</span></div>
-              <div class="key" data-v-3a5883f0="">Price (inc GST): <span class="value" data-v-3a5883f0="">$${info.gstAmount}</span></div>
+              <div class="key" data-v-3a5883f0="">Total: <span class="value" data-v-3a5883f0="">$${info.gstAmount}</span></div>
             </div>
           </div>
         </div>
@@ -489,12 +489,12 @@ ${email}</pre>
     
     <body>
       <main>
-        <h3>Dear ${name},</h3>
-<pre>Please see attached invoice for your car.
-Thank you for choosing our services.
-
-Best regards,
-We Pick Your Car</pre>
+      <p>Dear ${name},</p>
+      <p>Please see attached invoice for your car.</p>
+      <p>Thank you for choosing our services.</p>
+      <br />
+      <p>Best regards,</p>
+      <p>We Pick Your Car</p>
       </main>
     </body>
     </html>
