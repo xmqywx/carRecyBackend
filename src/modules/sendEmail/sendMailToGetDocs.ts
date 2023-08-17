@@ -201,7 +201,7 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
         <br />
         <p>Best regards,</p>
         <p>We Pick Your Car</p>
-        <p>Please click <a href="http://13.54.137.62/customer_provide_files?token=${token}" style="font-weight: bold;">here</a> to upload the documents</p>
+        <p>Please click <a href="http://13.54.137.62/customer_provide_files?token=${token}" style="font-weight: bold;">here</a> to upload the documents.</p>
       </main>
     </body>
     </html>
