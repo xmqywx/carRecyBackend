@@ -121,7 +121,7 @@ export async function saveS3(buffer) {
   return attachment;
 }
 
-export default async function getDocs({ email, name, token, giveUploadBtn, attachment }) {
+export default async function getDocs({ email, name, token, giveUploadBtn, attachment, sendBy }) {
 
   let toEmail = '';
   // 配置 Nodemailer
@@ -196,11 +196,12 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
     <body>
       <main>
         <p>Dear ${name},</p>
+        <br />
         <p>Please click the link below to upload related Proof materails.</p>
         <p>Thank you for choosing our services.</p>
         <br />
         <p>Best regards,</p>
-        <p>We Pick Your Car</p>
+        <p>${sendBy}</p>
         <p>Please click <a href="http://13.54.137.62/customer_provide_files?token=${token}" style="font-weight: bold;">here</a> to upload the documents.</p>
       </main>
     </body>
@@ -272,11 +273,12 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
     <body>
       <main>
       <p>Dear ${name},</p>
+      <br />
       <p>Please see attached invoice for your car.</p>
       <p>Thank you for choosing our services.</p>
       <br />
       <p>Best regards,</p>
-      <p>We Pick Your Car</p>
+      <p>${sendBy}</p>
       </main>
     </body>
     </html>

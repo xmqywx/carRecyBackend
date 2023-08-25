@@ -59,18 +59,22 @@ import {JobService} from '../../service/job';
       type: 'leftJoin'
     }],
     where:  async (ctx) => {
-      const { startDate, endDate, status } = ctx.request.body;
+      const { startDate, endDate, status, expectedDateStart, expectedDateEnd } = ctx.request.body;
       if (status === 0) {
         return [
           ['a.status != :status', {status  : 5}],
           startDate ? ['a.updateTime >= :startDate', {startDate: new Date(startDate)}] : [],
           endDate ? ['a.updateTime <= :endDate', {endDate: new Date(endDate)}]:[],
+          expectedDateStart ? ['b.expectedDate >= :expectedDateStart', {expectedDateStart}] : [],
+          expectedDateEnd ? ['b.expectedDate <= :expectedDateEnd', {expectedDateEnd}] : [],
         ]
       } else {
         return [
           ['a.status != :status', {status  : 5}],
           startDate ? ['a.schedulerStart >= :startDate', {startDate: startDate}] : [],
           endDate ? ['a.schedulerStart <= :endDate', {endDate: endDate}]:[],
+          expectedDateStart ? ['b.expectedDate >= :expectedDateStart', {expectedDateStart}] : [],
+          expectedDateEnd ? ['b.expectedDate <= :expectedDateEnd', {expectedDateEnd}] : [],
         ]
       }
     },
@@ -113,8 +117,8 @@ import {JobService} from '../../service/job';
       } else {
         return [
           ['a.status != :status', {status  : 5}],
-          startDate ? ['a.schedulerStart >= :startDate', {startDate: startDate}] : [],
-          endDate ? ['a.schedulerStart <= :endDate', {endDate: endDate}]:[],
+          startDate ? ['a.updateTime >= :startDate', {startDate: new Date(startDate)}] : [],
+          endDate ? ['a.updateTime <= :endDate', {endDate: new Date(endDate)}]:[],
         ]
       }
     },

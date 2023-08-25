@@ -213,13 +213,27 @@ export class VehicleProfileController extends BaseController {
   carRegEntity: Repository<CarRegEntity>;
 
   @Post('/getCountBooking')
-  async getCountBooking(@Body('status') status: number,
-                        @Body('departmentId') departmentId: number){
+  async getCountBooking(
+    @Body('status') status: number,
+    @Body('departmentId') departmentId: number,
+    @Body('startDate') startDate: Date,
+    @Body('endDate') endDate: Date,
+    @Body('jobComplete') jobComplete: boolean = false
+  ){
+    if(jobComplete) {
+      return this.orderService.getCountCompleteJob(departmentId, startOfDay(startDate).toISOString(), endOfDay(endDate).toISOString())
+    }
+    const searchData: {[key: string]: any} = {
+      status,
+      departmentId
+    }
+    if(startDate && endDate) {
+      // searchData.startDate = startDate;
+      // searchData.endDate = endDate;
+      searchData.createTime = Between(startDate, endDate);
+    }
     const count = await this.orderInfoEntity.count({
-      where: {
-        status,
-        departmentId
-      }
+      where: searchData
     })
     const countDay = await this.orderInfoEntity.count({
       where: {
@@ -234,11 +248,18 @@ export class VehicleProfileController extends BaseController {
     }
   }
   @Post('/getCountJob')
-  async getCountJob(@Body('status') status: number,
-                        @Body('departmentId') departmentId: number){
+  async getCountJob(
+    @Body('status') status: number,
+    @Body('departmentId') departmentId: number,
+    @Body('startDate') startDate: Date,
+    @Body('endDate') endDate: Date
+  ){
     const filter: any = {}
     if (status != undefined) {
       filter.status = status;
+    }
+    if(startDate && endDate) {
+      filter.updateTime = Between(startDate, endDate);
     }
     filter.departmentId = departmentId
     // if (status != undefined) {

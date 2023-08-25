@@ -1,8 +1,8 @@
-import {Provide} from "@midwayjs/decorator";
-import {BaseService, CoolCommException} from "@cool-midway/core";
-import {InjectEntityModel} from "@midwayjs/orm";
-import {Repository} from "typeorm";
-import {OrderInfoEntity} from "../entity/info";
+import { Provide } from "@midwayjs/decorator";
+import { BaseService, CoolCommException } from "@cool-midway/core";
+import { InjectEntityModel } from "@midwayjs/orm";
+import { Repository } from "typeorm";
+import { OrderInfoEntity } from "../entity/info";
 import { OrderActionEntity } from "../entity/action";
 import * as jwt from 'jsonwebtoken';
 
@@ -12,7 +12,7 @@ export class OrderService extends BaseService {
   orderInfoEntity: Repository<OrderInfoEntity>;
   @InjectEntityModel(OrderActionEntity)
   orderActionEntity: Repository<OrderActionEntity>;
-  async getCountMonth(departmentId){
+  async getCountMonth(departmentId) {
     const year = new Date().getFullYear();
     const sql = `
         SELECT DATE_FORMAT(createTime,'%m') as month, count(*) as count FROM \`order\` WHERE
@@ -40,7 +40,7 @@ export class OrderService extends BaseService {
     const getInvoiceSqlRes = await this.nativeQuery(getInvoiceSql);
     return getInvoiceSqlRes[0].invoice;
   }
-  async saveInvoice(id,path) {
+  async saveInvoice(id, path) {
     const updateSql = `
       UPDATE \`order\` SET invoice = '${path}' WHERE id = '${id}';
     `;
@@ -100,22 +100,22 @@ export class OrderService extends BaseService {
   getInitials(name) {
     const words = name.split(' ');
     let initials = '';
-  
+
     words.forEach(word => {
       if (word.length > 0) {
         initials += word[0].toUpperCase();
       }
     });
-  
+
     return initials;
   }
-  
+
   async updateOrderById(id: number, updateData: Pick<OrderInfoEntity, 'registrationDoc' | 'driverLicense' | 'vehiclePhoto'>): Promise<OrderInfoEntity> {
     const order = await this.orderInfoEntity.findOne(id);
     if (!order) {
       throw new CoolCommException(`Order with ID ${id} not found.`);
     }
-    if(!order.allowUpload) {
+    if (!order.allowUpload) {
       throw new CoolCommException(`You do not have the permission to perform updates.`);
     }
     order.registrationDoc = updateData.registrationDoc ?? order.registrationDoc;
@@ -130,7 +130,7 @@ export class OrderService extends BaseService {
     if (!order) {
       throw new CoolCommException(`Order with ID ${id} not found.`);
     }
-    if(!giveUploadBtn) {
+    if (!giveUploadBtn) {
       order.emailStatus = 1;
     }
     return this.orderInfoEntity.save(order);
@@ -143,14 +143,14 @@ export class OrderService extends BaseService {
   //   if (!order.allowUpload) {
   //     throw new CoolCommException(`You do not have the permission to perform updates.`);
   //   }
-  
+
   //   let status: number;
   //   if (giveUploadBtn) {
   //     status = (order.emailStatus === 1 || order.emailStatus === 3) ? 3 : 2;
   //   } else {
   //     status = (order.emailStatus === 2 || order.emailStatus === 3) ? 3 : 1;
   //   }
-  
+
   //   order.emailStatus = status;
   //   return this.orderInfoEntity.save(order);
   // }
@@ -171,10 +171,27 @@ export class OrderService extends BaseService {
     if (!order) {
       throw new CoolCommException(`Order with ID ${param.id} not found.`);
     }
-    if(param.updateCreateTime) {
+    if (param.updateCreateTime) {
       param.createTime = () => 'NOW()';
     }
     return await this.orderInfoEntity.save(param);
+  }
+
+  async getCountCompleteJob(departmentId, startDate, endDate) {
+    console.log(startDate, endDate)
+    const query = `
+    SELECT COUNT(*) AS count
+    FROM \`order\`
+    WHERE id IN (
+      SELECT orderID
+      FROM \`job\`
+      WHERE status = 4
+    )
+    AND departmentId = '${departmentId}'
+    AND (createTime BETWEEN '${startDate}' AND '${endDate}')
+    `;
+
+    return await this.nativeQuery(query);
   }
 }
 
@@ -182,7 +199,7 @@ export class OrderService extends BaseService {
 export class OrderActionService extends BaseService {
   @InjectEntityModel(OrderActionEntity)
   orderActionEntity: Repository<OrderActionEntity>;
-  
+
   async add(params) {
     return this.orderActionEntity.save(params);
   }

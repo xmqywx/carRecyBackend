@@ -144,7 +144,7 @@ export class BaseOpenController extends BaseController {
 
 
   @Post('/sendEmailTogetDocs')
-  async sendEmailTogetDocs(@Body('name') name: string, @Body('email') email: string[], @Body('orderID') orderID: number, @Body('textToSend') textToSend: string, @Body('giveUploadBtn') giveUploadBtn: boolean) {
+  async sendEmailTogetDocs(@Body('name') name: string, @Body('email') email: string[], @Body('orderID') orderID: number, @Body('textToSend') textToSend: string, @Body('giveUploadBtn') giveUploadBtn: boolean, @Body('sendBy') sendBy: string) {
     const token = await this.orderService.generateToken({
       orderID
     });
@@ -160,7 +160,7 @@ export class BaseOpenController extends BaseController {
     
     const emailPromises = email.map((v: string) => {
       return getDocs({
-        email: v, name, token, giveUploadBtn, attachment
+        email: v, name, token, giveUploadBtn, attachment, sendBy
       });
     });
     const emailResults = await Promise.all(emailPromises);
