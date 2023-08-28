@@ -188,7 +188,7 @@ export class OrderService extends BaseService {
       WHERE status = 4
     )
     AND departmentId = '${departmentId}'
-    AND (createTime BETWEEN '${startDate}' AND '${endDate}')
+    ${startDate && endDate ? `AND (createTime BETWEEN '${startDate}' AND '${endDate}')` : ''}
     `;
 
     return await this.nativeQuery(query);

@@ -221,7 +221,7 @@ export class VehicleProfileController extends BaseController {
     @Body('jobComplete') jobComplete: boolean = false
   ){
     if(jobComplete) {
-      return this.orderService.getCountCompleteJob(departmentId, startOfDay(startDate).toISOString(), endOfDay(endDate).toISOString())
+      return this.orderService.getCountCompleteJob(departmentId,startDate && startOfDay(startDate).toISOString(), endDate && endOfDay(endDate).toISOString())
     }
     const searchData: {[key: string]: any} = {
       status,
