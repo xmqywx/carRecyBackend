@@ -23,11 +23,15 @@ export async function outPutPdf({ textToSend }) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Document</title>
       <style>
+        * {
+          padding: 0;
+          margin: 0;
+        }
         main {
           margin: auto;
           width: 100%;
         }
-    
+        
         .to-upload a {
           /* display: block; */
           float: left;
@@ -47,6 +51,10 @@ export async function outPutPdf({ textToSend }) {
           // text-indent: 2em;
           white-space: pre-wrap;
           word-break: break-all;
+        }
+        pre {
+          font-size: 14px;
+          color: #000000;
         }
     
         .to-upload {}
