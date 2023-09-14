@@ -39,10 +39,11 @@ import { CarWreckedService } from '../../service/car';
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.disassemblyCategory', requestParam: 'disassemblyCategory' },
       { column: 'a.disassemblyNumber', requestParam: 'disassemblyNumber' },
+      { column: 'a.catalyticConverterNumber', requestParam: 'catalyticConverterNumber' },
       { column: 'b.model', requestParam: 'model' },
       { column: 'b.departmentId', requestParam: 'departmentId' },
       { column: 'b.year', requestParam: 'year' },
-      { column: 'b.brand', requestParam: 'brand' }
+      { column: 'b.brand', requestParam: 'brand' },
     ],
     join: [{
       entity: CarEntity,

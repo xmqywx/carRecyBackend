@@ -1,11 +1,10 @@
-import {Provide} from '@midwayjs/decorator';
+import {Provide, /* Body, Post, Inject */} from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import {CarEntity} from "../../entity/base";
 import { OrderInfoEntity } from '../../../order/entity/info';
 import { JobEntity } from '../../../job/entity/info';
 import {Repository} from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
-
 
 /**
  * 图片空间信息
@@ -70,4 +69,11 @@ import {InjectEntityModel} from "@midwayjs/orm";
 export class CarBaseController extends BaseController {
   @InjectEntityModel(CarEntity)
   vehicleProfileEntity: Repository<CarEntity>
+
+  // @Get("/wrecked_infos")
+  // async getWreckedInfo(@Query('disassemblyCategory') disassemblyCategory: string, @Query('carID') carID: number) {
+  //   let carInfo = await this.carBaseService.getOneCarInfo(carID);
+  //   let queryInfos = await this.carWreckedService.getWreckedInfos(carID, disassemblyCategory);
+  //   return this.baseOpenService.returnWreckedInfo(queryInfos, carInfo);
+  // }
 }

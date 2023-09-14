@@ -115,13 +115,13 @@ export async function saveS3(buffer) {
     const s3Upload = await s3.upload(s3Params).promise();
     const pdfUrl = s3Upload.Location;
     attachment = {
-      filename: 'Invoice.pdf',
+      filename: 'Receipt.pdf',
       path: pdfUrl,
       contentType: 'application/pdf'
     };
   } catch(e) {
     attachment = {
-      filename: 'Invoice.pdf',
+      filename: 'Receipt.pdf',
       content: buffer, // 传入 PDF 的二进制数据
       contentType: 'application/pdf'
     };
@@ -224,8 +224,8 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
   const mailOptions = {
     from: fromEmail,
     to: toEmail,
-    subject: 'Invoice from WePickYourCar',
-    text: `Invoice from WePickYourCar`,
+    subject: 'Receipt from WePickYourCar',
+    text: `Receipt from WePickYourCar`,
     attachments: [
       attachment
     ],
@@ -282,7 +282,7 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
       <main>
       <p>Dear ${name},</p>
       <br />
-      <p>Please see attached invoice for your car.</p>
+      <p>Please see attached receipt for your car.</p>
       <p>Thank you for choosing our services.</p>
       <br />
       <p>Best regards,</p>

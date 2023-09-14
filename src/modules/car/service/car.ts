@@ -55,11 +55,12 @@ export class CarWreckedService extends BaseService {
       return await this.carWreckedEntity.save(wreckedInfo);
     })
   }
+
 }
 const disassemblyCategorys = {
   'Dismantling Labels': 'DL',
   'Extra Part Extraction': 'EPE',
-  'Catalytic Converter': 'CP'
+  'Catalytic Converter': 'CC'
 }
 @Provide()
 export class CarBaseService extends BaseService {
@@ -68,5 +69,11 @@ export class CarBaseService extends BaseService {
 
   async getOneCarInfo(id: number) {
     return await this.carEntity.findOne({id});
+  }
+
+  async getNumber(params) {
+    // CarWreckedInfo catalyticConverterNumber
+    const cars = await this.carEntity.find();
+    return cars;
   }
 }

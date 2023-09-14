@@ -24,4 +24,10 @@ export class CarWreckedEntity extends BaseEntity {
 
     @Column({ comment: 'Disassembly number', nullable: true,})
     disassemblyNumber: string;
+
+    @Column({ comment: 'Catalytic Converter Name', nullable: true,})
+    catalyticConverterName: string;
+    
+    @Column({ comment: 'Catalytic Converter Number', nullable: true,})
+    catalyticConverterNumber: string;
 }

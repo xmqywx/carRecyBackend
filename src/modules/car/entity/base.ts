@@ -106,6 +106,7 @@ export class CarEntity extends BaseEntity {
     dismantlingLabels: string[];
     extraPartsExtract: string[];
     catalyticConverter: boolean;
+    catalyticConverterNumber: string;
   };
 
   @Column({ comment: 'Vehicle for Parts标识', default: false })
