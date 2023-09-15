@@ -1,10 +1,11 @@
-import {Post, Provide} from '@midwayjs/decorator';
+import {Post, Provide, Inject, Body} from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import {VehicleProfileEntity} from "../../entity/profile";
 import * as excelToJson from 'convert-excel-to-json';
 import {Repository} from "typeorm";
-import {InjectEntityModel} from "@midwayjs/orm";
+import {InjectEntityModel,} from "@midwayjs/orm";
 import {Context} from "vm";
+import { VehicleProfileService } from '../../service/profile';
 
 /**
  * 图片空间信息
@@ -30,6 +31,9 @@ import {Context} from "vm";
 export class VehicleProfileController extends BaseController {
   @InjectEntityModel(VehicleProfileEntity)
   vehicleProfileEntity: Repository<VehicleProfileEntity>
+
+  @Inject()
+  vehicleProfileService: VehicleProfileService;
 
   @Post('/uploadExcel', { summary: '文件上传' })
   async upload() {
@@ -73,4 +77,35 @@ export class VehicleProfileController extends BaseController {
       msg: 'success'
     });
   }
+
+  @Post('/get_column_select_options', { summary: '获取选项' })
+  async getColumnSelectOptions(
+    @Body('model') model: string,
+    @Body('year') year: string,
+    @Body('brand') brand: string,
+    @Body('keyWord') keyWord: string,
+  ) {
+    const options: { [key: string]: string[] } = {
+      brand: [],
+      model: [],
+      year: [],
+    };
+  
+    const promiseArr = Object.keys(options).map((column) =>
+      this.vehicleProfileService.getColumnSelectOptions(column, { model, year, brand, keyWord }).then((res) => {
+        options[column] = res;
+      })
+    );
+  
+    try {
+      await Promise.all(promiseArr);
+      return this.ok({
+        msg: 'success',
+        data: options,
+      });
+    } catch (error) {
+      return this.fail('failed');
+    }
+  }
+
 }
