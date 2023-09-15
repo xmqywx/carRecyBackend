@@ -31,7 +31,7 @@ export class CarWreckedService extends BaseService {
       let category = '';
       if(disassemblyCategory === 'CatalyticConverter') {
         category = 'Catalytic Converter';
-      } else if(disassemblyCategory === 'ExtraPartstoExtract') {
+      } else if(disassemblyCategory === 'ExtraPartExtraction') {
         category = 'Extra Part Extraction';
       } else if(disassemblyCategory === 'DismantlingLabels') {
         category = 'Dismantling Labels';
@@ -56,6 +56,11 @@ export class CarWreckedService extends BaseService {
     })
   }
 
+  async getWreckedNumber(catalyticConverterNumber) {
+    return this.carWreckedEntity.find({
+      catalyticConverterNumber
+    });
+  }
 }
 const disassemblyCategorys = {
   'Dismantling Labels': 'DL',
@@ -71,9 +76,11 @@ export class CarBaseService extends BaseService {
     return await this.carEntity.findOne({id});
   }
 
-  async getNumber(params) {
+  async getNumber(catalyticConverterNumber) {
     // CarWreckedInfo catalyticConverterNumber
-    const cars = await this.carEntity.find();
-    return cars;
+    const sql = `SELECT * FROM \`car\`
+    WHERE CarWreckedInfo->'$.catalyticConverterNumber' = '${catalyticConverterNumber}';`;
+    const sqlSearch = await this.nativeQuery(sql);
+    return sqlSearch;
   }
 }

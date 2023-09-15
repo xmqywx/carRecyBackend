@@ -1,11 +1,11 @@
-import {Provide, /* Body, Post, Inject */} from '@midwayjs/decorator';
+import {Provide, Get, Query, Inject} from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import {CarEntity} from "../../entity/base";
 import { OrderInfoEntity } from '../../../order/entity/info';
 import { JobEntity } from '../../../job/entity/info';
 import {Repository} from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
-
+import { CarBaseService, CarWreckedService } from '../../service/car';
 /**
  * 图片空间信息
  */
@@ -70,10 +70,16 @@ export class CarBaseController extends BaseController {
   @InjectEntityModel(CarEntity)
   vehicleProfileEntity: Repository<CarEntity>
 
-  // @Get("/wrecked_infos")
-  // async getWreckedInfo(@Query('disassemblyCategory') disassemblyCategory: string, @Query('carID') carID: number) {
-  //   let carInfo = await this.carBaseService.getOneCarInfo(carID);
-  //   let queryInfos = await this.carWreckedService.getWreckedInfos(carID, disassemblyCategory);
-  //   return this.baseOpenService.returnWreckedInfo(queryInfos, carInfo);
-  // }
+  @Inject()
+  carBaseService: CarBaseService;
+
+  @Inject()
+  carWreckedService: CarWreckedService;
+
+  @Get("/get_number")
+  async getNumber(@Query('catalyticConverterNumber') catalyticConverterNumber: string) {
+    const wrekcedRes = await this.carWreckedService.getWreckedNumber(catalyticConverterNumber);
+    const carRes = await this.carBaseService.getNumber(catalyticConverterNumber);
+    return [...wrekcedRes, ...carRes]
+  }
 }
