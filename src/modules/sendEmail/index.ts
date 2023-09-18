@@ -56,10 +56,10 @@ export default async function main({ name, price, id, email, invoicePdf = null, 
     const mailOptions = {
       from: fromEmail,
       to: toEmail,
-      subject: 'Receipt from WePickYourCar',
-      text: 'Receipt from WePickYourCar',
+      subject: 'Invoice from WePickYourCar',
+      text: 'Invoice from WePickYourCar',
       attachments: [{
-        filename: 'Receipt.pdf',
+        filename: 'Invoice.pdf',
         path: invoicePdf,
       }],
       html: `
@@ -115,7 +115,7 @@ export default async function main({ name, price, id, email, invoicePdf = null, 
       <main>
         <p>Dear ${name},</p>
         <br />
-<pre>Please see attached receipt for your car.
+<pre>Please see attached invoice for your car.
 Thank you for choosing our services.
 
 Best regards,
@@ -213,7 +213,7 @@ We Pick Your Car</pre>
     <main>
       <div>
         <div data-v-3a5883f0="" style="width: 800px; margin: auto; border: 1px solid rgb(0, 0, 0); padding: 10px;">
-          <h1 data-v-3a5883f0="" style="text-align: start; color: rgb(0, 0, 0);">We Pick Your Car Receipt <button
+          <h1 data-v-3a5883f0="" style="text-align: start; color: rgb(0, 0, 0);">We Pick Your Car Invoice <button
               class="el-button el-button--primary no-show" aria-disabled="false" type="button" data-v-3a5883f0=""
               style="float: right;"><!--v-if--><span class="">Priview</span></button></h1>
           <div data-v-3a5883f0="" style="display: flex; gap: 10px; margin: 10px 0px; align-items: center;">
@@ -239,7 +239,7 @@ We Pick Your Car</pre>
                   <div class="el-input__wrapper"><!-- prefix slot --><!--v-if--><input class="el-input__inner" type="text"
                       autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div><!-- append slot --><!--v-if-->
                 </div>
-                <div class="show key" data-v-3a5883f0="">Receipt to</div>
+                <div class="show key" data-v-3a5883f0="">Invoice to</div>
               </div>
               <div data-v-3a5883f0="">
                 <div class="el-textarea no-show" data-v-3a5883f0="" style="width: 200px;">
@@ -263,7 +263,7 @@ ${email}</pre>
                       readonly="" autocomplete="off" tabindex="0"><!-- suffix slot --><!--v-if--></div>
                   <!-- append slot --><!--v-if-->
                 </div>
-                <div class="show key" data-v-3a5883f0="" style="width: 150px; text-align: right;">Receipt number</div>
+                <div class="show key" data-v-3a5883f0="" style="width: 150px; text-align: right;">Invoice number</div>
                 <div class="show" data-v-3a5883f0="" style="width: 100px; text-align: right;">${invoiceNumber}</div>
               </div>
               <div data-v-3a5883f0="" style="display: flex; gap: 10px;">
@@ -431,11 +431,11 @@ ${email}</pre>
   const mailOptions = {
     from: fromEmail,
     to: toEmail,
-    subject: 'Receipt from WePickYourCar',
-    text: 'Receipt from WePickYourCar',
+    subject: 'Invoice from WePickYourCar',
+    text: 'Invoice from WePickYourCar',
     attachments: [
       {
-        filename: 'Receipt.pdf',
+        filename: 'Invoice.pdf',
         path: pdfUrl
       }
     ],
@@ -492,7 +492,7 @@ ${email}</pre>
       <main>
       <p>Dear ${name},</p>
       <br />
-      <p>Please see attached receipt for your car.</p>
+      <p>Please see attached invoice for your car.</p>
       <p>Thank you for choosing our services.</p>
       <br />
       <p>Best regards,</p>
