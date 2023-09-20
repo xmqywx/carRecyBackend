@@ -12,8 +12,5 @@ export class JobService extends BaseService {
   async add(params) {
     return this.jobEntity.save(params);
   }
-
-  async toDelete() {
-    
-  }
+  
 }

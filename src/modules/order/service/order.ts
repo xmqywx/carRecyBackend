@@ -4,6 +4,7 @@ import { InjectEntityModel } from "@midwayjs/orm";
 import { Repository } from "typeorm";
 import { OrderInfoEntity } from "../entity/info";
 import { OrderActionEntity } from "../entity/action";
+import { JobEntity } from "../../job/entity/info";
 import * as jwt from 'jsonwebtoken';
 
 @Provide()
@@ -12,6 +13,10 @@ export class OrderService extends BaseService {
   orderInfoEntity: Repository<OrderInfoEntity>;
   @InjectEntityModel(OrderActionEntity)
   orderActionEntity: Repository<OrderActionEntity>;
+  @InjectEntityModel(JobEntity)
+  jobEntity: Repository<JobEntity>;
+
+
   async getCountMonth(departmentId) {
     const year = new Date().getFullYear();
     const sql = `
@@ -192,6 +197,41 @@ export class OrderService extends BaseService {
     `;
 
     return await this.nativeQuery(query);
+  }
+
+  async updateOrderStatusAndDeleteJob(orderId: number) {
+    // return await this.update({
+    //   id: 657,
+    //   status: 0
+    // });
+    return await this.jobEntity.find({
+      orderID: orderId
+    })
+  }
+
+  async bookedUpdateStatus(orderId: number, order_status: number | null, job_status: number | null) {
+    this.update({
+      id: orderId,
+      status: order_status
+    });
+    const findJob = await this.jobEntity.find({
+      orderID: orderId
+    });
+
+    if(job_status !== 0) {
+      //booked -> booked(completed), orderId = ?, order_status = 1, job_status = 4
+      //booked(completed) -> booked, orderId = ?, order_status = 1, job_status = 1
+      if(findJob[0]?.id) {
+        findJob[0].status = job_status;
+        this.jobEntity.save(findJob[0]);
+      }
+    } else {
+      //booked -> lead, orderId = ?, order_status = 0, job_status = null
+      if(findJob[0]?.id) {
+        await this.jobEntity.delete(findJob[0].id);
+      }
+    }
+    return true;
   }
 }
 

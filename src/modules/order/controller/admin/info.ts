@@ -326,4 +326,15 @@ export class VehicleProfileController extends BaseController {
     }
   }
 
+  @Post('/bookedUpdateStatus')
+  // orderId: number, order_status: number, job_status: number
+  async bookedUpdateStatus(@Body('orderId') orderId: number, @Body('order_status') order_status: number, @Body('job_status') job_status: number,) {
+    const res = await this.orderService.bookedUpdateStatus(orderId, order_status, job_status);
+    if(res) {
+      return this.ok();
+    } else {
+      return this.fail();
+    }
+  }
+
 }
