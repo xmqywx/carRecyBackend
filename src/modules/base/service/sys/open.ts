@@ -20,7 +20,7 @@ export class BaseOpenService extends BaseService {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Document</title>
+            <title>We pick your car</title>
         </head>
                 <style>
                 * {
@@ -174,7 +174,7 @@ export class BaseOpenService extends BaseService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>We pick your car</title>
 </head>
         <style>
         * {

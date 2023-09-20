@@ -9,7 +9,7 @@ export default {
     type: 'mysql',
     // host: '127.0.0.1',
     // host: 'database-pickcar.cra4apbybkan.ap-southeast-2.rds.amazonaws.com',
-    host: 'database-1.cfzhpcnpmwns.ap-southeast-2.rds.amazonaws.com',
+    host: 'database-2.cfzhpcnpmwns.ap-southeast-2.rds.amazonaws.com',
     port: 3306,
     // username: 'root',
     username: 'admin',
