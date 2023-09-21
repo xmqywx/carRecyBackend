@@ -221,7 +221,7 @@ export class VehicleProfileController extends BaseController {
     @Body('jobComplete') jobComplete: boolean = false
   ){
     if(jobComplete) {
-      return this.orderService.getCountCompleteJob(departmentId,startDate && startOfDay(startDate).toISOString(), endDate && endOfDay(endDate).toISOString())
+      return this.orderService.getCountCompleteJob(departmentId,startDate, endDate, status)
     }
     const searchData: {[key: string]: any} = {
       status,
@@ -328,8 +328,8 @@ export class VehicleProfileController extends BaseController {
 
   @Post('/bookedUpdateStatus')
   // orderId: number, order_status: number, job_status: number
-  async bookedUpdateStatus(@Body('orderId') orderId: number, @Body('order_status') order_status: number, @Body('job_status') job_status: number,) {
-    const res = await this.orderService.bookedUpdateStatus(orderId, order_status, job_status);
+  async bookedUpdateStatus(@Body('orderId') orderId: number, @Body('order_status') order_status: number, @Body('job_status') job_status: number, @Body('job_info') job_info: JobInfo,) {
+    const res = await this.orderService.bookedUpdateStatus(orderId, order_status, job_status, job_info);
     if(res) {
       return this.ok();
     } else {
@@ -337,4 +337,10 @@ export class VehicleProfileController extends BaseController {
     }
   }
 
+}
+interface JobInfo {
+    orderID: number,
+		carID: number,
+		departmentId: number,
+		status: number
 }

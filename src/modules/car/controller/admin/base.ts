@@ -44,7 +44,8 @@ import { CarBaseService, CarWreckedService } from '../../service/car';
       { column: 'a.createTime', requestParam: 'createTime' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.id', requestParam: 'id'},
-      { column: 'a.isVFP', requestParam: 'isVFP'}
+      { column: 'a.isVFP', requestParam: 'isVFP'},
+      { column: 'a.status', requestParam: 'status'}
     ],
     join: [{
       entity: OrderInfoEntity,

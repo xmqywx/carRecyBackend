@@ -1,10 +1,12 @@
 import { Provide } from "@midwayjs/decorator";
 import { BaseService, CoolCommException } from "@cool-midway/core";
 import { InjectEntityModel } from "@midwayjs/orm";
-import { Repository } from "typeorm";
+import { Repository, Between } from "typeorm";
 import { OrderInfoEntity } from "../entity/info";
 import { OrderActionEntity } from "../entity/action";
 import { JobEntity } from "../../job/entity/info";
+import { CarWreckedEntity } from "../../car/entity/carWrecked";
+import { CarEntity } from "../../car/entity/base";
 import * as jwt from 'jsonwebtoken';
 
 @Provide()
@@ -15,6 +17,10 @@ export class OrderService extends BaseService {
   orderActionEntity: Repository<OrderActionEntity>;
   @InjectEntityModel(JobEntity)
   jobEntity: Repository<JobEntity>;
+  @InjectEntityModel(CarWreckedEntity)
+  carWreckedEntity: Repository<CarWreckedEntity>;
+  @InjectEntityModel(CarEntity)
+  carEntity: Repository<CarEntity>;
 
 
   async getCountMonth(departmentId) {
@@ -182,21 +188,36 @@ export class OrderService extends BaseService {
     return await this.orderInfoEntity.save(param);
   }
 
-  async getCountCompleteJob(departmentId, startDate, endDate) {
-    console.log(startDate, endDate)
-    const query = `
-    SELECT COUNT(*) AS count
-    FROM \`order\`
-    WHERE id IN (
-      SELECT orderID
-      FROM \`job\`
-      WHERE status = 4
-    )
-    AND departmentId = '${departmentId}'
-    ${startDate && endDate ? `AND (createTime BETWEEN '${startDate}' AND '${endDate}')` : ''}
-    `;
+  async getCountCompleteJob(departmentId, startDate, endDate, status) {
+    // console.log(startDate, endDate)
+    // const query = `
+    // SELECT COUNT(*) AS count
+    // FROM \`order\`
+    // WHERE id IN (
+    //   SELECT orderID
+    //   FROM \`job\`
+    //   WHERE status = 4
+    // )
+    // AND departmentId = '${departmentId}'
+    // ${startDate && endDate ? `AND (createTime BETWEEN '${startDate}' AND '${endDate}')` : ''}
+    // `;
 
-    return await this.nativeQuery(query);
+    // return await this.nativeQuery(query);
+    const filter: any = {}
+    if (status != undefined) {
+      filter.status = status;
+    }
+    if(startDate && endDate) {
+      filter.createTime = Between(startDate, endDate);
+    }
+    filter.departmentId = departmentId
+    // if (status != undefined) {
+    //   filter.departmentId = departmentId;
+    // }
+    const count = await this.jobEntity.count({
+      where: filter
+    })
+    return [{count}];
   }
 
   async updateOrderStatusAndDeleteJob(orderId: number) {
@@ -209,30 +230,68 @@ export class OrderService extends BaseService {
     })
   }
 
-  async bookedUpdateStatus(orderId: number, order_status: number | null, job_status: number | null) {
-    this.update({
+  async bookedUpdateStatus(orderId: number, order_status: number | null, job_status: number | null, job_info) {
+    const promise = [];
+    const orderDetail = await this.orderInfoEntity.findOne({id: orderId})
+    console.log(orderDetail);
+    if(orderDetail.carID) {
+      promise.push(this.carEntity.update({
+        id: orderDetail.carID,
+      }, {
+        status: 1,
+        isVFP: false,
+        CarWreckedInfo: null
+      }));
+      promise.push(this.carWreckedEntity.find({
+        carID: orderDetail.carID
+      }).then(res => {
+        const ids = res.map(v => v.id);
+        if(ids.length > 0) {
+          this.carWreckedEntity.delete(ids);
+        }
+      }))
+    }
+
+    promise.push(this.jobEntity.findOne({
+      orderID: orderId
+    }).then(async res => {
+      if(res && res.id) {
+        if(job_status >= 0) {
+          res.status = job_status;
+          await this.jobEntity.save(res);
+        } else {
+          await this.jobEntity.delete(res.id);
+        }
+      } else {
+        if(job_info) {
+          await this.jobEntity.save(job_info);
+        }
+      }
+      return res;
+    }));
+
+    promise.push(this.update({
       id: orderId,
       status: order_status
-    });
-    const findJob = await this.jobEntity.find({
-      orderID: orderId
-    });
+    }));
 
-    if(job_status !== 0) {
-      //booked -> booked(completed), orderId = ?, order_status = 1, job_status = 4
-      //booked(completed) -> booked, orderId = ?, order_status = 1, job_status = 1
-      if(findJob[0]?.id) {
-        findJob[0].status = job_status;
-        this.jobEntity.save(findJob[0]);
-      }
-    } else {
-      //booked -> lead, orderId = ?, order_status = 0, job_status = null
-      if(findJob[0]?.id) {
-        await this.jobEntity.delete(findJob[0].id);
-      }
-    }
-    return true;
+    return await Promise.all(promise).then(() => true).catch(() => false);
+    // if(job_status !== 0) {
+    //   //booked -> booked(completed), orderId = ?, order_status = 1, job_status = 4
+    //   //booked(completed) -> booked, orderId = ?, order_status = 1, job_status = 1
+    //   if(findJob[0]?.id) {
+    //     findJob[0].status = job_status;
+    //     this.jobEntity.save(findJob[0]);
+    //   }
+    // } else {
+    //   //booked -> lead, orderId = ?, order_status = 0, job_status = null
+    //   if(findJob[0]?.id) {
+    //     await this.jobEntity.delete(findJob[0].id);
+    //   }
+    // }
   }
+
+  
 }
 
 @Provide()
