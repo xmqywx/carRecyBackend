@@ -258,6 +258,11 @@ export class OrderService extends BaseService {
       if(res && res.id) {
         if(job_status >= 0) {
           res.status = job_status;
+          if(job_status === 0) {
+            res.driverID = null;
+            res.schedulerEnd = null;
+            res.schedulerStart = null;
+          }
           await this.jobEntity.save(res);
         } else {
           await this.jobEntity.delete(res.id);
