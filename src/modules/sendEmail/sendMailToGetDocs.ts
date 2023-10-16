@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 // const puppeteer = require('puppeteer-core');
 // const fs = require('fs');
 const dotenv = require('dotenv');
-const envFile = process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
+const envFile = process.env.NODE_ENV === 'local' ? '.env.local' : '.env.production';
 const pdf = require('html-pdf-chrome');
 const AWS = require('aws-sdk');
 dotenv.config({ path: envFile });
