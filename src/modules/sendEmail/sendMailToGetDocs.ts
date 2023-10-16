@@ -4,7 +4,6 @@ const nodemailer = require('nodemailer');
 // const fs = require('fs');
 const dotenv = require('dotenv');
 const envFile = process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
-console.log(envFile)
 const pdf = require('html-pdf-chrome');
 const AWS = require('aws-sdk');
 dotenv.config({ path: envFile });
@@ -131,6 +130,7 @@ export async function saveS3(buffer) {
 }
 
 export default async function getDocs({ email, name, token, giveUploadBtn, attachment, sendBy }) {
+  console.log(envFile)
   console.log({
     user: process.env.NODE_MAIL_USER,
     pass: process.env.NODE_MAIL_PASS,
