@@ -130,7 +130,10 @@ export async function saveS3(buffer) {
 }
 
 export default async function getDocs({ email, name, token, giveUploadBtn, attachment, sendBy }) {
-
+  console.log({
+    user: process.env.NODE_MAIL_USER,
+    pass: process.env.NODE_MAIL_PASS,
+  })
   let toEmail = '';
   // 配置 Nodemailer
   const transport = nodemailer.createTransport({
