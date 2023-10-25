@@ -30,4 +30,7 @@ export class CarWreckedEntity extends BaseEntity {
     
     @Column({ comment: 'Catalytic Converter Number', nullable: true,})
     catalyticConverterNumber: string;
+
+    @Column({ comment: 'Container Number', nullable: true })
+    containerNumber: string;
 }

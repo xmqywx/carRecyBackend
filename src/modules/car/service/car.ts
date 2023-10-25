@@ -5,6 +5,7 @@ import {Repository} from "typeorm";
 import { CarCommentEntity } from "../entity/comment";
 import { CarWreckedEntity } from "../entity/carWrecked";
 import { CarEntity } from "../entity/base";
+import { ContainerEntity } from "../../container/entity/base";
 
 @Provide()
 export class CarCommentService extends BaseService {
@@ -20,6 +21,9 @@ export class CarCommentService extends BaseService {
 export class CarWreckedService extends BaseService {
   @InjectEntityModel(CarWreckedEntity)
   carWreckedEntity: Repository<CarWreckedEntity>;
+
+  @InjectEntityModel(ContainerEntity)
+  containerEntity: Repository<ContainerEntity>;
 
   async getWreckedInfo(dn: string) {
     return this.carWreckedEntity.findOne({ disassemblyNumber: dn });
@@ -60,6 +64,25 @@ export class CarWreckedService extends BaseService {
     return this.carWreckedEntity.find({
       catalyticConverterNumber
     });
+  }
+
+  // 将零件从集装箱中移除
+  async moveOutFromContainer(id: number, containerNumber: string) {
+    await this.carWreckedEntity.save({
+      id,
+      containerNumber: null
+    });
+    const containerPartsList = await this.carWreckedEntity.find({
+      containerNumber
+    });
+    if(containerPartsList.length <= 0) {
+      const containerItem = await this.containerEntity.findOne({
+        containerNumber
+      })
+      if(!containerItem) return;
+      containerItem.status = 0;
+      this.containerEntity.save(containerItem);
+    }
   }
 }
 const disassemblyCategorys = {

@@ -1,4 +1,4 @@
-import {Provide} from '@midwayjs/decorator';
+import {Provide, Post, Inject, Body} from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import {CarWreckedEntity} from "../../entity/carWrecked";
 import {CarEntity} from "../../entity/base";
@@ -44,6 +44,8 @@ import { CarWreckedService } from '../../service/car';
       { column: 'b.departmentId', requestParam: 'departmentId' },
       { column: 'b.year', requestParam: 'year' },
       { column: 'b.brand', requestParam: 'brand' },
+      { column: 'a.containerID', requestParam: 'containerID' },
+      { column: 'a.containerNumber', requestParam: 'containerNumber' },
     ],
     join: [{
       entity: CarEntity,
@@ -57,4 +59,12 @@ import { CarWreckedService } from '../../service/car';
 export class CarWreckedController extends BaseController {
   @InjectEntityModel(CarWreckedEntity)
   vehicleProfileEntity: Repository<CarWreckedEntity>
+
+  @Inject()
+  carWreckedService: CarWreckedService;
+
+  @Post("/moveOutFromContainer")
+  async moveOutFromContainer(@Body('partId') partId: number, @Body('containerNumber') containerNumber: string,) {
+    return await this.carWreckedService.moveOutFromContainer(partId, containerNumber);
+  }
 }
