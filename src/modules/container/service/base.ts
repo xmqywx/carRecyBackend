@@ -12,16 +12,26 @@ export class ContainerService extends BaseService {
 
   @InjectEntityModel(CarWreckedEntity)
   carWreckedEntity: Repository<CarWreckedEntity>;
+  // /**
+  //  * 新增
+  //  * @param param
+  //  */
+  // async add(params) {
+  //   return this.containerEntity.save(params).then(async (savedContainer) => {
+  //     const containerNumber = `MRKU${savedContainer.id.toString().padStart(7, '0')}`;
+  //     savedContainer.containerNumber = containerNumber;
+  //     return this.containerEntity.save(savedContainer);
+  //   })
+  // }
   /**
-   * 新增
-   * @param param
+   *  获取container number的数据
+   * 
    */
-  async add(params) {
-    return this.containerEntity.save(params).then(async (savedContainer) => {
-      const containerNumber = `MRKU${savedContainer.id.toString().padStart(7, '0')}`;
-      savedContainer.containerNumber = containerNumber;
-      return this.containerEntity.save(savedContainer);
-    })
+  async checkIsUniqueContainerNumber(containerNumber: string) {
+    const containerSearchData = await this.containerEntity.find({ containerNumber });
+    return {
+      isUnique: containerSearchData.length <= 0
+    };
   }
 
   // /**
@@ -48,9 +58,13 @@ export class ContainerService extends BaseService {
     let containerData = await this.containerEntity.findOne({
       containerNumber
     })
-    let partsData = await this.carWreckedEntity.find({
-      containerNumber
-    })
-    return {containerData, partsData}
+    // let partsData = await this.carWreckedEntity.find({
+    //   containerNumber
+    // })
+    const searchPartsSql = `
+      SELECT \`car_wrecked\`.*,\`car\`.carInfo FROM \`car_wrecked\` JOIN \`car\` ON \`car_wrecked\`.carID = \`car\`.id WHERE \`car_wrecked\`.containerNumber = '${containerNumber}'
+    `;
+    const searchSqlRes = await this.nativeQuery(searchPartsSql);
+    return {containerData, partsData: searchSqlRes}
   }
 }

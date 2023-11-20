@@ -13,8 +13,8 @@ export class ContainerEntity extends BaseEntity {
   @Column({ comment: 'Seal number (lock number)', length: 20, nullable: true})
   sealNumber: string;
 
-  @Column({ comment: 'Expected delivery time', length: 20})
-  expectedDeliveryTime: string;
+  @Column({ comment: 'Start delivery time', length: 20})
+  startDeliverTime: string;
 
   @Column({ comment: 'status', type: 'tinyint'})
   status: number;

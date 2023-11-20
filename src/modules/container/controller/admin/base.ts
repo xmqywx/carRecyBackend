@@ -47,4 +47,10 @@ export class CarBaseController extends BaseController {
   async getContainerXlsxData(@Body('containerNumber') containerNumber: string) {
     return await this.containerService.getContainerXlsxData(containerNumber);
   }
+
+  @Post("/checkIsUniqueContainerNumber")
+  async checkIsUniqueContainerNumber(@Body('containerNumber') containerNumber: string) {
+    const returnData = await this.containerService.checkIsUniqueContainerNumber(containerNumber);
+    return this.ok(returnData);
+  }
 }

@@ -60,7 +60,7 @@ import { CarBaseService, CarWreckedService } from '../../service/car';
     where:  async (ctx) => {
       const { isCompleted } = ctx.request.body;
       return [
-        isCompleted ? ['c.status = 4', {}]:[],
+        isCompleted ? ['c.status = 4', {}]:[], 
         // isVFP ? ['a.isVFP = true', {}] : ['(a.isVFP is NULL or a.isVFP = false)', {}]
         // isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
       ]

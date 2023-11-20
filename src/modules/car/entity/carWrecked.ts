@@ -33,4 +33,8 @@ export class CarWreckedEntity extends BaseEntity {
 
     @Column({ comment: 'Container Number', nullable: true })
     containerNumber: string;
+
+    @Column({ comment: 'Components description', nullable: true,})
+    description: string;
+  a: any;
 }

@@ -60,6 +60,44 @@ export class CarWreckedService extends BaseService {
     })
   }
 
+  async handleDisassemble(params: any) {
+    const promise = [];
+    if(params.dismantlingLabelsData) {
+      params.dismantlingLabelsData.forEach(v => {
+        v.parts.forEach(pt => {
+          promise.push(this.add({
+            carID: params.carID,
+            disassemblyDescription: pt.description,
+            disassemblyCategory: 'Dismantling Labels',
+            disassmblingInformation: v.name,
+          }))
+        })
+      })
+    }
+    if(params.extraPartsExtractData) {
+      params.extraPartsExtractData.forEach(v => {
+        v.parts.forEach(pt => {
+          promise.push(this.add({
+            carID: params.carID,
+            disassemblyDescription: pt.description,
+            disassemblyCategory: 'Extra Part Extraction',
+            disassmblingInformation: v.name,
+          }))
+        })
+      })
+    }
+    if(params.activeCarForm?.catalyticConverterName || params.activeCarForm?.catalyticConverterNumber || params.activeCarForm?.catalyticConverterPhotos) {
+      promise.push(this.add({
+        carID: params.carID,
+        disassemblyCategory: 'Catalytic Converter',
+        disassmblingInformation: params.catalyticConverterPhotos,
+        catalyticConverterName: params.catalyticConverterName,
+        catalyticConverterNumber: params.catalyticConverterNumber
+      }))
+    }
+    return await Promise.all(promise);
+  }
+
   async getWreckedNumber(catalyticConverterNumber) {
     return this.carWreckedEntity.find({
       catalyticConverterNumber
@@ -75,6 +113,7 @@ export class CarWreckedService extends BaseService {
     const containerPartsList = await this.carWreckedEntity.find({
       containerNumber
     });
+
     if(containerPartsList.length <= 0) {
       const containerItem = await this.containerEntity.findOne({
         containerNumber
@@ -84,7 +123,41 @@ export class CarWreckedService extends BaseService {
       this.containerEntity.save(containerItem);
     }
   }
+
+  // 将零件添加到集装箱中
+  async putToContainer(partId: number, containerNumber: string) {
+    await this.carWreckedEntity.save({
+      id: partId,
+      containerNumber: containerNumber
+    });
+
+    const containerItem = await this.containerEntity.findOne({
+      containerNumber
+    })
+    if(!containerItem) return;
+    if(containerItem.status === 0) {
+      containerItem.status = 1;
+      this.containerEntity.save(containerItem);
+    }
+  }
+
+  //通过id 或 partId查询
+  async infoByDn(partId: string) {
+    return await this.carWreckedEntity.findOne({
+      disassemblyNumber: partId
+    }).then(async (res: any) => {
+      if(res.containerNumber !== null) {
+        let containerInfo = await this.containerEntity.findOne({
+          containerNumber: res.containerNumber
+        });
+        res.containerStatus = containerInfo.status;
+      }
+
+      return res;
+    });
+  }
 }
+
 const disassemblyCategorys = {
   'Dismantling Labels': 'DL',
   'Extra Part Extraction': 'EPE',
@@ -105,5 +178,13 @@ export class CarBaseService extends BaseService {
     WHERE CarWreckedInfo->'$.catalyticConverterNumber' = '${catalyticConverterNumber}';`;
     const sqlSearch = await this.nativeQuery(sql);
     return sqlSearch;
+  }
+
+  async changeCarStatus(status: number, id: number) {
+    return await this.carEntity.update({
+      id
+    }, {
+      status
+    })
   }
 }
