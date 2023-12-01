@@ -1,4 +1,4 @@
-import {Body, Post, Provide} from '@midwayjs/decorator';
+import {Body, Post, Provide, Inject} from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import {Repository} from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
@@ -131,6 +131,9 @@ export class VehicleProfileController extends BaseController {
   @InjectEntityModel(CarEntity)
   carEntity: Repository<CarEntity>;
 
+  @Inject()
+  jobService: JobService;
+
   @Post('/updateJob')
   async updateJob(@Body('orderID') orderID: number, @Body('status') status: number){
     await this.jobEntity.update({
@@ -138,6 +141,29 @@ export class VehicleProfileController extends BaseController {
     }, {
       status
     });
+  }
+
+  @Post('/get_job_all')
+  async get_job_all(@Body('jobID') jobID: number, @Body('orderID') orderID: number, ){
+    try {
+      const searchData = await this.jobService.get_job_all({
+        jobID,
+        orderID
+      });
+      return this.ok(searchData);
+    } catch(e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/update_job_order')
+  async update_job_order(@Body('jobDetail') jobDetail?: any, @Body('orderDetail') orderDetail?: any, @Body('customerDetail') customerDetail?: any, @Body('carDetail') carDetail?: any, @Body('secondaryPersonDetail') secondaryPersonDetail?: any,  ){
+    try {
+      const searchData = await this.jobService.update_job_order({ jobDetail, orderDetail, customerDetail, carDetail, secondaryPersonDetail });
+      return this.ok(searchData);
+    } catch(e) {
+      return this.fail(e);
+    }
   }
 
 }

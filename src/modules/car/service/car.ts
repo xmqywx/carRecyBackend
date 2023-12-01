@@ -90,9 +90,9 @@ export class CarWreckedService extends BaseService {
       promise.push(this.add({
         carID: params.carID,
         disassemblyCategory: 'Catalytic Converter',
-        disassmblingInformation: params.catalyticConverterPhotos,
-        catalyticConverterName: params.catalyticConverterName,
-        catalyticConverterNumber: params.catalyticConverterNumber
+        disassmblingInformation: params.activeCarForm?.catalyticConverterPhotos,
+        catalyticConverterName: params.activeCarForm?.catalyticConverterName,
+        catalyticConverterNumber: params.activeCarForm?.catalyticConverterNumber
       }))
     }
     return await Promise.all(promise);

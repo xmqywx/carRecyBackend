@@ -34,6 +34,35 @@ export class ContainerService extends BaseService {
     };
   }
 
+  
+  async checkIsUniqueSealedNumber(sealNumber: string) {
+    const containerSearchData = await this.containerEntity.find({ sealNumber });
+    return {
+      isUnique: containerSearchData.length <= 0
+    };
+  }
+
+  async get_wrecker_container(departmentId: any, createBy: number) {
+    const containerSearchData = await this.containerEntity.find({ departmentId, createBy });
+    const containerFilterData = containerSearchData.filter(v => v.status !== 2);
+    if(containerFilterData?.length > 0) {
+      const containerDetail = containerFilterData[0];
+      // const components = await this.carWreckedEntity.find({
+      //   containerNumber: containerDetail.containerNumber
+      // });
+      return {
+        isExist: true,
+        containerNumber: containerDetail.containerNumber,
+        containerDetail,
+        // components
+      };
+    } else {
+      return {
+        isExist: false
+      };
+    }
+  }
+
   // /**
   //  * 更新
   //  * @param param

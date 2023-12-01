@@ -24,4 +24,13 @@ export class ContainerEntity extends BaseEntity {
 
   @Column({ comment: 'type', length: 20, nullable: true})
   type: string;
+
+  @Column({ comment: 'container photos', nullable: true, type: 'text'})
+  photo: string;
+
+  @Column({ comment: '部门ID', type: 'bigint' })
+  departmentId: number;
+
+  @Column({ comment: 'create by', nullable: true, type: "tinyint" })
+  createBy: number;
 }

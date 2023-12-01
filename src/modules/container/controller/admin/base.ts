@@ -31,7 +31,7 @@ import { ContainerService } from '../../service/base';
     select: [
       'a.*',
     ],
-
+    fieldEq: ['departmentId']
   },
 
   service: ContainerService
@@ -51,6 +51,18 @@ export class CarBaseController extends BaseController {
   @Post("/checkIsUniqueContainerNumber")
   async checkIsUniqueContainerNumber(@Body('containerNumber') containerNumber: string) {
     const returnData = await this.containerService.checkIsUniqueContainerNumber(containerNumber);
+    return this.ok(returnData);
+  }
+
+  @Post("/checkIsUniqueSealedNumber")
+  async checkIsUniqueSealedNumber(@Body('sealNumber') sealNumber: string) {
+    const returnData = await this.containerService.checkIsUniqueSealedNumber(sealNumber);
+    return this.ok(returnData);
+  }
+
+  @Post("/get_wrecker_container")
+  async get_wrecker_container(@Body('departmentId') departmentId: string, @Body('createBy') createBy: number) {
+    const returnData = await this.containerService.get_wrecker_container(departmentId, createBy);
     return this.ok(returnData);
   }
 }
