@@ -24,9 +24,9 @@ export default () => {
       // token
       token: {
         // 2小时过期，需要用刷新token
-        expire: 2 * 3600,
+        expire: 36 * 3600 * 1000,
         // 15天内，如果没操作过就需要重新登录
-        refreshExpire: 24 * 3600 * 15,
+        refreshExpire: 24 * 3600 * 15 * 1000,
       },
     },
   } as ModuleConfig;

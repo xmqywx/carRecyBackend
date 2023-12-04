@@ -35,8 +35,13 @@ export class ContainerService extends BaseService {
   }
 
   
-  async checkIsUniqueSealedNumber(sealNumber: string) {
+  async checkIsUniqueSealedNumber(sealNumber: string, id: number) {
     const containerSearchData = await this.containerEntity.find({ sealNumber });
+    if(containerSearchData.length === 1) {
+      return {
+        isUnique: containerSearchData[0].id === id
+      };
+    }
     return {
       isUnique: containerSearchData.length <= 0
     };

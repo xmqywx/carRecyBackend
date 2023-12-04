@@ -7,22 +7,22 @@ import { Column } from 'typeorm';
  */
 @EntityModel('container')
 export class ContainerEntity extends BaseEntity {
-  @Column({ comment: 'Container number', length: 20, nullable: true})
+  @Column({ comment: 'Container number', length: 255, nullable: true})
   containerNumber: string;
 
-  @Column({ comment: 'Seal number (lock number)', length: 20, nullable: true})
+  @Column({ comment: 'Seal number (lock number)', length: 255, nullable: true})
   sealNumber: string;
 
-  @Column({ comment: 'Start delivery time', length: 20})
+  @Column({ comment: 'Start delivery time', length: 255})
   startDeliverTime: string;
 
   @Column({ comment: 'status', type: 'tinyint'})
   status: number;
 
-  @Column({ comment: 'Seal date', length: 20, nullable: true})
+  @Column({ comment: 'Seal date', length: 255, nullable: true})
   sealDate: string;
 
-  @Column({ comment: 'type', length: 20, nullable: true})
+  @Column({ comment: 'type', length: 255, nullable: true})
   type: string;
 
   @Column({ comment: 'container photos', nullable: true, type: 'text'})

@@ -55,8 +55,8 @@ export class CarBaseController extends BaseController {
   }
 
   @Post("/checkIsUniqueSealedNumber")
-  async checkIsUniqueSealedNumber(@Body('sealNumber') sealNumber: string) {
-    const returnData = await this.containerService.checkIsUniqueSealedNumber(sealNumber);
+  async checkIsUniqueSealedNumber(@Body('sealNumber') sealNumber: string, @Body('id') id: number) {
+    const returnData = await this.containerService.checkIsUniqueSealedNumber(sealNumber, id);
     return this.ok(returnData);
   }
 
