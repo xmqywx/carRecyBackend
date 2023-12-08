@@ -29,6 +29,7 @@ export class ContainerService extends BaseService {
    */
   async checkIsUniqueContainerNumber(containerNumber: string) {
     const containerSearchData = await this.containerEntity.find({ containerNumber });
+    console.log(containerSearchData);
     return {
       isUnique: containerSearchData.length <= 0
     };

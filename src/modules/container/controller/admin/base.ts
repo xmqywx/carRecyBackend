@@ -31,7 +31,15 @@ import { ContainerService } from '../../service/base';
     select: [
       'a.*',
     ],
-    fieldEq: ['departmentId']
+    fieldEq: ['departmentId'],
+    where:  async (ctx) => {
+      const { noSealed } = ctx.request.body;
+      return [
+        noSealed ? ['a.status != 2', {}]:[],
+        // isVFP ? ['a.isVFP = true', {}] : ['(a.isVFP is NULL or a.isVFP = false)', {}]
+        // isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
+      ]
+    },
   },
 
   service: ContainerService
