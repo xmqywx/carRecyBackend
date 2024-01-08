@@ -4,7 +4,6 @@ import { Repository } from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
 import { ContainerEntity } from '../../entity/base';
 import { ContainerService } from '../../service/base';
-import { ContainerLogEntity } from '../../entity/container-logs';
 /**
  * 图片空间信息
  */
