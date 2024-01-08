@@ -112,4 +112,7 @@ export class CarEntity extends BaseEntity {
   @Column({ comment: 'Vehicle for Parts标识', default: false })
   isVFP: boolean;
 
+  @Column({ comment: 'Engine Code', nullable: true })
+  engineCode: string;
+
 }

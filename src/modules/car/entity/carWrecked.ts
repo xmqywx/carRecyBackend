@@ -36,5 +36,20 @@ export class CarWreckedEntity extends BaseEntity {
 
     @Column({ comment: 'Components description', nullable: true,})
     description: string;
-  a: any;
+
+    @Column({  type: 'decimal',comment: 'Component price', nullable: true, precision: 10, scale: 2 })
+    price: number;
+
+    @Column({  type: 'decimal',comment: 'cc platinum', nullable: true, precision: 16, scale: 6 })
+    platinum: number;
+
+    @Column({  type: 'decimal',comment: 'cc palladium', nullable: true, precision: 16, scale: 6 })
+    palladium: number;
+
+    @Column({  type: 'decimal',comment: 'cc rhodium', nullable: true, precision: 16, scale: 6 })
+    rhodium: number;
+
+    @Column({ comment: 'content of components', nullable: true,})
+    contentOfComponents: string;
+
 }

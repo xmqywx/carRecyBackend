@@ -86,14 +86,17 @@ export class CarWreckedService extends BaseService {
         })
       })
     }
-    if(params.activeCarForm?.catalyticConverterName || params.activeCarForm?.catalyticConverterNumber || params.activeCarForm?.catalyticConverterPhotos) {
-      promise.push(this.add({
-        carID: params.carID,
-        disassemblyCategory: 'Catalytic Converter',
-        disassmblingInformation: params.activeCarForm?.catalyticConverterPhotos,
-        catalyticConverterName: params.activeCarForm?.catalyticConverterName,
-        catalyticConverterNumber: params.activeCarForm?.catalyticConverterNumber
-      }))
+    if(params.activeCarForm?.catalyticConverters?.length > 0) {
+      const ccs = params.activeCarForm.catalyticConverters;
+      ccs.forEach(item => {
+        promise.push(this.add({
+          carID: params.carID,
+          disassemblyCategory: 'Catalytic Converter',
+          disassmblingInformation: item.catalyticConverterPhotos,
+          catalyticConverterName: item.catalyticConverterName,
+          catalyticConverterNumber: item.catalyticConverterNumber
+        }))
+      })
     }
     return await Promise.all(promise);
   }
@@ -150,7 +153,7 @@ export class CarWreckedService extends BaseService {
         let containerInfo = await this.containerEntity.findOne({
           containerNumber: res.containerNumber
         });
-        res.containerStatus = containerInfo.status;
+        res.containerStatus = containerInfo?.status;
       }
 
       return res;

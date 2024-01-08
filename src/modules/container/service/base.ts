@@ -4,6 +4,7 @@ import {InjectEntityModel} from "@midwayjs/orm";
 import {Repository} from "typeorm";
 import { ContainerEntity } from "../entity/base";
 import { CarWreckedEntity } from "../../car/entity/carWrecked";
+import { ContainerLogEntity } from "../entity/container-logs";
 
 @Provide()
 export class ContainerService extends BaseService {
@@ -12,6 +13,9 @@ export class ContainerService extends BaseService {
 
   @InjectEntityModel(CarWreckedEntity)
   carWreckedEntity: Repository<CarWreckedEntity>;
+
+  @InjectEntityModel(ContainerLogEntity)
+  containerLogEntity: Repository<ContainerLogEntity>;
   // /**
   //  * 新增
   //  * @param param
@@ -69,6 +73,49 @@ export class ContainerService extends BaseService {
     }
   }
 
+  async change_container_status({status, containerID, areEnginesComplete, areEnginesRunningWell, anyIssues, statusChangeTime, issues}) {
+    const containerSearchData = await this.containerEntity.findOne({ id: containerID });
+    containerSearchData.status = status;
+    const saveStatus = await this.containerEntity.save(containerSearchData);
+    console.log(saveStatus);
+    this.containerLogEntity.save({
+      containerID,
+      areEnginesComplete,
+      areEnginesRunningWell,
+      anyIssues,
+      issues,
+      statusChangeTime,
+      statusTo: status
+    })
+  }
+
+  async page(query, options, connectionName) {
+    const { noSealed, isOversea } = query;
+    let where = [];
+    if (noSealed) {
+      where.push('container.status != 2');
+    }
+    if (isOversea) {
+      where.push('container.status >= 2');
+    }
+
+    const [result, total] = await this.containerEntity
+      .createQueryBuilder('container')
+      .leftJoinAndSelect('container.logs', 'log')
+      .where(where.join(' AND '))
+      .skip((query.page - 1) * query.size)
+      .take(query.size)
+      .getManyAndCount();
+
+    return {
+      list: result,
+      pagination: {
+        total: total,
+        size: query.size,
+        page: query.page,
+      },
+    };
+  }
   // /**
   //  * 更新
   //  * @param param

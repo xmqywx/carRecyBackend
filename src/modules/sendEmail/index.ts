@@ -39,8 +39,9 @@ export default async function main({ name, price, id, email, invoicePdf = null, 
     //         user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
     //         pass: "qxtevaozxibvalxj", // 邮箱授权密码
     //     },
-    host: "smtp.qq.com",
+    service: 'gmail',
     pool: true,
+    host: "smtp.gmail.com",
     port: 465,
     secure: true,
     auth: {

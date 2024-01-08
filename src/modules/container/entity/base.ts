@@ -1,7 +1,7 @@
 import { EntityModel } from '@midwayjs/orm';
 import { BaseEntity } from '@cool-midway/core';
-import { Column } from 'typeorm';
-
+import { Column, OneToMany } from 'typeorm';
+import { ContainerLogEntity } from './container-logs';
 /**
  * 系统用户
  */
@@ -33,4 +33,7 @@ export class ContainerEntity extends BaseEntity {
 
   @Column({ comment: 'create by', nullable: true, type: "tinyint" })
   createBy: number;
+
+  @OneToMany(type => ContainerLogEntity, log => log.container)
+  logs: ContainerLogEntity[];
 }

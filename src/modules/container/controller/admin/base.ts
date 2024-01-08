@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
 import { ContainerEntity } from '../../entity/base';
 import { ContainerService } from '../../service/base';
-
+import { ContainerLogEntity } from '../../entity/container-logs';
 /**
  * 图片空间信息
  */
@@ -33,9 +33,10 @@ import { ContainerService } from '../../service/base';
     ],
     fieldEq: ['departmentId'],
     where:  async (ctx) => {
-      const { noSealed } = ctx.request.body;
+      const { noSealed, isOversea } = ctx.request.body;
       return [
         noSealed ? ['a.status != 2', {}]:[],
+        isOversea ? ['a.status >= 2', {}]:[]
         // isVFP ? ['a.isVFP = true', {}] : ['(a.isVFP is NULL or a.isVFP = false)', {}]
         // isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
       ]
@@ -73,4 +74,17 @@ export class CarBaseController extends BaseController {
     const returnData = await this.containerService.get_wrecker_container(departmentId, createBy);
     return this.ok(returnData);
   }
+
+  @Post("/change_container_status")
+  async change_container_status(@Body('departmentId') departmentId: string, @Body('createBy') createBy: number, @Body('status') status: number, @Body('containerID') containerID: number, @Body('areEnginesComplete') areEnginesComplete: number, @Body('areEnginesRunningWell') areEnginesRunningWell: number, @Body('anyIssues') anyIssues: number, @Body('issues') issues: string,  @Body('statusChangeTime') statusChangeTime: string, ) {
+    const returnData = await this.containerService.change_container_status({
+      status, containerID, areEnginesComplete, areEnginesRunningWell, anyIssues, statusChangeTime, issues
+    });
+    return this.ok(returnData);
+  }
+
+  // @Post('/containersWithLogs')
+  // async getContainersWithLogs() {
+  //   return await this.containerService.getContainersWithLogs();
+  // }
 }
