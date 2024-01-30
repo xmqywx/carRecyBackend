@@ -64,6 +64,17 @@ export class CarWreckedService extends BaseService {
     const promise = [];
     if(params.dismantlingLabelsData) {
       params.dismantlingLabelsData.forEach(v => {
+        if(v.name === "Other") {
+          v.others.forEach(pt => {
+            promise.push(this.add({
+              carID: params.carID,
+              disassemblyDescription: pt.value,
+              disassemblyCategory: 'Dismantling Labels',
+              disassmblingInformation: pt.name,
+            }))
+          })
+          return;
+        }
         v.parts.forEach(pt => {
           promise.push(this.add({
             carID: params.carID,
@@ -76,6 +87,17 @@ export class CarWreckedService extends BaseService {
     }
     if(params.extraPartsExtractData) {
       params.extraPartsExtractData.forEach(v => {
+        if(v.name === "Other") {
+          v.others.forEach(pt => {
+            promise.push(this.add({
+              carID: params.carID,
+              disassemblyDescription: pt.value,
+              disassemblyCategory: 'Extra Part Extraction',
+              disassmblingInformation: pt.name,
+            }))
+          })
+          return;
+        }
         v.parts.forEach(pt => {
           promise.push(this.add({
             carID: params.carID,
@@ -159,6 +181,71 @@ export class CarWreckedService extends BaseService {
       return res;
     });
   }
+
+  async handleToGetCarWreckedTotal(filters: {[key:string]: any}) {
+    const { isSold, isPaid, collected, isDeposit, containerNumber, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice } = filters;
+    console.log(filters)
+    let total = {
+      sold: 0,
+      collected: 0,
+      paid: 0,
+      deposit: 0
+    };
+
+    const query = this.carWreckedEntity.createQueryBuilder();
+
+    if(containerNumber) {
+      query.andWhere("containerNumber = :containerNumber");
+    }
+
+    if(isSold) {
+      query.andWhere("sold IS NOT NULL AND sold > 0");
+    }
+
+    if(collected) {
+      query.andWhere("collected = :collected", { collected: true });
+    }
+
+    if(isPaid) {
+      query.andWhere("paid IS NOT NULL AND paid > 0");
+    }
+
+    if(isDeposit) {
+      query.andWhere("deposit IS NOT NULL AND deposit > 0");
+    }
+    if(noSold) {
+      query.andWhere("(sold IS NULL OR sold = 0)");
+    }
+
+    if(noPaid) {
+      query.andWhere("(paid IS NULL OR paid = 0)");
+    }
+
+    if(noDeposit) {
+      query.andWhere("(deposit IS NULL OR deposit = 0)");
+    }
+
+    if(lowestSoldPrice) {
+      query.andWhere("sold = (SELECT MIN(sold) FROM car_wrecked WHERE sold IS NOT NULL)");
+    }
+
+    if(highestSoldPrice) {
+      query.andWhere("sold = (SELECT MAX(sold) FROM car_wrecked WHERE sold IS NOT NULL)");
+    }
+
+    query.setParameter('containerNumber', containerNumber);
+
+    const results = await query.getMany();
+
+    results.forEach(result => {
+      total.sold += Number(result.sold) || 0;
+      total.collected += result.collected ? 1 : 0;
+      total.paid += Number(result.paid) || 0;
+      total.deposit += Number(result.deposit) || 0;
+    });
+
+    return total;
+  }
 }
 
 const disassemblyCategorys = {
@@ -175,11 +262,23 @@ export class CarBaseService extends BaseService {
     return await this.carEntity.findOne({id});
   }
 
+  // async getNumber(catalyticConverterNumber) {
+  //   // CarWreckedInfo catalyticConverterNumber
+  //   const sql = `SELECT * FROM \`car\`
+  //   WHERE CarWreckedInfo->'$.catalyticConverterNumber' = '${catalyticConverterNumber}';`;
+  //   const sqlSearch = await this.nativeQuery(sql);
+  //   return sqlSearch;
+  // }
+
   async getNumber(catalyticConverterNumber) {
-    // CarWreckedInfo catalyticConverterNumber
-    const sql = `SELECT * FROM \`car\`
-    WHERE CarWreckedInfo->'$.catalyticConverterNumber' = '${catalyticConverterNumber}';`;
-    const sqlSearch = await this.nativeQuery(sql);
+    // 使用参数化查询来防止SQL注入
+    const sql = `SELECT * FROM car
+    WHERE JSON_CONTAINS(CarWreckedInfo->'$.infos.activeCarForm.catalyticConverters', 
+    JSON_OBJECT('catalyticConverterNumber', ?), 
+    '$')`;
+  
+    // 使用参数化查询的方法执行SQL
+    const sqlSearch = await this.carEntity.query(sql, [catalyticConverterNumber]);
     return sqlSearch;
   }
 

@@ -92,18 +92,18 @@ export class ContainerService extends BaseService {
   async page(query, options, connectionName) {
     const { noSealed, isOversea } = query;
     let where = [];
-    if (noSealed) {
-      where.push('container.status != 2');
-    }
-    if (isOversea) {
-      where.push('container.status >= 2');
-    }
+  // 确保noSealed和isOversea不会同时为true
+  if (noSealed && !isOversea) {
+    where.push('container.status < 2');
+  } else if (isOversea) {
+    where.push('container.status >= 2');
+  }
 
     const [result, total] = await this.containerEntity
       .createQueryBuilder('container')
       .leftJoinAndSelect('container.logs', 'log')
       .where(where.join(' AND '))
-      .skip((query.page - 1) * query.size)
+      .skip(query.page && query.size ? (query.page - 1) * query.size : 0)
       .take(query.size)
       .getManyAndCount();
 

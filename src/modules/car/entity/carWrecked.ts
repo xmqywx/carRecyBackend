@@ -52,4 +52,23 @@ export class CarWreckedEntity extends BaseEntity {
     @Column({ comment: 'content of components', nullable: true,})
     contentOfComponents: string;
 
+    @Column({ comment: 'cc cat type', nullable: true,})
+    catType: string;
+
+    @Column({ comment: 'Location of catalytic converter', nullable: true,})
+    locationOfCat: string;
+
+    // ---------------------------
+
+    @Column({  type: 'decimal',comment: 'Sold', nullable: true, precision: 10, scale: 2 })
+    sold: number;
+
+    @Column({  type: 'decimal',comment: 'Deposit', nullable: true, precision: 10, scale: 2 })
+    deposit: number;
+
+    @Column({  type: 'decimal',comment: 'Paid', nullable: true, precision: 10, scale: 2 })
+    paid: number;
+
+    @Column({ comment: 'Collected', default: false })
+    collected: boolean;
 }

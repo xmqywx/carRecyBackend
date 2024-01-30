@@ -130,6 +130,7 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       'c.registered',
       'c.platesReturned',
       'c.carInfo',
+      'c.status as car_status',
       'e.status as job_status',
       'e.id as jobID'
     ],
