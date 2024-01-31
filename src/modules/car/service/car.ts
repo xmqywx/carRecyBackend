@@ -1,7 +1,7 @@
 import {Provide} from "@midwayjs/decorator";
 import {BaseService} from "@cool-midway/core";
 import {InjectEntityModel} from "@midwayjs/orm";
-import {Repository} from "typeorm";
+import {Repository, Brackets} from "typeorm";
 import { CarCommentEntity } from "../entity/comment";
 import { CarWreckedEntity } from "../entity/carWrecked";
 import { CarEntity } from "../entity/base";
@@ -166,6 +166,19 @@ export class CarWreckedService extends BaseService {
     }
   }
 
+  async toGetMaxPaid(body) {
+    const maxPaidRecord = await this.carWreckedEntity.createQueryBuilder("car_wrecked")
+    .select("MAX(car_wrecked.paid)", "maxPaid")
+    .where("car_wrecked.carID = :carID", { carID: body.carID })
+    .andWhere("car_wrecked.disassemblyNumber = :disassemblyNumber", { disassemblyNumber: body.disassemblyNumber })
+    .andWhere("car_wrecked.disassemblyCategory = :disassemblyCategory", { disassemblyCategory: body.disassemblyCategory })
+    .andWhere("car_wrecked.containerID = :containerID", { containerID: body.containerID })
+    .andWhere("car_wrecked.containerNumber = :containerNumber", { containerNumber: body.containerNumber })
+    .andWhere("car_wrecked.collected = :collected", { collected: body.collected })
+    .getRawOne();
+    console.log(maxPaidRecord, '**********************************')
+  }
+
   //通过id 或 partId查询
   async infoByDn(partId: string) {
     return await this.carWreckedEntity.findOne({
@@ -180,10 +193,11 @@ export class CarWreckedService extends BaseService {
 
       return res;
     });
+
   }
 
   async handleToGetCarWreckedTotal(filters: {[key:string]: any}) {
-    const { isSold, isPaid, collected, isDeposit, containerNumber, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice } = filters;
+    const { isSold, isPaid, collected, isDeposit, containerNumber, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice, keyWord } = filters;
     console.log(filters)
     let total = {
       sold: 0,
@@ -225,15 +239,39 @@ export class CarWreckedService extends BaseService {
       query.andWhere("(deposit IS NULL OR deposit = 0)");
     }
 
+    // if(lowestSoldPrice) {
+      
+    //   query.andWhere("sold = (SELECT MIN(sold) FROM car_wrecked WHERE sold IS NOT NULL)");
+    // }
+
+    // if(highestSoldPrice) {
+    //   query.andWhere("sold = (SELECT MAX(sold) FROM car_wrecked WHERE sold IS NOT NULL)");
+    // }
+    const hightSql = 'sold = (select MAX(sold) from `cool-admin`.car_wrecked';
+    const lowestSql = 'sold = (select MIN(sold) from `cool-admin`.car_wrecked';
+    const sqlArr = [];
+    if(containerNumber) {
+      sqlArr.push('containerNumber = :containerNumber');
+    }
+    if(keyWord) {
+      sqlArr.push('(carID LIKE :keyWord OR disassemblyNumber LIKE :keyWord OR disassmblingInformation LIKE :keyWord OR disassemblyDescription LIKE :keyWord)');
+    }
+    let hightSqlSearch = hightSql + (sqlArr.length > 0 ? ' where ' : '') + sqlArr.join(' and ') + ')';
+    let lowestSqlSearch = lowestSql + (sqlArr.length > 0 ? ' where ' : '') + sqlArr.join(' and ') + ')';
     if(lowestSoldPrice) {
-      query.andWhere("sold = (SELECT MIN(sold) FROM car_wrecked WHERE sold IS NOT NULL)");
+      query.andWhere(lowestSqlSearch);
     }
 
     if(highestSoldPrice) {
-      query.andWhere("sold = (SELECT MAX(sold) FROM car_wrecked WHERE sold IS NOT NULL)");
+      query.andWhere(hightSqlSearch);
+    }
+
+    if(keyWord) {
+      query.andWhere("(carID LIKE :keyWord OR disassemblyNumber LIKE :keyWord OR disassmblingInformation LIKE :keyWord OR disassemblyDescription LIKE :keyWord)");
     }
 
     query.setParameter('containerNumber', containerNumber);
+    query.setParameter('keyWord', `%${keyWord}%`);
 
     const results = await query.getMany();
 

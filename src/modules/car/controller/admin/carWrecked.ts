@@ -5,6 +5,7 @@ import { CarEntity } from "../../entity/base";
 import { Repository } from "typeorm";
 import { InjectEntityModel } from "@midwayjs/orm";
 import { CarWreckedService, CarBaseService } from '../../service/car';
+import { BuyerEntity } from '../../../buyer/entity/base';
 
 /**
  * 图片空间信息
@@ -15,7 +16,7 @@ import { CarWreckedService, CarBaseService } from '../../service/car';
   entity: CarWreckedEntity,
   pageQueryOp: {
     keyWordLikeFields: ['carID', 'disassemblyNumber', 'disassmblingInformation', 'disassemblyDescription'],
-    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo'],
+    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo', 'c.name as buyer_name', 'c.phone as buyer_phone','c.address as buyer_address'],
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.disassemblyCategory', requestParam: 'disassemblyCategory' },
@@ -33,6 +34,11 @@ import { CarWreckedService, CarBaseService } from '../../service/car';
       alias: 'b',
       condition: 'a.carID = b.id',
       type: 'leftJoin'
+    },{
+      entity: BuyerEntity,
+      alias: 'c',
+      condition: 'a.buyerID = c.id',
+      type: 'leftJoin'
     }],
     addOrderBy: (ctx) => {
       const { lowestSoldPrice, highestSoldPrice } = ctx.request.body;
@@ -42,13 +48,23 @@ import { CarWreckedService, CarBaseService } from '../../service/car';
         }
       }
     },
-    where:  async (ctx) => {
-      const { isSold, isPaid, isDeposit, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice } = ctx.request.body;
-      console.log(ctx.request.body, '====================')
-      if(lowestSoldPrice || highestSoldPrice) {
-        ctx.request.body.orderBy = {
-          paid: "ASC"
+    async where(ctx) {
+      const { isSold, isPaid, isDeposit, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice, containerNumber, keyWord, } = ctx.request.body;
+      // 因为根据分类排序了，所以会导致就算是后端列表排序了也会打乱顺序
+      let hightSqlSearch = '';
+      let lowestSqlSearch = '';
+      if(lowestSoldPrice || highestSoldPrice) { 
+        const hightSql = 'a.sold = (select MAX(sold) from `cool-admin`.car_wrecked';
+        const lowestSql = 'a.sold = (select MIN(sold) from `cool-admin`.car_wrecked';
+        const sqlArr = [];
+        if(containerNumber) {
+          sqlArr.push(`containerNumber = '${containerNumber}'`);
         }
+        if(keyWord) {
+          sqlArr.push(`(carID LIKE '%${keyWord}%' OR disassemblyNumber LIKE '%${keyWord}%' OR disassmblingInformation LIKE '%${keyWord}%' OR disassemblyDescription LIKE '%${keyWord}%')`);
+        }
+        hightSqlSearch = hightSql + (sqlArr.length > 0 ? ' where ' : '') + sqlArr.join(' and ') + ')';
+        lowestSqlSearch = lowestSql + (sqlArr.length > 0 ? ' where ' : '') + sqlArr.join(' and ') + ')';
       }
       return [
         isSold ? ['a.sold IS NOT NULL AND a.sold > 0', {}]:[],
@@ -57,8 +73,10 @@ import { CarWreckedService, CarBaseService } from '../../service/car';
         noSold ? ['(a.sold IS NULL OR a.sold = 0)', {}] : [],
         noPaid ? ['(a.paid IS NULL OR a.paid = 0)', {}] : [],
         noDeposit ? ['(a.deposit IS NULL OR a.deposit = 0)', {}] : [],
-        // lowestSoldPrice ? ['a.paid IN (SELECT MIN(paid) FROM a)', {}] : [],
-        // highestSoldPrice ? ['a.paid IN (SELECT MAX(paid) FROM a)', {}] : [],
+        lowestSoldPrice ? [lowestSqlSearch, {}
+        ] : [],
+        highestSoldPrice ? [hightSqlSearch, {}
+        ] : [],
       ]
     },
   },
@@ -138,10 +156,10 @@ export class CarWreckedController extends BaseController {
 
   @Post("/handleToGetCarWreckedTotal")
   async handleToGetCarWreckedTotal(@Body('isSold') isSold: boolean, @Body('isPaid') isPaid: boolean, @Body('collected') collected: boolean, @Body('isDeposit') isDeposit: boolean, @Body('noSold') noSold: boolean,
-  @Body('noPaid') noPaid: boolean,  @Body('noDeposit') noDeposit: boolean,  @Body('lowestSoldPrice') lowestSoldPrice: boolean,  @Body('containerNumber') containerNumber: string, @Body('highestSoldPrice') highestSoldPrice: boolean,
+  @Body('noPaid') noPaid: boolean,  @Body('noDeposit') noDeposit: boolean,  @Body('lowestSoldPrice') lowestSoldPrice: boolean,  @Body('containerNumber') containerNumber: string, @Body('highestSoldPrice') highestSoldPrice: boolean, @Body('keyWord') keyWord: string,
   ) {
     const filters = {
-      isSold, isPaid, collected, isDeposit, containerNumber,  noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice
+      isSold, isPaid, collected, isDeposit, containerNumber,  noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice, keyWord
     }
     try {
       const data = await this.carWreckedService.handleToGetCarWreckedTotal(filters);

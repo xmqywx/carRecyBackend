@@ -69,6 +69,9 @@ export class CarWreckedEntity extends BaseEntity {
     @Column({  type: 'decimal',comment: 'Paid', nullable: true, precision: 10, scale: 2 })
     paid: number;
 
-    @Column({ comment: 'Collected', default: false })
-    collected: boolean;
+    @Column({ type: 'tinyint', comment: 'Collected 0 1', default: false })
+    collected: number;
+
+    @Column({ comment: 'Buyer ID', nullable: true })
+    buyerID: number;
 }
