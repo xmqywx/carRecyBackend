@@ -1,7 +1,7 @@
 import {Provide} from "@midwayjs/decorator";
 import {BaseService} from "@cool-midway/core";
 import {InjectEntityModel} from "@midwayjs/orm";
-import {Repository, Brackets} from "typeorm";
+import {Repository} from "typeorm";
 import { CarCommentEntity } from "../entity/comment";
 import { CarWreckedEntity } from "../entity/carWrecked";
 import { CarEntity } from "../entity/base";
