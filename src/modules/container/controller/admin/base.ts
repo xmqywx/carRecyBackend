@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import {InjectEntityModel} from "@midwayjs/orm";
 import { ContainerEntity } from '../../entity/base';
 import { ContainerService } from '../../service/base';
+import { BuyerEntity } from '../../../buyer/entity/base';
 /**
  * 图片空间信息
  */
@@ -29,6 +30,9 @@ import { ContainerService } from '../../service/base';
     keyWordLikeFields: [],
     select: [
       'a.*',
+      'b.name as consignee_name',
+      'b.phone as consignee_phone',
+      'b.address as consignee_address',
     ],
     fieldEq: ['departmentId'],
     where:  async (ctx) => {
@@ -40,6 +44,12 @@ import { ContainerService } from '../../service/base';
         // isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
       ]
     },
+    join: [{
+      entity: BuyerEntity,
+      alias: 'b',
+      condition: 'a.consigneeID = b.id',
+      type: 'leftJoin'
+    },]
   },
 
   service: ContainerService
@@ -82,8 +92,9 @@ export class CarBaseController extends BaseController {
     return this.ok(returnData);
   }
 
-  // @Post('/containersWithLogs')
-  // async getContainersWithLogs() {
-  //   return await this.containerService.getContainersWithLogs();
-  // }
+  @Post('/containerWidthAmountPage')
+  async containerWidthAmountPage(@Body() params: any) {
+    const data = await this.containerService.containerWidthAmountPage(params);
+    return this.ok(data)
+  }
 }

@@ -36,4 +36,16 @@ export class ContainerEntity extends BaseEntity {
 
   @OneToMany(type => ContainerLogEntity, log => log.container)
   logs: ContainerLogEntity[];
+
+  @Column({ comment: 'Dispatch location', length: 255, nullable: true})
+  dispatchLocation: string;
+
+  @Column({ comment: 'Final Destination', length: 255, nullable: true})
+  finalDestination: string;
+
+  @Column({ comment: 'ETA arrival', type: 'timestamp', nullable: true})
+  etaArrival: Date;
+
+  @Column({ comment: 'Consignee ID', nullable: true})
+  consigneeID: number;
 }

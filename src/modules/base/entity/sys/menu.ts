@@ -20,7 +20,7 @@ export class BaseSysMenuEntity extends BaseEntity {
   perms: string;
 
   @Column({
-    comment: '类型 0：目录 1：菜单 2：按钮',
+    comment: '类型 0：目录 1：菜单 2：按钮 3：分组',
     default: 0,
     type: 'tinyint',
   })

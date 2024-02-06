@@ -5,7 +5,7 @@ import {Repository} from "typeorm";
 import { ContainerEntity } from "../entity/base";
 import { CarWreckedEntity } from "../../car/entity/carWrecked";
 import { ContainerLogEntity } from "../entity/container-logs";
-
+import { BuyerEntity } from "../../buyer/entity/base";
 @Provide()
 export class ContainerService extends BaseService {
   @InjectEntityModel(ContainerEntity)
@@ -16,6 +16,9 @@ export class ContainerService extends BaseService {
 
   @InjectEntityModel(ContainerLogEntity)
   containerLogEntity: Repository<ContainerLogEntity>;
+
+  @InjectEntityModel(BuyerEntity)
+  buyerEntity: Repository<BuyerEntity>;
   // /**
   //  * 新增
   //  * @param param
@@ -89,33 +92,36 @@ export class ContainerService extends BaseService {
     })
   }
 
-  async page(query, options, connectionName) {
-    const { noSealed, isOversea } = query;
-    let where = [];
-  // 确保noSealed和isOversea不会同时为true
-  if (noSealed && !isOversea) {
-    where.push('container.status < 2');
-  } else if (isOversea) {
-    where.push('container.status >= 2');
-  }
+  // async page(query, options, connectionName) {
+  //   const { noSealed, isOversea } = query;
+  //   let where = [];
+  // // 确保noSealed和isOversea不会同时为true
+  // if (noSealed && !isOversea) {
+  //   where.push('container.status < 2');
+  // } else if (isOversea) {
+  //   where.push('container.status >= 2');
+  // }
+  // // 看下如何才能够将两个表融合
 
-    const [result, total] = await this.containerEntity
-      .createQueryBuilder('container')
-      .leftJoinAndSelect('container.logs', 'log')
-      .where(where.join(' AND '))
-      .skip(query.page && query.size ? (query.page - 1) * query.size : 0)
-      .take(query.size)
-      .getManyAndCount();
+  // const [result, total] = await this.containerEntity
+  // .createQueryBuilder('c')
+  // .leftJoin('buyer', 'b', 'b.id = c.consigneeID')
+  // .select(['c', 'b.name', 'b.address', 'b.phone'])
+  // .where(where.join(' AND '))
+  // .skip(query.page && query.size ? (query.page - 1) * query.size : 0)
+  // .take(query.size)
+  // .getManyAndCount();
 
-    return {
-      list: result,
-      pagination: {
-        total: total,
-        size: query.size,
-        page: query.page,
-      },
-    };
-  }
+
+  //   return {
+  //     list: result,
+  //     pagination: {
+  //       total: total,
+  //       size: query.size,
+  //       page: query.page,
+  //     },
+  //   };
+  // }
   // /**
   //  * 更新
   //  * @param param
@@ -148,5 +154,51 @@ export class ContainerService extends BaseService {
     `;
     const searchSqlRes = await this.nativeQuery(searchPartsSql);
     return {containerData, partsData: searchSqlRes}
+  }
+
+  async containerWidthAmountPage(params) {
+    // 创建子查询以聚合carWrecked表的数据
+    const carWreckedSubQuery = this.carWreckedEntity.createQueryBuilder('carWrecked')
+      .select('carWrecked.containerNumber', 'containerNumber')
+      .addSelect('SUM(carWrecked.paid)', 'totalPaid')
+      .addSelect('SUM(carWrecked.deposit)', 'totalDeposit')
+      .addSelect('SUM(carWrecked.sold)', 'totalSold')
+      .groupBy('carWrecked.containerNumber');
+  
+    // 创建主查询，连接container表和聚合的carWrecked数据
+    const queryBuilder = this.containerEntity.createQueryBuilder('container')
+      .leftJoin('(' + carWreckedSubQuery.getQuery() + ')', 'carWreckedAggregated', 'carWreckedAggregated.containerNumber = container.containerNumber')
+      .addSelect([
+        'container.*', // 选择container表中的所有字段
+        'carWreckedAggregated.totalPaid', 
+        'carWreckedAggregated.totalDeposit', 
+        'carWreckedAggregated.totalSold'
+      ])
+      .setParameters(carWreckedSubQuery.getParameters());
+  
+    // 应用过滤条件
+    if (params.containerNumber) {
+      queryBuilder.andWhere('container.containerNumber = :containerNumber', { containerNumber: params.containerNumber });
+    }
+  
+    // 获取总记录数
+    const total = await queryBuilder.getCount();
+  
+    // 应用分页
+    const page = params.page || 1; // 默认第一页
+    const size = params.size || 10; // 默认每页10条
+    queryBuilder.skip((page - 1) * size).take(size);
+  
+    const result = await queryBuilder.getRawMany();
+  
+    // 返回结果和分页信息
+    return {
+      data: result,
+      pagination: {
+        page: page,
+        size: size,
+        total: total,
+      },
+    };
   }
 }

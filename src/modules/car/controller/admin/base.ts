@@ -83,4 +83,11 @@ export class CarBaseController extends BaseController {
     const carRes = await this.carBaseService.getNumber(catalyticConverterNumber);
     return [...wrekcedRes, ...carRes]
   }
+
+  @Get("/getCarInfoWidthOrder")
+  async getCarInfoWidthOrder(@Query('id') id: number) {
+    const carInfo = await this.carBaseService.getCarInfoWidthOrder(id);
+    if(carInfo) return this.ok(carInfo);
+    return this.fail();
+  }
 }

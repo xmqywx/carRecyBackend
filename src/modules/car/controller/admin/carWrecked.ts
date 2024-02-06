@@ -1,4 +1,4 @@
-import { Provide, Post, Inject, Body } from '@midwayjs/decorator';
+import { Provide, Post, Inject, Body, Get, Query } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import { CarWreckedEntity } from "../../entity/carWrecked";
 import { CarEntity } from "../../entity/base";
@@ -6,6 +6,7 @@ import { Repository } from "typeorm";
 import { InjectEntityModel } from "@midwayjs/orm";
 import { CarWreckedService, CarBaseService } from '../../service/car';
 import { BuyerEntity } from '../../../buyer/entity/base';
+import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
 
 /**
  * 图片空间信息
@@ -16,7 +17,7 @@ import { BuyerEntity } from '../../../buyer/entity/base';
   entity: CarWreckedEntity,
   pageQueryOp: {
     keyWordLikeFields: ['carID', 'disassemblyNumber', 'disassmblingInformation', 'disassemblyDescription'],
-    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo', 'c.name as buyer_name', 'c.phone as buyer_phone','c.address as buyer_address'],
+    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo', 'c.name as buyer_name', 'c.phone as buyer_phone','c.address as buyer_address', 'p.soldDate', 'p.depositDate', 'p.paidDate', 'p.collectedDate'],
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.disassemblyCategory', requestParam: 'disassemblyCategory' },
@@ -38,6 +39,11 @@ import { BuyerEntity } from '../../../buyer/entity/base';
       entity: BuyerEntity,
       alias: 'c',
       condition: 'a.buyerID = c.id',
+      type: 'leftJoin'
+    },{
+      entity: PartTransactionsEntity,
+      alias: 'p',
+      condition: 'a.id = p.carWreckedID and p.status = 0',
       type: 'leftJoin'
     }],
     addOrderBy: (ctx) => {
@@ -167,6 +173,23 @@ export class CarWreckedController extends BaseController {
     } catch(e) {
       return this.fail(e);
     }
+  }
+
+  @Post("/updateAndInsertLog")
+  async updateAndInsertLog(@Body() params) { 
+    try {
+      const result = await this.carWreckedService.updateAndInsertLog(params);
+      return this.ok(result);
+    } catch(e) {
+      return this.fail(e);
+    }
+  }
+
+  @Get("/getCarWreckedWidthTransaction")
+  async getCarWreckedWidthTransaction(@Query('id') id: number) {
+    const carWreckedInfo = await this.carWreckedService.getCarWreckedWidthTransaction(id);
+    if(carWreckedInfo) return this.ok(carWreckedInfo);
+    return this.fail();
   }
 
 }
