@@ -43,4 +43,7 @@ export class BaseSysMenuEntity extends BaseEntity {
 
   @Column({ comment: '是否显示', default: true })
   isShow: boolean;
+
+  @Column({ comment: '二级下', default: false })
+  isSecond: boolean;
 }

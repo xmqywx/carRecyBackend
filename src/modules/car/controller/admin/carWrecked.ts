@@ -17,7 +17,7 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
   entity: CarWreckedEntity,
   pageQueryOp: {
     keyWordLikeFields: ['carID', 'disassemblyNumber', 'disassmblingInformation', 'disassemblyDescription'],
-    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo', 'c.name as buyer_name', 'c.phone as buyer_phone','c.address as buyer_address', 'p.soldDate', 'p.depositDate', 'p.paidDate', 'p.collectedDate'],
+    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo', 'c.name as buyer_name', 'c.phone as buyer_phone','c.address as buyer_address', 'p.soldDate', 'p.depositDate', 'p.paidDate', 'p.collectedDate', 'p.id as part_transaction_id'],
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.disassemblyCategory', requestParam: 'disassemblyCategory' },

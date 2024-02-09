@@ -46,4 +46,10 @@ export class PartTransactionsEntity extends BaseEntity {
 
   @Column({  type: 'datetime', comment: 'Canceled date', nullable: true })
   canceledDate: Date;
+
+  @Column({ type: 'decimal', comment: 'refund', nullable: true, precision: 10, scale: 2 })
+  refund: number;
+
+  @Column({ comment: 'Collector ID', nullable: true })
+  collectorID: number;
 }

@@ -74,4 +74,18 @@ export class CarWreckedEntity extends BaseEntity {
 
     @Column({ comment: 'Buyer ID', nullable: true })
     buyerID: number;
+
+    // ---------------------------
+
+    @Column({ type: 'tinyint', comment: 'Complete', nullable: true})
+    complete: boolean;
+  
+    @Column({ type: 'tinyint', comment: 'Turns over', nullable: true})
+    turnsOver: boolean;
+  
+    @Column({ type: 'tinyint',comment: 'Missing parts', nullable: true})
+    missingParts: boolean;
+
+    @Column({ comment: 'Collector ID', nullable: true })
+    collectorID: number;
 }

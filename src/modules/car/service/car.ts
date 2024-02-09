@@ -390,6 +390,7 @@ export class CarWreckedService extends BaseService {
         paidDate: partTransactionInfo?.paidDate,
         soldDate: partTransactionInfo?.soldDate,
         depositDate: partTransactionInfo?.depositDate,
+        part_transaction_id: partTransactionInfo?.id
       }
     }catch (e) {
       return null;

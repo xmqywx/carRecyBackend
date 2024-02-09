@@ -17,7 +17,7 @@ export class BuyerEntity extends BaseEntity {
   address: string;
 
   @Column({
-    comment: 'Type: Buyer = 0, Consignee = 1',
+    comment: 'Type: Buyer = 0, Consignee = 1, 收货人 = 2',
     type: 'tinyint',
     nullable: false,
     default: 0,

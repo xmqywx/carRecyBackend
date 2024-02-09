@@ -75,6 +75,59 @@ export class BuyerService extends BaseService {
     return null;
   }
 
+  async addOrUpdateCollectorToCarWrecked(params: {
+    id: number | null;
+    name: string;
+    phone: string;
+    address: string;
+    type: number;
+  }, partID: number) {
+    const { id, name, phone, address, type } = params;
+    let finalID = null;
+    if (id) {
+      const findBuyerData = await this.buyerEntity.findOne({ id });
+      if (findBuyerData) {
+        findBuyerData.name = name;
+        findBuyerData.phone = phone;
+        findBuyerData.address = address;
+        findBuyerData.type = type;
+        await this.buyerEntity.update({ id }, findBuyerData);
+        finalID = id;
+      }
+    } else {
+      let addData = await this.buyerEntity.save({
+        name, phone, address, type
+      });
+
+      finalID = addData.id;
+    }
+    if (finalID) {
+      try {
+        await this.carWreckedEntity.update({ id: partID }, { collectorID: finalID })
+        await this.partTransactionsEntity.findOne({ carWreckedID: partID, status: 0 }).then(async ptRes => {
+          let pt = {};
+          if (ptRes) {
+            ptRes.collectorID = finalID;
+            pt = ptRes;
+          } else {
+            pt = {
+              carWreckedID: params.id,
+              status: 0,
+              collectorID: finalID
+            }
+          }
+          await this.partTransactionsEntity.save(pt);
+        })
+        return {
+          buyerID: finalID
+        };
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   /**
  * 保存或更新Container，将其添加给Container
  */
