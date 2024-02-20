@@ -17,7 +17,7 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
   entity: CarWreckedEntity,
   pageQueryOp: {
     keyWordLikeFields: ['carID', 'disassemblyNumber', 'disassmblingInformation', 'disassemblyDescription'],
-    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo', 'c.name as buyer_name', 'c.phone as buyer_phone','c.address as buyer_address', 'p.soldDate', 'p.depositDate', 'p.paidDate', 'p.collectedDate', 'p.id as part_transaction_id'],
+    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo', 'c.name as buyer_name', 'c.phone as buyer_phone','c.address as buyer_address', 'p.soldDate', 'p.depositDate', 'p.paidDate', 'p.collectedDate', 'p.id as part_transaction_id', 'd.name as collector_name', 'd.phone as collector_phone', 'd.address as collector_address'],
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.disassemblyCategory', requestParam: 'disassemblyCategory' },
@@ -45,7 +45,12 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
       alias: 'p',
       condition: 'a.id = p.carWreckedID and p.status = 0',
       type: 'leftJoin'
-    }],
+    },{
+      entity: BuyerEntity,
+      alias: 'd',
+      condition: 'a.collectorID = d.id',
+      type: 'leftJoin'
+    },],
     addOrderBy: (ctx) => {
       const { lowestSoldPrice, highestSoldPrice } = ctx.request.body;
       if(lowestSoldPrice || highestSoldPrice) {
