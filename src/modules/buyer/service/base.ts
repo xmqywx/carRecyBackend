@@ -50,7 +50,9 @@ export class BuyerService extends BaseService {
     }
     if (finalID) {
       try {
-        await this.carWreckedEntity.update({ id: partID }, { buyerID: finalID })
+        const info = await this.carWreckedEntity.findOne({ id: partID });
+        info.buyerID = finalID;
+        await this.carWreckedEntity.save(info);
         await this.partTransactionsEntity.findOne({ carWreckedID: partID, status: 0 }).then(async ptRes => {
           let pt = {};
           if (ptRes) {
@@ -58,9 +60,10 @@ export class BuyerService extends BaseService {
             pt = ptRes;
           } else {
             pt = {
-              carWreckedID: params.id,
+              carWreckedID: partID,
               status: 0,
-              buyerID: finalID
+              buyerID: finalID,
+              billNo: `${info.disassemblyNumber} ${info.containerNumber}`,
             }
           }
           await this.partTransactionsEntity.save(pt);

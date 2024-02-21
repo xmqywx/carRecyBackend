@@ -28,7 +28,7 @@ export class ContainerEntity extends BaseEntity {
   @Column({ comment: 'container photos', nullable: true, type: 'text'})
   photo: string;
 
-  @Column({ comment: '部门ID', type: 'bigint' })
+  @Column({ comment: '部门ID', type: 'bigint', nullable: true })
   departmentId: number;
 
   @Column({ comment: 'create by', nullable: true, type: "tinyint" })

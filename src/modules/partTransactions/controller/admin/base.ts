@@ -12,7 +12,7 @@ import { CarEntity } from '../../../car/entity/base';
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: PartTransactionsEntity,
   pageQueryOp: {
-    select: ['a.*','b.disassmblingInformation', 'b.containerNumber', 'b.disassemblyNumber', 'b.disassemblyDescription', 'buyer.name as buyer_name, buyer.address as buyer_address, buyer.phone as buyer_phone', 'c.name', 'b.carID'],
+    select: ['a.*','b.disassmblingInformation', 'b.containerNumber', 'b.disassemblyNumber', 'b.disassemblyDescription', 'buyer.name as buyer_name, buyer.address as buyer_address, buyer.phone as buyer_phone', 'c.name', 'b.carID', 'd.name as collector_name', 'd.phone as collector_phone', 'd.address as collector_address'],
     fieldEq: [
       { column: 'a.status', requestParam: 'status' },
     ],
@@ -42,6 +42,11 @@ import { CarEntity } from '../../../car/entity/base';
         entity: CarEntity,
         alias: 'c',
         condition: 'b.carID = c.id',
+        type: 'leftJoin'
+      },{
+        entity: BuyerEntity,
+        alias: 'd',
+        condition: 'a.collectorID = d.id',
         type: 'leftJoin'
       }
     ]
