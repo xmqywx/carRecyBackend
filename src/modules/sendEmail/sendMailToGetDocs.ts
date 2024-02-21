@@ -134,10 +134,9 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
   // 配置 Nodemailer
   const transport = nodemailer.createTransport({
     pool: true,
-    host: "smtp.gmail.com",
+    host: "smtp.qq.com",
     port: 465,
     secure: true,
-    service: 'gmail',
     auth: {
       user: process.env.NODE_MAIL_USER,
       pass: process.env.NODE_MAIL_PASS,
