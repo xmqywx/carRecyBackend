@@ -227,6 +227,10 @@ export class BaseSysLoginService extends BaseService {
           `admin:token:${decoded['userId']}`,
           result.token
         );
+        const roleIds = await this.baseSysRoleService.getByUser(decoded['userId']);
+        const perms = await this.baseSysMenuService.getPerms(roleIds);
+        await this.cacheManager.set(`admin:perms:${decoded['userId']}`, perms);
+        
         return result;
       }
     } catch (err) {

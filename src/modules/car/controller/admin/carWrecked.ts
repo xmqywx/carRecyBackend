@@ -21,6 +21,7 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.disassemblyCategory', requestParam: 'disassemblyCategory' },
+      { column: 'a.disassmblingInformation', requestParam: 'disassmblingInformation' },
       { column: 'a.disassemblyNumber', requestParam: 'disassemblyNumber' },
       { column: 'b.model', requestParam: 'model' },
       { column: 'b.departmentId', requestParam: 'departmentId' },
@@ -92,13 +93,12 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
     },
   },
   listQueryOp: {
-    keyWordLikeFields: ['carID'],
-    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo'],
+    keyWordLikeFields: ['carID', 'disassemblyNumber', 'disassmblingInformation', 'disassemblyDescription'],
+    select: ['a.*', 'b.model', 'b.year', 'b.brand', 'b.colour', 'b.vinNumber', 'b.name', 'b.registrationNumber', 'b.state', 'b.series', 'b.engine', 'b.bodyStyle', 'b.carInfo', 'c.name as buyer_name', 'c.phone as buyer_phone','c.address as buyer_address', 'p.soldDate', 'p.depositDate', 'p.paidDate', 'p.collectedDate', 'p.id as part_transaction_id', 'd.name as collector_name', 'd.phone as collector_phone', 'd.address as collector_address'],
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.disassemblyCategory', requestParam: 'disassemblyCategory' },
       { column: 'a.disassemblyNumber', requestParam: 'disassemblyNumber' },
-      { column: 'a.catalyticConverterNumber', requestParam: 'catalyticConverterNumber' },
       { column: 'b.model', requestParam: 'model' },
       { column: 'b.departmentId', requestParam: 'departmentId' },
       { column: 'b.year', requestParam: 'year' },
@@ -112,7 +112,61 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
       alias: 'b',
       condition: 'a.carID = b.id',
       type: 'leftJoin'
-    }]
+    },{
+      entity: BuyerEntity,
+      alias: 'c',
+      condition: 'a.buyerID = c.id',
+      type: 'leftJoin'
+    },{
+      entity: PartTransactionsEntity,
+      alias: 'p',
+      condition: 'a.id = p.carWreckedID and p.status = 0',
+      type: 'leftJoin'
+    },{
+      entity: BuyerEntity,
+      alias: 'd',
+      condition: 'a.collectorID = d.id',
+      type: 'leftJoin'
+    },],
+    addOrderBy: (ctx) => {
+      const { lowestSoldPrice, highestSoldPrice } = ctx.request.body;
+      if(lowestSoldPrice || highestSoldPrice) {
+        return {
+          paid: "ASC"
+        }
+      }
+    },
+    async where(ctx) {
+      const { isSold, isPaid, isDeposit, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice, containerNumber, keyWord, } = ctx.request.body;
+      // 因为根据分类排序了，所以会导致就算是后端列表排序了也会打乱顺序
+      let hightSqlSearch = '';
+      let lowestSqlSearch = '';
+      if(lowestSoldPrice || highestSoldPrice) { 
+        const hightSql = 'a.sold = (select MAX(sold) from `cool-admin`.car_wrecked';
+        const lowestSql = 'a.sold = (select MIN(sold) from `cool-admin`.car_wrecked';
+        const sqlArr = [];
+        if(containerNumber) {
+          sqlArr.push(`containerNumber = '${containerNumber}'`);
+        }
+        if(keyWord) {
+          sqlArr.push(`(carID LIKE '%${keyWord}%' OR disassemblyNumber LIKE '%${keyWord}%' OR disassmblingInformation LIKE '%${keyWord}%' OR disassemblyDescription LIKE '%${keyWord}%')`);
+        }
+        hightSqlSearch = hightSql + (sqlArr.length > 0 ? ' where ' : '') + sqlArr.join(' and ') + ')';
+        lowestSqlSearch = lowestSql + (sqlArr.length > 0 ? ' where ' : '') + sqlArr.join(' and ') + ')';
+      }
+      return [
+        isSold ? ['a.sold IS NOT NULL AND a.sold > 0', {}]:[],
+        isPaid ? ['a.paid IS NOT NULL AND a.paid > 0', {}]:[],
+        isDeposit ? ['a.deposit IS NOT NULL AND a.deposit > 0', {}]:[],
+        noSold ? ['(a.sold IS NULL OR a.sold = 0)', {}] : [],
+        noPaid ? ['(a.paid IS NULL OR a.paid = 0)', {}] : [],
+        noDeposit ? ['(a.deposit IS NULL OR a.deposit = 0)', {}] : [],
+        lowestSoldPrice ? [lowestSqlSearch, {}
+        ] : [],
+        highestSoldPrice ? [hightSqlSearch, {}
+        ] : [],
+      ]
+    },
   },
   service: CarWreckedService
 })
