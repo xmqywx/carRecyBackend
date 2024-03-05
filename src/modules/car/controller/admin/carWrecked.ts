@@ -61,7 +61,7 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
       }
     },
     async where(ctx) {
-      const { isSold, isPaid, isDeposit, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice, containerNumber, keyWord, } = ctx.request.body;
+      const { isSold, isPaid, isDeposit, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice, containerNumber, keyWord, noCc } = ctx.request.body;
       // 因为根据分类排序了，所以会导致就算是后端列表排序了也会打乱顺序
       let hightSqlSearch = '';
       let lowestSqlSearch = '';
@@ -85,6 +85,7 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
         noSold ? ['(a.sold IS NULL OR a.sold = 0)', {}] : [],
         noPaid ? ['(a.paid IS NULL OR a.paid = 0)', {}] : [],
         noDeposit ? ['(a.deposit IS NULL OR a.deposit = 0)', {}] : [],
+        noCc ? ['a.disassemblyCategory != "Catalytic Converter"', {}] : [],
         lowestSoldPrice ? [lowestSqlSearch, {}
         ] : [],
         highestSoldPrice ? [hightSqlSearch, {}
@@ -137,7 +138,7 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
       }
     },
     async where(ctx) {
-      const { isSold, isPaid, isDeposit, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice, containerNumber, keyWord, } = ctx.request.body;
+      const { isSold, isPaid, isDeposit, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice, containerNumber, keyWord, noCc } = ctx.request.body;
       // 因为根据分类排序了，所以会导致就算是后端列表排序了也会打乱顺序
       let hightSqlSearch = '';
       let lowestSqlSearch = '';
@@ -161,6 +162,7 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
         noSold ? ['(a.sold IS NULL OR a.sold = 0)', {}] : [],
         noPaid ? ['(a.paid IS NULL OR a.paid = 0)', {}] : [],
         noDeposit ? ['(a.deposit IS NULL OR a.deposit = 0)', {}] : [],
+        noCc ? ['a.disassemblyCategory != "Catalytic Converter"', {}] : [],
         lowestSoldPrice ? [lowestSqlSearch, {}
         ] : [],
         highestSoldPrice ? [hightSqlSearch, {}
