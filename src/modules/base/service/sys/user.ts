@@ -53,29 +53,25 @@ export class BaseSysUserService extends BaseService {
             LEFT JOIN base_sys_role c ON b.roleId = c.id
             LEFT JOIN base_sys_department d on a.departmentId = d.id
         WHERE 1 = 1
-            ${this.setSql(
-              roleId,
-              'and b.roleId = ?',
-              [roleId]
-            )}
-            ${this.setSql(
-              label,
-              'and c.label = ?',
-              [label]
-            )}
+            ${this.setSql(roleId, 'and b.roleId = ?', [roleId])}
+            ${this.setSql(label, 'and c.label = ?', [label])}
             ${this.setSql(
               !_.isEmpty(departmentIds),
               'and a.departmentId in (?)',
               [departmentIds]
             )}
             ${this.setSql(status, 'and a.status = ?', [status])}
-            ${this.setSql(keyWord, 'and (a.name LIKE ? or a.username LIKE ? or a.phone LIKE ? or a.email LIKE ? or a.remark LIKE ?)', [
-              `%${keyWord}%`,
-              `%${keyWord}%`,
-              `%${keyWord}%`,
-              `%${keyWord}%`,
-              `%${keyWord}%`
-            ])}
+            ${this.setSql(
+              keyWord,
+              'and (a.name LIKE ? or a.username LIKE ? or a.phone LIKE ? or a.email LIKE ? or a.remark LIKE ?)',
+              [
+                `%${keyWord}%`,
+                `%${keyWord}%`,
+                `%${keyWord}%`,
+                `%${keyWord}%`,
+                `%${keyWord}%`,
+              ]
+            )}
             ${this.setSql(true, 'and a.username != ?', ['admin'])}
 
         GROUP BY a.id
@@ -110,10 +106,10 @@ export class BaseSysUserService extends BaseService {
       id: this.ctx.admin?.userId,
     });
     info.department = await this.baseSysDepartmentEntity.findOne({
-      id: info.departmentId
+      id: info.departmentId,
     });
     info.roles = await this.baseSysUserRoleEntity.find({
-      id: info.roleId
+      id: info.roleId,
     });
 
     const sql = `
@@ -129,10 +125,10 @@ export class BaseSysUserService extends BaseService {
         WHERE 1 = 1
         and a.id = ${this.ctx.admin?.userId}
         GROUP BY a.id
-        `
-    const list = await this.nativeQuery(sql)
+        `;
+    const list = await this.nativeQuery(sql);
     delete info?.password;
-    list[0].departmentId = list[0].departmentId + "";
+    list[0].departmentId = list[0].departmentId + '';
     return list[0];
   }
 

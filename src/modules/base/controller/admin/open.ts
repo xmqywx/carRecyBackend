@@ -8,7 +8,10 @@ import { Context } from '@midwayjs/koa';
 import { Validate } from '@midwayjs/validate';
 import { CoolFile } from '@cool-midway/file';
 import { OrderService } from '../../../order/service/order';
-import getDocs,{outPutPdf, saveS3} from '../../../sendEmail/sendMailToGetDocs';
+import getDocs, {
+  outPutPdf,
+  saveS3,
+} from '../../../sendEmail/sendMailToGetDocs';
 import { CarWreckedService, CarBaseService } from '../../../car/service/car';
 import { BaseOpenService } from '../../service/sys/open';
 
@@ -43,16 +46,16 @@ export class BaseOpenController extends BaseController {
   coolFile: CoolFile;
 
   @Inject()
-  orderService: OrderService
+  orderService: OrderService;
 
   @Inject()
-  carWreckedService: CarWreckedService
+  carWreckedService: CarWreckedService;
 
   @Inject()
-  carBaseService: CarBaseService
+  carBaseService: CarBaseService;
 
   @Inject()
-  baseOpenService: BaseOpenService
+  baseOpenService: BaseOpenService;
 
   /**
    * 实体信息与路径
@@ -102,35 +105,39 @@ export class BaseOpenController extends BaseController {
   }
   /**
    * 获取分解信息
-   * @param id 
-   * @returns 
+   * @param id
+   * @returns
    */
-  @Get('/searchBody', { summary: "Search car body" })
+  @Get('/searchBody', { summary: 'Search car body' })
   async searchBody(@Query('id') id) {
     return this.ok(await this.baseWreckingSearchService.getBody(id));
   }
 
-  @Get('/searchEngine', { summary: "Search car engine" })
+  @Get('/searchEngine', { summary: 'Search car engine' })
   async searchEngine(@Query('id') id) {
     return this.ok(await this.baseWreckingSearchService.getEngine(id));
   }
 
-  @Get('/searchCatalyticConverter', { summary: "Search car catalytic converter" })
+  @Get('/searchCatalyticConverter', {
+    summary: 'Search car catalytic converter',
+  })
   async searchCatalyticConverter(@Query('id') id) {
-    return this.ok(await this.baseWreckingSearchService.getCatalyticConverter(id));
+    return this.ok(
+      await this.baseWreckingSearchService.getCatalyticConverter(id)
+    );
   }
 
-  @Get('/test', { summary: "test" })
+  @Get('/test', { summary: 'test' })
   async toTest() {
-    return this.ok("Success");
+    return this.ok('Success');
   }
 
   /**
- * 文件上传
- */
+   * 文件上传
+   */
   @Post('/upload', { summary: '文件上传' })
   async upload() {
-    const urlObj = url.parse(this.ctx.request.header.referer);
+    const urlObj = url.URL(this.ctx.request.header.referer);
     const queryParams = querystring.parse(urlObj.query);
     const token = queryParams.token;
     console.log(token);
@@ -142,75 +149,105 @@ export class BaseOpenController extends BaseController {
     }
   }
 
-
   @Post('/sendEmailTogetDocs')
-  async sendEmailTogetDocs(@Body('name') name: string, @Body('email') email: string[], @Body('orderID') orderID: number, @Body('textToSend') textToSend: string, @Body('giveUploadBtn') giveUploadBtn: boolean, @Body('sendBy') sendBy: string) {
+  async sendEmailTogetDocs(
+    @Body('name') name: string,
+    @Body('email') email: string[],
+    @Body('orderID') orderID: number,
+    @Body('textToSend') textToSend: string,
+    @Body('giveUploadBtn') giveUploadBtn: boolean,
+    @Body('sendBy') sendBy: string
+  ) {
     const token = await this.orderService.generateToken({
-      orderID
+      orderID,
     });
 
     // 发送邮件
     let attachment: any = {};
-    if(!giveUploadBtn) {
-      const buffer = await outPutPdf({textToSend});
+    if (!giveUploadBtn) {
+      const buffer = await outPutPdf({ textToSend });
       attachment = await saveS3(buffer);
     } else {
       await this.orderService.updateOrderAllowUpload(orderID, true);
     }
-    
+
     const emailPromises = email.map((v: string) => {
       return getDocs({
-        email: v, name, token, giveUploadBtn, attachment, sendBy
+        email: v,
+        name,
+        token,
+        giveUploadBtn,
+        attachment,
+        sendBy,
       });
     });
     const emailResults = await Promise.all(emailPromises);
     // 检查是否所有邮件都成功发送
-    const isAllEmailSent = emailResults.every((result) => result.status === 'success');
+    const isAllEmailSent = emailResults.every(
+      result => result.status === 'success'
+    );
     if (isAllEmailSent) {
-      if(attachment.path) {
+      if (attachment.path) {
         await this.orderService.saveInvoice(orderID, attachment.path);
       }
       await this.orderService.updateEmailStatus(orderID, giveUploadBtn);
-      return this.ok({ message: "All emails have been sent successfully." });
+      return this.ok({ message: 'All emails have been sent successfully.' });
     } else {
-      return this.fail("Failed to send some emails.");
+      return this.fail('Failed to send some emails.');
     }
   }
 
   @Post('/updateDocs')
-  async updateDocs(@Body('registrationDoc') registrationDoc: string, @Body('driverLicense') driverLicense: string, @Body('vehiclePhoto') vehiclePhoto: string, @Body('token') token: string,) {
+  async updateDocs(
+    @Body('registrationDoc') registrationDoc: string,
+    @Body('driverLicense') driverLicense: string,
+    @Body('vehiclePhoto') vehiclePhoto: string,
+    @Body('token') token: string
+  ) {
     try {
-      const tokenRes = await this.orderService.verifyToken(token) as JwtPayload;
+      const tokenRes = (await this.orderService.verifyToken(
+        token
+      )) as JwtPayload;
       const orderID = tokenRes.orderID;
-      await this.orderService.updateOrderById(orderID, { registrationDoc, driverLicense, vehiclePhoto });
+      await this.orderService.updateOrderById(orderID, {
+        registrationDoc,
+        driverLicense,
+        vehiclePhoto,
+      });
       return this.ok();
     } catch (e) {
       return this.fail('The token verification has failed.', e);
     }
   }
 
-  @Post("/isAllowUpdate")
+  @Post('/isAllowUpdate')
   async isAllowUpdate(@Body('token') token: string) {
     console.log(token);
-    const tokenRes = await this.orderService.verifyToken(token) as JwtPayload;
+    const tokenRes = (await this.orderService.verifyToken(token)) as JwtPayload;
     const orderID = tokenRes.orderID;
     const isAllow = await this.orderService.isAllowUpdate(orderID);
     return isAllow;
   }
 
-  @Get("/wrecked_parts")
+  @Get('/wrecked_parts')
   async getWreckedParts(@Query('dn') dn: string) {
     let queryInfo = await this.carWreckedService.getWreckedInfo(dn);
     let carInfo;
-    if(queryInfo && queryInfo.carID) {
+    if (queryInfo && queryInfo.carID) {
       carInfo = await this.carBaseService.getOneCarInfo(queryInfo.carID);
     }
     return this.baseOpenService.returnPartsInfo(queryInfo, carInfo);
   }
-  @Get("/wrecked_infos")
-  async getWreckedInfo(@Query('disassemblyCategory') disassemblyCategory: string, @Query('carID') carID: number) {
+  @Get('/wrecked_infos')
+  async getWreckedInfo(
+    @Query('disassemblyCategory') disassemblyCategory: string,
+    @Query('carID') carID: number
+  ) {
     let carInfo = await this.carBaseService.getOneCarInfo(carID);
-    let queryInfos = await this.carWreckedService.getWreckedInfos(carID, disassemblyCategory);
+    let queryInfos = await this.carWreckedService.getWreckedInfos(
+      carID,
+      disassemblyCategory
+    );
     return this.baseOpenService.returnWreckedInfo(queryInfos, carInfo);
   }
 }

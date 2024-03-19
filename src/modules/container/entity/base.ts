@@ -7,45 +7,71 @@ import { ContainerLogEntity } from './container-logs';
  */
 @EntityModel('container')
 export class ContainerEntity extends BaseEntity {
-  @Column({ comment: 'Container number', length: 255, nullable: true})
+  @Column({ comment: 'Container number', length: 255, nullable: true })
   containerNumber: string;
 
-  @Column({ comment: 'Seal number (lock number)', length: 255, nullable: true})
+  @Column({ comment: 'Seal number (lock number)', length: 255, nullable: true })
   sealNumber: string;
 
-  @Column({ comment: 'Start delivery time', length: 255})
+  @Column({ comment: 'Start delivery time', length: 255 })
   startDeliverTime: string;
 
-  @Column({ comment: 'status', type: 'tinyint'})
+  @Column({ comment: 'status', type: 'tinyint' })
   status: number;
 
-  @Column({ comment: 'Seal date', length: 255, nullable: true})
+  @Column({ comment: 'Seal date', length: 255, nullable: true })
   sealDate: string;
 
-  @Column({ comment: 'type', length: 255, nullable: true})
+  @Column({ comment: 'type', length: 255, nullable: true })
   type: string;
 
-  @Column({ comment: 'container photos', nullable: true, type: 'text'})
+  @Column({ comment: 'container photos', nullable: true, type: 'text' })
   photo: string;
 
   @Column({ comment: '部门ID', type: 'bigint', nullable: true })
   departmentId: number;
 
-  @Column({ comment: 'create by', nullable: true, type: "tinyint" })
+  @Column({ comment: 'create by', nullable: true, type: 'tinyint' })
   createBy: number;
 
   @OneToMany(type => ContainerLogEntity, log => log.container)
   logs: ContainerLogEntity[];
 
-  @Column({ comment: 'Dispatch location', length: 255, nullable: true})
+  @Column({ comment: 'Dispatch location 发出地', length: 255, nullable: true })
   dispatchLocation: string;
 
-  @Column({ comment: 'Final Destination', length: 255, nullable: true})
+  @Column({
+    comment: 'Final Destination 最终接收地址',
+    length: 255,
+    nullable: true,
+  })
   finalDestination: string;
 
-  @Column({ comment: 'ETA arrival', type: 'timestamp', nullable: true})
+  @Column({
+    comment: 'ETA arrival 到达时间',
+    type: 'timestamp',
+    nullable: true,
+  })
   etaArrival: Date;
 
-  @Column({ comment: 'Consignee ID', nullable: true})
+  @Column({ comment: 'Consignee ID 接收人信息', nullable: true })
   consigneeID: number;
+
+  @Column({
+    type: 'decimal',
+    comment: 'Loading Cost 装载价格',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
+  loadingCost: number;
+
+  @Column({
+    type: 'decimal',
+    comment: 'Unloading cost 卸载价格',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
+  unloadingCost: number;
 }

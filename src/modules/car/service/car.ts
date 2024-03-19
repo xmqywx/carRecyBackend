@@ -1,19 +1,19 @@
-import {Provide, Inject} from "@midwayjs/decorator";
-import {BaseService} from "@cool-midway/core";
-import {InjectEntityModel} from "@midwayjs/orm";
-import {Repository} from "typeorm";
-import { CarCommentEntity } from "../entity/comment";
-import { CarWreckedEntity } from "../entity/carWrecked";
-import { CarEntity } from "../entity/base";
-import { OrderInfoEntity } from "../../order/entity/info";
-import { ContainerEntity } from "../../container/entity/base";
-import { PartLogEntity } from "../../partLog/entity/base";
-import { PartTransactionsEntity } from "../../partTransactions/entity/base";
+import { Provide, Inject } from '@midwayjs/decorator';
+import { BaseService } from '@cool-midway/core';
+import { InjectEntityModel } from '@midwayjs/orm';
+import { Repository } from 'typeorm';
+import { CarCommentEntity } from '../entity/comment';
+import { CarWreckedEntity } from '../entity/carWrecked';
+import { CarEntity } from '../entity/base';
+import { OrderInfoEntity } from '../../order/entity/info';
+import { ContainerEntity } from '../../container/entity/base';
+import { PartLogEntity } from '../../partLog/entity/base';
+import { PartTransactionsEntity } from '../../partTransactions/entity/base';
 @Provide()
 export class CarCommentService extends BaseService {
   @InjectEntityModel(CarCommentEntity)
   crderActionEntity: Repository<CarCommentEntity>;
-  
+
   async add(params) {
     return this.crderActionEntity.save(params);
   }
@@ -35,20 +35,20 @@ export class CarWreckedService extends BaseService {
 
   @Inject()
   ctx;
-  
+
   async getWreckedInfo(dn: string) {
     return this.carWreckedEntity.findOne({ disassemblyNumber: dn });
   }
 
   async getWreckedInfos(carID: number, disassemblyCategory?: string) {
-    const searchData: {[key: string]: any} = {carID: Number(carID)};
-    if(disassemblyCategory) {
+    const searchData: { [key: string]: any } = { carID: Number(carID) };
+    if (disassemblyCategory) {
       let category = '';
-      if(disassemblyCategory === 'CatalyticConverter') {
+      if (disassemblyCategory === 'CatalyticConverter') {
         category = 'Catalytic Converter';
-      } else if(disassemblyCategory === 'ExtraPartExtraction') {
+      } else if (disassemblyCategory === 'ExtraPartExtraction') {
         category = 'Extra Part Extraction';
-      } else if(disassemblyCategory === 'DismantlingLabels') {
+      } else if (disassemblyCategory === 'DismantlingLabels') {
         category = 'Dismantling Labels';
       } else {
         category = disassemblyCategory;
@@ -64,79 +64,91 @@ export class CarWreckedService extends BaseService {
    * @param param
    */
   async add(params) {
-    return this.carWreckedEntity.save(params).then(async (wreckedInfo) => {
+    return this.carWreckedEntity.save(params).then(async wreckedInfo => {
       const cate = disassemblyCategorys[wreckedInfo.disassemblyCategory];
-      wreckedInfo.disassemblyNumber = cate+ wreckedInfo.id;
+      wreckedInfo.disassemblyNumber = cate + wreckedInfo.id;
       return await this.carWreckedEntity.save(wreckedInfo);
-    })
+    });
   }
 
   async handleDisassemble(params: any) {
     const promise = [];
-    if(params.dismantlingLabelsData) {
+    if (params.dismantlingLabelsData) {
       params.dismantlingLabelsData.forEach(v => {
-        if(v.name === "Other") {
+        if (v.name === 'Other') {
           v.others.forEach(pt => {
-            promise.push(this.add({
+            promise.push(
+              this.add({
+                carID: params.carID,
+                disassemblyDescription: pt.value,
+                disassemblyCategory: 'Dismantling Labels',
+                disassmblingInformation: pt.name,
+              })
+            );
+          });
+          return;
+        }
+        v.parts.forEach(pt => {
+          promise.push(
+            this.add({
               carID: params.carID,
-              disassemblyDescription: pt.value,
+              disassemblyDescription: pt.description,
               disassemblyCategory: 'Dismantling Labels',
-              disassmblingInformation: pt.name,
-            }))
-          })
-          return;
-        }
-        v.parts.forEach(pt => {
-          promise.push(this.add({
-            carID: params.carID,
-            disassemblyDescription: pt.description,
-            disassemblyCategory: 'Dismantling Labels',
-            disassmblingInformation: v.name,
-          }))
-        })
-      })
+              disassmblingInformation: v.name,
+            })
+          );
+        });
+      });
     }
-    if(params.extraPartsExtractData) {
+    if (params.extraPartsExtractData) {
       params.extraPartsExtractData.forEach(v => {
-        if(v.name === "Other") {
+        if (v.name === 'Other') {
           v.others.forEach(pt => {
-            promise.push(this.add({
-              carID: params.carID,
-              disassemblyDescription: pt.value,
-              disassemblyCategory: 'Extra Part Extraction',
-              disassmblingInformation: pt.name,
-            }))
-          })
+            promise.push(
+              this.add({
+                carID: params.carID,
+                disassemblyDescription: pt.value,
+                disassemblyCategory: 'Extra Part Extraction',
+                disassmblingInformation: pt.name,
+              })
+            );
+          });
           return;
         }
         v.parts.forEach(pt => {
-          promise.push(this.add({
-            carID: params.carID,
-            disassemblyDescription: pt.description,
-            disassemblyCategory: 'Extra Part Extraction',
-            disassmblingInformation: v.name,
-          }))
-        })
-      })
+          promise.push(
+            this.add({
+              carID: params.carID,
+              disassemblyDescription: pt.description,
+              disassemblyCategory: 'Extra Part Extraction',
+              disassmblingInformation: v.name,
+            })
+          );
+        });
+      });
     }
-    if(params.activeCarForm?.catalyticConverters?.length > 0) {
+    if (params.activeCarForm?.catalyticConverters?.length > 0) {
       const ccs = params.activeCarForm.catalyticConverters;
       ccs.forEach(item => {
-        promise.push(this.add({
-          carID: params.carID,
-          disassemblyCategory: 'Catalytic Converter',
-          disassmblingInformation: item.catalyticConverterPhotos,
-          catalyticConverterName: item.catalyticConverterName,
-          catalyticConverterNumber: item.catalyticConverterNumber
-        }))
-      })
+        promise.push(
+          this.add({
+            carID: params.carID,
+            disassemblyCategory: 'Catalytic Converter',
+            disassmblingInformation: item.catalyticConverterPhotos,
+            catalyticConverterName: item.catalyticConverterName,
+            catalyticConverterNumber: item.catalyticConverterNumber,
+            catType: item.catType,
+            locationOfCat: item.locationOfCat,
+          })
+        );
+      });
     }
     return await Promise.all(promise);
   }
 
   async getWreckedNumber(catalyticConverterNumber) {
     return this.carWreckedEntity.find({
-      catalyticConverterNumber
+      catalyticConverterNumber,
     });
   }
 
@@ -144,17 +156,20 @@ export class CarWreckedService extends BaseService {
   async moveOutFromContainer(id: number, containerNumber: string) {
     await this.carWreckedEntity.save({
       id,
-      containerNumber: null
+      containerID: null,
+    });
+    const containerItem = await this.containerEntity.findOne({
+      containerNumber,
     });
     const containerPartsList = await this.carWreckedEntity.find({
-      containerNumber
+      containerID: containerItem.id,
     });
 
-    if(containerPartsList.length <= 0) {
+    if (containerPartsList.length <= 0) {
       const containerItem = await this.containerEntity.findOne({
-        containerNumber
-      })
-      if(!containerItem) return;
+        containerNumber,
+      });
+      if (!containerItem) return;
       containerItem.status = 0;
       this.containerEntity.save(containerItem);
     }
@@ -162,129 +177,171 @@ export class CarWreckedService extends BaseService {
 
   // 将零件添加到集装箱中
   async putToContainer(partId: number, containerNumber: string) {
+    const containerItem = await this.containerEntity.findOne({
+      containerNumber,
+    });
+    if (!containerItem) return;
+
     await this.carWreckedEntity.save({
       id: partId,
-      containerNumber: containerNumber
+      containerID: containerItem.id,
     });
 
-    const containerItem = await this.containerEntity.findOne({
-      containerNumber
-    })
-    if(!containerItem) return;
-    if(containerItem.status === 0) {
+    if (containerItem.status === 0) {
       containerItem.status = 1;
       this.containerEntity.save(containerItem);
     }
   }
 
   async toGetMaxPaid(body) {
-    const maxPaidRecord = await this.carWreckedEntity.createQueryBuilder("car_wrecked")
-    .select("MAX(car_wrecked.paid)", "maxPaid")
-    .where("car_wrecked.carID = :carID", { carID: body.carID })
-    .andWhere("car_wrecked.disassemblyNumber = :disassemblyNumber", { disassemblyNumber: body.disassemblyNumber })
-    .andWhere("car_wrecked.disassemblyCategory = :disassemblyCategory", { disassemblyCategory: body.disassemblyCategory })
-    .andWhere("car_wrecked.containerID = :containerID", { containerID: body.containerID })
-    .andWhere("car_wrecked.containerNumber = :containerNumber", { containerNumber: body.containerNumber })
-    .andWhere("car_wrecked.collected = :collected", { collected: body.collected })
-    .getRawOne();
-    console.log(maxPaidRecord, '**********************************')
+    const maxPaidRecord = await this.carWreckedEntity
+      .createQueryBuilder('car_wrecked')
+      .select('MAX(car_wrecked.paid)', 'maxPaid')
+      .where('car_wrecked.carID = :carID', { carID: body.carID })
+      .andWhere('car_wrecked.disassemblyNumber = :disassemblyNumber', {
+        disassemblyNumber: body.disassemblyNumber,
+      })
+      .andWhere('car_wrecked.disassemblyCategory = :disassemblyCategory', {
+        disassemblyCategory: body.disassemblyCategory,
+      })
+      .andWhere('car_wrecked.containerID = :containerID', {
+        containerID: body.containerID,
+      })
+      // .andWhere('car_wrecked.containerNumber = :containerNumber', {
+      //   containerNumber: body.containerNumber,
+      // })
+      .andWhere('car_wrecked.collected = :collected', {
+        collected: body.collected,
+      })
+      .getRawOne();
+    console.log(maxPaidRecord, '**********************************');
   }
 
   //通过id 或 partId查询
   async infoByDn(partId: string) {
-    return await this.carWreckedEntity.findOne({
-      disassemblyNumber: partId
-    }).then(async (res: any) => {
-      if(res.containerNumber !== null) {
-        let containerInfo = await this.containerEntity.findOne({
-          containerNumber: res.containerNumber
-        });
-        res.containerStatus = containerInfo?.status;
-      }
+    return await this.carWreckedEntity
+      .findOne({
+        disassemblyNumber: partId,
+      })
+      .then(async (res: any) => {
+        if (res.containerNumber !== null) {
+          let containerInfo = await this.containerEntity.findOne({
+            containerNumber: res.containerNumber,
+          });
+          res.containerStatus = containerInfo?.status;
+        }
 
-      return res;
-    });
-
+        return res;
+      });
   }
 
-  async handleToGetCarWreckedTotal(filters: {[key:string]: any}) {
-    const { isSold, isPaid, collected, isDeposit, containerNumber, noSold, noPaid, noDeposit, lowestSoldPrice, highestSoldPrice, keyWord } = filters;
-    console.log(filters)
+  async handleToGetCarWreckedTotal(filters: { [key: string]: any }) {
+    const {
+      isSold,
+      isPaid,
+      collected,
+      isDeposit,
+      containerNumber,
+      noSold,
+      noPaid,
+      noDeposit,
+      lowestSoldPrice,
+      highestSoldPrice,
+      keyWord,
+      disassmblingInformation,
+    } = filters;
+    console.log(filters);
     let total = {
       sold: 0,
       collected: 0,
       paid: 0,
-      deposit: 0
+      deposit: 0,
     };
 
-    const query = this.carWreckedEntity.createQueryBuilder();
+    const query = await this.carWreckedEntity
+      .createQueryBuilder('a')
+      .leftJoinAndSelect(ContainerEntity, 'b', 'a.containerID = b.id')
+      .select(['a.*', 'b.containerNumber']);
 
-    if(containerNumber) {
-      query.andWhere("containerNumber = :containerNumber");
+    if (containerNumber) {
+      query.andWhere('b.containerNumber IN (:containerNumber)', {
+        containerNumber: containerNumber,
+      });
     }
 
-    if(isSold) {
-      query.andWhere("sold IS NOT NULL AND sold > 0");
+    if (isSold) {
+      query.andWhere('a.sold IS NOT NULL AND a.sold > 0');
     }
 
-    if(collected) {
-      query.andWhere("collected = :collected", { collected: true });
+    if (collected) {
+      query.andWhere('a.collected = :collected', { collected: true });
     }
 
-    if(isPaid) {
-      query.andWhere("paid IS NOT NULL AND paid > 0");
+    if (isPaid) {
+      query.andWhere('a.paid IS NOT NULL AND a.paid > 0');
     }
 
-    if(isDeposit) {
-      query.andWhere("deposit IS NOT NULL AND deposit > 0");
+    if (isDeposit) {
+      query.andWhere('a.deposit IS NOT NULL AND a.deposit > 0');
     }
-    if(noSold) {
-      query.andWhere("(sold IS NULL OR sold = 0)");
-    }
-
-    if(noPaid) {
-      query.andWhere("(paid IS NULL OR paid = 0)");
+    if (noSold) {
+      query.andWhere('(a.sold IS NULL OR a.sold = 0)');
     }
 
-    if(noDeposit) {
-      query.andWhere("(deposit IS NULL OR deposit = 0)");
+    if (noPaid) {
+      query.andWhere('(a.paid IS NULL OR a.paid = 0)');
     }
 
-    // if(lowestSoldPrice) {
-      
-    //   query.andWhere("sold = (SELECT MIN(sold) FROM car_wrecked WHERE sold IS NOT NULL)");
-    // }
+    if (noDeposit) {
+      query.andWhere('(a.deposit IS NULL OR a.deposit = 0)');
+    }
 
-    // if(highestSoldPrice) {
-    //   query.andWhere("sold = (SELECT MAX(sold) FROM car_wrecked WHERE sold IS NOT NULL)");
-    // }
-    const hightSql = 'sold = (select MAX(sold) from `cool-admin`.car_wrecked';
-    const lowestSql = 'sold = (select MIN(sold) from `cool-admin`.car_wrecked';
+    if (disassmblingInformation) {
+      query.andWhere('(a.disassmblingInformation = :disassmblingInformation)', {
+        disassmblingInformation,
+      });
+    }
+
+    const hightSql = 'a.sold = (select MAX(sold) from `cool-admin`.car_wrecked';
+    const lowestSql =
+      'a.sold = (select MIN(sold) from `cool-admin`.car_wrecked';
     const sqlArr = [];
-    if(containerNumber) {
-      sqlArr.push('containerNumber = :containerNumber');
+    if (containerNumber) {
+      sqlArr.push('b.containerNumber = :containerNumber');
     }
-    if(keyWord) {
-      sqlArr.push('(carID LIKE :keyWord OR disassemblyNumber LIKE :keyWord OR disassmblingInformation LIKE :keyWord OR disassemblyDescription LIKE :keyWord)');
+    if (keyWord) {
+      sqlArr.push(
+        '(a.carID LIKE :keyWord OR a.disassemblyNumber LIKE :keyWord OR a.disassmblingInformation LIKE :keyWord OR a.disassemblyDescription LIKE :keyWord)'
+      );
     }
-    let hightSqlSearch = hightSql + (sqlArr.length > 0 ? ' where ' : '') + sqlArr.join(' and ') + ')';
-    let lowestSqlSearch = lowestSql + (sqlArr.length > 0 ? ' where ' : '') + sqlArr.join(' and ') + ')';
-    if(lowestSoldPrice) {
+    let hightSqlSearch =
+      hightSql +
+      (sqlArr.length > 0 ? ' where ' : '') +
+      sqlArr.join(' and ') +
+      ')';
+    let lowestSqlSearch =
+      lowestSql +
+      (sqlArr.length > 0 ? ' where ' : '') +
+      sqlArr.join(' and ') +
+      ')';
+    if (lowestSoldPrice) {
       query.andWhere(lowestSqlSearch);
     }
 
-    if(highestSoldPrice) {
+    if (highestSoldPrice) {
       query.andWhere(hightSqlSearch);
     }
 
-    if(keyWord) {
-      query.andWhere("(carID LIKE :keyWord OR disassemblyNumber LIKE :keyWord OR disassmblingInformation LIKE :keyWord OR disassemblyDescription LIKE :keyWord)");
+    if (keyWord) {
+      query.andWhere(
+        '(a.carID LIKE :keyWord OR a.disassemblyNumber LIKE :keyWord OR a.disassmblingInformation LIKE :keyWord OR a.disassemblyDescription LIKE :keyWord)'
+      );
     }
 
     query.setParameter('containerNumber', containerNumber);
     query.setParameter('keyWord', `%${keyWord}%`);
 
-    const results = await query.getMany();
+    const results = await query.getRawMany();
 
     results.forEach(result => {
       total.sold += Number(result.sold) || 0;
@@ -296,22 +353,24 @@ export class CarWreckedService extends BaseService {
     return total;
   }
 
-  async updateAndInsertLog(params: {
-    id: number;
-    type: 'sold' | 'paid' | 'deposit' | 'collected';
-    isCollected?: number;
-  } & {
-    [key in 'sold' | 'paid' | 'deposit']: number;
-  }) {
-    const info = await this.carWreckedEntity.findOne({id: params.id});
-    if(info) {
+  async updateAndInsertLog(
+    params: {
+      id: number;
+      type: 'sold' | 'paid' | 'deposit' | 'collected';
+      isCollected?: number;
+    } & {
+      [key in 'sold' | 'paid' | 'deposit']: number;
+    }
+  ) {
+    const info = await this.carWreckedEntity.findOne({ id: params.id });
+    if (info) {
       const promise = [];
       let previousValue = info[params.type];
       let uid = this.ctx.admin?.userId;
-      if(params.type === 'collected') {
-        if(params.isCollected !== null) {
+      if (params.type === 'collected') {
+        if (params.isCollected !== null) {
           info.collected = params.isCollected;
-          if(info.collected === 0) {
+          if (info.collected === 0) {
             info.sold = null;
             info.paid = null;
             info.deposit = null;
@@ -322,13 +381,16 @@ export class CarWreckedService extends BaseService {
         info[params.type] = params[params.type];
       }
       // info[params.type] = params.type === 'collected' && params.isCollected !== null ? params.isCollected : params[params.type];
-      const transactionsInfo = await this.partTransactionsEntity.findOne({carWreckedID: params.id, status: 0});
-      if(transactionsInfo) {
-        if(params.type !== 'collected') {
+      const transactionsInfo = await this.partTransactionsEntity.findOne({
+        carWreckedID: params.id,
+        status: 0,
+      });
+      if (transactionsInfo) {
+        if (params.type !== 'collected') {
           transactionsInfo[`${params.type}Price`] = info[params.type];
           transactionsInfo[`${params.type}Date`] = new Date();
         } else {
-          if(params.isCollected === 1) {
+          if (params.isCollected === 1) {
             transactionsInfo.collectedDate = new Date();
           } else {
             transactionsInfo.status = 1;
@@ -337,36 +399,49 @@ export class CarWreckedService extends BaseService {
         }
         promise.push(this.partTransactionsEntity.save(transactionsInfo));
       } else {
-        if(params.type !== 'collected') {
-          promise.push(this.partTransactionsEntity.save({
-            carWreckedID: params.id,
-            billNo: `${info.disassemblyNumber} ${info.containerNumber}`,
-            [`${params.type}Price`]: info[params.type],
-            [`${params.type}Date`]: new Date(),
-            status: 0,
-          }));
+        const containerItem = await this.containerEntity.findOne({
+          id: info.containerID,
+        });
+        if (params.type !== 'collected') {
+          promise.push(
+            this.partTransactionsEntity.save({
+              carWreckedID: params.id,
+              billNo: `${info.disassemblyNumber}${
+                containerItem ? ' ' + containerItem.containerNumber : ''
+              }`,
+              [`${params.type}Price`]: info[params.type],
+              [`${params.type}Date`]: new Date(),
+              status: 0,
+            })
+          );
         } else {
-          promise.push(this.partTransactionsEntity.save({
-            carWreckedID: params.id,
-            collectedDate: new Date(),
-            billNo: `${info.disassemblyNumber} ${info.containerNumber}`,
-            status: 0,
-          }));
+          promise.push(
+            this.partTransactionsEntity.save({
+              carWreckedID: params.id,
+              collectedDate: new Date(),
+              billNo: `${info.disassemblyNumber}${
+                containerItem ? ' ' + containerItem.containerNumber : ''
+              }`,
+              status: 0,
+            })
+          );
         }
       }
       promise.push(this.carWreckedEntity.save(info));
-      promise.push(await this.partLogEntity.save({
-        previousValue,
-        carWreckedID: params.id,
-        currentValue: params[params.type] ?? 0,
-        changeType: params.type,
-        changedBy: uid
-      }));
+      promise.push(
+        await this.partLogEntity.save({
+          previousValue,
+          carWreckedID: params.id,
+          currentValue: params[params.type] ?? 0,
+          changeType: params.type,
+          changedBy: uid,
+        })
+      );
       try {
         await Promise.all(promise);
         return info;
-      }catch(e) {
-        throw e;
+      } catch (e) {
+        console.log(e);
       }
     } else {
       throw new Error('ID does not exist');
@@ -378,10 +453,16 @@ export class CarWreckedService extends BaseService {
     let partTransactionInfo;
     const promise = [];
     try {
-      promise.push(this.carWreckedEntity.findOne({id}).then(res => {
-        carWreckedInfo = res;
-      }));
-      promise.push(this.partTransactionsEntity.findOne({carWreckedID: id, status: 0}).then(res => partTransactionInfo = res));
+      promise.push(
+        this.carWreckedEntity.findOne({ id }).then(res => {
+          carWreckedInfo = res;
+        })
+      );
+      promise.push(
+        this.partTransactionsEntity
+          .findOne({ carWreckedID: id, status: 0 })
+          .then(res => (partTransactionInfo = res))
+      );
       await Promise.all(promise);
 
       return {
@@ -390,9 +471,9 @@ export class CarWreckedService extends BaseService {
         paidDate: partTransactionInfo?.paidDate,
         soldDate: partTransactionInfo?.soldDate,
         depositDate: partTransactionInfo?.depositDate,
-        part_transaction_id: partTransactionInfo?.id
-      }
-    }catch (e) {
+        part_transaction_id: partTransactionInfo?.id,
+      };
+    } catch (e) {
       return null;
     }
   }
@@ -401,8 +482,8 @@ export class CarWreckedService extends BaseService {
 const disassemblyCategorys = {
   'Dismantling Labels': 'DL',
   'Extra Part Extraction': 'EPE',
-  'Catalytic Converter': 'CC'
-}
+  'Catalytic Converter': 'CC',
+};
 @Provide()
 export class CarBaseService extends BaseService {
   @InjectEntityModel(CarEntity)
@@ -412,7 +493,7 @@ export class CarBaseService extends BaseService {
   orderInfoEntity: Repository<OrderInfoEntity>;
 
   async getOneCarInfo(id: number) {
-    return await this.carEntity.findOne({id});
+    return await this.carEntity.findOne({ id });
   }
 
   // async getNumber(catalyticConverterNumber) {
@@ -429,18 +510,23 @@ export class CarBaseService extends BaseService {
     WHERE JSON_CONTAINS(CarWreckedInfo->'$.infos.activeCarForm.catalyticConverters', 
     JSON_OBJECT('catalyticConverterNumber', ?), 
     '$')`;
-  
+
     // 使用参数化查询的方法执行SQL
-    const sqlSearch = await this.carEntity.query(sql, [catalyticConverterNumber]);
+    const sqlSearch = await this.carEntity.query(sql, [
+      catalyticConverterNumber,
+    ]);
     return sqlSearch;
   }
 
   async changeCarStatus(status: number, id: number) {
-    return await this.carEntity.update({
-      id
-    }, {
-      status
-    })
+    return await this.carEntity.update(
+      {
+        id,
+      },
+      {
+        status,
+      }
+    );
   }
 
   async getCarInfoWidthOrder(id: number) {
@@ -448,10 +534,16 @@ export class CarBaseService extends BaseService {
     let orderInfo;
     const promise = [];
     try {
-      promise.push(this.carEntity.findOne({id}).then(res => {
-        carInfo = res;
-      }));
-      promise.push(this.orderInfoEntity.findOne({carID: id}).then(res => orderInfo = res));
+      promise.push(
+        this.carEntity.findOne({ id }).then(res => {
+          carInfo = res;
+        })
+      );
+      promise.push(
+        this.orderInfoEntity
+          .findOne({ carID: id })
+          .then(res => (orderInfo = res))
+      );
       await Promise.all(promise);
 
       return {
@@ -459,11 +551,10 @@ export class CarBaseService extends BaseService {
         imageFileDir: orderInfo.imageFileDir,
         createBy: orderInfo.createBy,
         createTime: orderInfo.createTime,
-        expectedDate: orderInfo.expectedDate
-      }
-    }catch (e) {
+        expectedDate: orderInfo.expectedDate,
+      };
+    } catch (e) {
       return null;
     }
   }
-
 }

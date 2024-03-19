@@ -10,9 +10,9 @@ export class CarRegEntity extends BaseEntity {
   @Column({ comment: 'RegistrationNumber', length: 20 })
   registrationNumber: string;
 
-  @Column({ comment: 'state', length: 20})
+  @Column({ comment: 'state', length: 20 })
   state: string;
 
-  @Column({ comment: 'xml', type: 'text'})
+  @Column({ comment: 'xml', type: 'text' })
   xml: string;
 }

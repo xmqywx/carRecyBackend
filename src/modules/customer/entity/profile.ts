@@ -1,7 +1,7 @@
 import { EntityModel } from '@midwayjs/orm';
 import { BaseEntity } from '@cool-midway/core';
-import {Column, OneToMany, JoinTable} from 'typeorm';
-import {CarEntity} from "../../car/entity/base";
+import { Column, OneToMany, JoinTable } from 'typeorm';
+import { CarEntity } from '../../car/entity/base';
 
 /**
  * 系统用户
@@ -14,7 +14,7 @@ export class CustomerProfileEntity extends BaseEntity {
   @Column({ comment: 'yardID', nullable: true })
   yardID: number;
 
-  @Column({ comment: 'surname',  nullable: true, length: 100 })
+  @Column({ comment: 'surname', nullable: true, length: 100 })
   surname: string;
 
   @Column({ comment: 'Email Address', length: 50, nullable: true })
@@ -46,8 +46,8 @@ export class CustomerProfileEntity extends BaseEntity {
   workLocation: string;
 
   @OneToMany(() => CarEntity, target => target.theCustomer, {
-    eager: true
+    eager: true,
   })
   @JoinTable()
-  car?: Promise<CarEntity[]> | CarEntity[]
+  car?: Promise<CarEntity[]> | CarEntity[];
 }

@@ -9,13 +9,11 @@ import { InjectEntityModel } from '@midwayjs/orm';
 import * as _ from 'lodash';
 import { Context } from '@midwayjs/koa';
 
-
 /**
  * 登录
  */
 @Provide()
 export class BaseWreckingSearchService extends BaseService {
-
   @InjectEntityModel(CarBodyEntity)
   carBodyEntity: Repository<CarBodyEntity>;
 
@@ -34,33 +32,35 @@ export class BaseWreckingSearchService extends BaseService {
   @Config('module.base')
   coolConfig;
 
-  async getBody( id ) {
-
+  async getBody(id) {
     const bodyData = await this.carBodyEntity.findOne({ carID: Number(id) });
-    if(Object.keys(bodyData).length === 0) {
-        return null;
+    if (Object.keys(bodyData).length === 0) {
+      return null;
     }
-    const carData = await this.carEntity.findOne({id : bodyData.carID});
-    return {data: {...bodyData}, car: {...carData}};
+    const carData = await this.carEntity.findOne({ id: bodyData.carID });
+    return { data: { ...bodyData }, car: { ...carData } };
   }
 
   async getEngine(id) {
-    const engineData = await this.carEngineEntity.findOne({ carID: Number(id) });
-    if(Object.keys(engineData).length === 0) {
-        return null;
+    const engineData = await this.carEngineEntity.findOne({
+      carID: Number(id),
+    });
+    if (Object.keys(engineData).length === 0) {
+      return null;
     }
-    const carData = await this.carEntity.findOne({id : engineData.carID});
-    return {data: {...engineData}, car: {...carData}};
+    const carData = await this.carEntity.findOne({ id: engineData.carID });
+    return { data: { ...engineData }, car: { ...carData } };
   }
 
   async getCatalyticConverter(id) {
-    const catalyticConverterData = await this.carCatalyticConverterEntity.findOne({ carID: Number(id) });
-    if(Object.keys(catalyticConverterData).length === 0) {
-        return null;
+    const catalyticConverterData =
+      await this.carCatalyticConverterEntity.findOne({ carID: Number(id) });
+    if (Object.keys(catalyticConverterData).length === 0) {
+      return null;
     }
-    const carData = await this.carEntity.findOne({id : catalyticConverterData.carID});
-    return {data: {...catalyticConverterData}, car: {...carData}};
+    const carData = await this.carEntity.findOne({
+      id: catalyticConverterData.carID,
+    });
+    return { data: { ...catalyticConverterData }, car: { ...carData } };
   }
-
-
 }

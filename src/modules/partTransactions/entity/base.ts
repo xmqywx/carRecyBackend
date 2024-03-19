@@ -1,4 +1,3 @@
-
 import { EntityModel } from '@midwayjs/orm';
 import { BaseEntity } from '@cool-midway/core';
 import { Column } from 'typeorm';
@@ -14,19 +13,37 @@ export class PartTransactionsEntity extends BaseEntity {
   @Column({ comment: 'bill no.', nullable: true })
   billNo: string;
 
-  @Column({ type: 'decimal', comment: 'Sold Price', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'Sold Price',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   soldPrice: number;
 
   @Column({ type: 'datetime', comment: 'Sold Date', nullable: true })
   soldDate: Date;
 
-  @Column({ type: 'decimal', comment: 'Deposit Price', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'Deposit Price',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   depositPrice: number;
 
   @Column({ type: 'datetime', comment: 'Deposit Date', nullable: true })
   depositDate: Date;
 
-  @Column({ type: 'decimal', comment: 'Paid Price', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'Paid Price',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   paidPrice: number;
 
   @Column({ type: 'datetime', comment: 'Paid Date', nullable: true })
@@ -44,10 +61,16 @@ export class PartTransactionsEntity extends BaseEntity {
   @Column({ comment: 'Remarks', nullable: true })
   remarks: string;
 
-  @Column({  type: 'datetime', comment: 'Canceled date', nullable: true })
+  @Column({ type: 'datetime', comment: 'Canceled date', nullable: true })
   canceledDate: Date;
 
-  @Column({ type: 'decimal', comment: 'refund', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'refund',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   refund: number;
 
   @Column({ comment: 'Collector ID', nullable: true })

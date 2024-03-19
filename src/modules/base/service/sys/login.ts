@@ -51,7 +51,7 @@ export class BaseSysLoginService extends BaseService {
     const user = await this.baseSysUserEntity.findOne({ username });
     // 校验用户
     if (user) {
-      if(user.status === 0) {
+      if (user.status === 0) {
         throw new CoolCommException('This user is currently inactive.');
       }
       // 校验用户状态及密码
@@ -64,7 +64,9 @@ export class BaseSysLoginService extends BaseService {
     // 校验角色
     const roleIds = await this.baseSysRoleService.getByUser(user.id);
     if (_.isEmpty(roleIds)) {
-      throw new CoolCommException('The user don\'t have any role set and cannot log~');
+      throw new CoolCommException(
+        "The user don't have any role set and cannot log~"
+      );
     }
 
     // 生成token
@@ -90,10 +92,7 @@ export class BaseSysLoginService extends BaseService {
     await this.cacheManager.set(`admin:department:${user.id}`, departments);
     await this.cacheManager.set(`admin:perms:${user.id}`, perms);
     await this.cacheManager.set(`admin:token:${user.id}`, result.token);
-    await this.cacheManager.set(
-      `admin:token:refresh:${user.id}`,
-      result.token
-    );
+    await this.cacheManager.set(`admin:token:refresh:${user.id}`, result.token);
 
     return result;
   }
@@ -227,10 +226,12 @@ export class BaseSysLoginService extends BaseService {
           `admin:token:${decoded['userId']}`,
           result.token
         );
-        const roleIds = await this.baseSysRoleService.getByUser(decoded['userId']);
+        const roleIds = await this.baseSysRoleService.getByUser(
+          decoded['userId']
+        );
         const perms = await this.baseSysMenuService.getPerms(roleIds);
         await this.cacheManager.set(`admin:perms:${decoded['userId']}`, perms);
-        
+
         return result;
       }
     } catch (err) {

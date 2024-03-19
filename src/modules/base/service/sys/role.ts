@@ -116,8 +116,12 @@ export class BaseSysRoleService extends BaseService {
         new Brackets(qb => {
           qb.where('id !=:id', { id: 1 }); // 超级管理员的角色不展示
           // 如果不是超管，只能看到自己新建的或者自己有的角色
-          
-          if (this.ctx.admin.username !== 'admin' && !this.ctx.admin.roleIds.includes('10') && !this.ctx.admin.roleIds.includes('14')) {
+
+          if (
+            this.ctx.admin.username !== 'admin' &&
+            !this.ctx.admin.roleIds.includes('10') &&
+            !this.ctx.admin.roleIds.includes('14')
+          ) {
             qb.andWhere('(userId=:userId or id in (:roleId))', {
               userId: this.ctx.admin.userId,
               roleId: this.ctx.admin.roleIds,
@@ -135,14 +139,13 @@ export class BaseSysRoleService extends BaseService {
 const roleMap = {
   '1': ['10', '11', '12', '13', '14', '17', '18'],
   '10': ['11', '12', '13', '14', '17', '18'],
-  '14': ['11', '12', '13',, '17', '18']
-}
+  '14': ['11', '12', '13', '17', '18'],
+};
 
 function pushRoles(ids: string[]) {
   let newIds = [];
   ids.forEach((id: string) => {
-    if(roleMap[id])
-    newIds.push(...roleMap[id]);
+    if (roleMap[id]) newIds.push(...roleMap[id]);
   });
   return [...new Set(newIds)];
 }

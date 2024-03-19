@@ -10,10 +10,22 @@ export class PartLogEntity extends BaseEntity {
   @Column({ comment: 'Car Wrecked ID', nullable: false })
   carWreckedID: number;
 
-  @Column({ comment: 'Previous Value', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    comment: 'Previous Value',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   previousValue: number;
 
-  @Column({ comment: 'Current Value', type: 'decimal', precision: 10, scale: 2, nullable: false })
+  @Column({
+    comment: 'Current Value',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: false,
+  })
   currentValue: number;
 
   @Column({ comment: 'Change Type', nullable: false })

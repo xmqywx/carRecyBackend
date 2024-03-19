@@ -1,4 +1,4 @@
-import {Provide} from '@midwayjs/decorator';
+import { Provide } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 
 import { ContainerLogEntity } from '../../entity/container-logs';
@@ -11,6 +11,4 @@ import { ContainerLogEntity } from '../../entity/container-logs';
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: ContainerLogEntity,
 })
-export class ContainerLogController extends BaseController {
-
-}
+export class ContainerLogController extends BaseController {}

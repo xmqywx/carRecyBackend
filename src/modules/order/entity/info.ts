@@ -19,7 +19,7 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'driverID', nullable: true })
   driverID: string;
 
-  @Column({ comment: 'status', type: "tinyint" })
+  @Column({ comment: 'status', type: 'tinyint' })
   status: number;
 
   @Column({ comment: 'OverrideEmailAddress', nullable: true })
@@ -31,11 +31,6 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'pickupAddress state', nullable: true })
   pickupAddressState: string;
 
-  /***
-   * form.pickupAddressLat= res.geometry.location.lat();
-  form.pickupAddressLng= res.geometry.location.lng();
-   * 
-   */
   @Column({ comment: 'pickupAddress lat', nullable: true })
   pickupAddressLat: string;
 
@@ -48,11 +43,23 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'overridePhoneNumber', nullable: true })
   overridePhoneNumber: string;
 
-  @Column({ comment: 'recommendedPrice', type: "decimal", nullable: true, precision: 10, scale: 2 })
+  @Column({
+    comment: 'recommendedPrice',
+    type: 'decimal',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   recommendedPrice: number;
 
   // 加小数
-  @Column({  type: 'decimal',comment: 'ActualPaymentPrice', nullable: true,  precision: 12, scale: 2})
+  @Column({
+    type: 'decimal',
+    comment: 'ActualPaymentPrice',
+    nullable: true,
+    precision: 12,
+    scale: 2,
+  })
   actualPaymentPrice: number;
 
   @Column({ comment: 'expectedDate', length: 20, nullable: true })
@@ -61,7 +68,7 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'note', nullable: true })
   note: string;
 
-  @Column({ comment: '部门ID', type: 'bigint' })
+  @Column({ comment: 'yard ID', type: 'bigint' })
   departmentId: number;
 
   @Column({ type: 'tinyint', nullable: true })
@@ -111,7 +118,13 @@ export class OrderInfoEntity extends BaseEntity {
   aboutUs: string;
 
   //加小数
-  @Column({  type: 'decimal',comment: 'deposit', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'deposit',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   deposit: number;
 
   @Column({ comment: 'customerName', nullable: true })
@@ -127,15 +140,33 @@ export class OrderInfoEntity extends BaseEntity {
   accountsNo: number;
 
   // 加小数
-  @Column({  type: 'decimal',comment: 'totalAmount', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'totalAmount',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   totalAmount: number;
 
   // 加小数
-  @Column({  type: 'decimal',comment: 'gstAmount', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'gstAmount',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   gstAmount: number;
 
   // 加小数
-  @Column({  type: 'decimal',comment: 'deduction', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'deduction',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   deduction: number;
 
   @Column({ comment: 'comments', nullable: true })
@@ -158,7 +189,13 @@ export class OrderInfoEntity extends BaseEntity {
   source: string;
 
   // 加小数
-  @Column({  type: 'decimal',comment: 'askingPrice', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'askingPrice',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   askingPrice: number;
 
   @Column({ comment: 'paymentRemittance', nullable: true, type: 'text' })
@@ -183,15 +220,30 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'allowUpload', nullable: true, default: false })
   allowUpload: boolean;
 
-  // 更改
-  @Column({ type: 'decimal', comment: 'kilometers', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'kilometers',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   kilometers: number;
 
-  //新增
-  @Column({ type: 'decimal', comment: 'gst', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'gst',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   gst: number;
 
-  //新增
-  @Column({ type: 'decimal', comment: 'priceExGST', nullable: true, precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    comment: 'priceExGST',
+    nullable: true,
+    precision: 10,
+    scale: 2,
+  })
   priceExGST: number;
 }

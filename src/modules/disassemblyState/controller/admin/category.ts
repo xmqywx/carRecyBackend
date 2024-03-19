@@ -1,11 +1,11 @@
-import {Provide} from '@midwayjs/decorator';
+import { Provide } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
-import { Repository } from "typeorm";
-import {InjectEntityModel} from "@midwayjs/orm";
+import { Repository } from 'typeorm';
+import { InjectEntityModel } from '@midwayjs/orm';
 import { DisassemblyCategoryEntity } from '../../entity/category';
 
 /**
- * 图片空间信息
+ * 拆解分类
  */
 @Provide()
 @CoolController({
@@ -14,22 +14,15 @@ import { DisassemblyCategoryEntity } from '../../entity/category';
 
   listQueryOp: {
     keyWordLikeFields: [],
-    fieldEq: [
-      
-    ],
+    fieldEq: [],
   },
 
   pageQueryOp: {
     keyWordLikeFields: [],
-    select: [
-      'a.*',
-    ],
-
+    select: ['a.*'],
   },
-
 })
 export class DisassemblyCategoryController extends BaseController {
   @InjectEntityModel(DisassemblyCategoryEntity)
-  disassemblyCategoryEntity: Repository<DisassemblyCategoryEntity>
-
+  disassemblyCategoryEntity: Repository<DisassemblyCategoryEntity>;
 }

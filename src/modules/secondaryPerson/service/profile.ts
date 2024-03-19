@@ -2,8 +2,8 @@ import { Inject, Provide } from '@midwayjs/decorator';
 import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { Repository } from 'typeorm';
-import {SecondaryPersonEntity} from "../entity/profile";
-import {BaseSysPermsService} from "../../base/service/sys/perms";
+import { SecondaryPersonEntity } from '../entity/profile';
+import { BaseSysPermsService } from '../../base/service/sys/perms';
 
 /**
  * 角色

@@ -7,11 +7,11 @@ import { Column } from 'typeorm';
  */
 @EntityModel('address')
 export class AddressInfoEntity extends BaseEntity {
-  @Column({ comment: 'address info'})
+  @Column({ comment: 'address info' })
   info: string;
-  @Column({ comment: 'address info'})
+  @Column({ comment: 'address info' })
   latitude: string;
 
-  @Column({ comment: 'address info'})
+  @Column({ comment: 'address info' })
   longitude: string;
 }

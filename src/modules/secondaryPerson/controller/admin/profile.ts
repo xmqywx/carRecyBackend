@@ -1,8 +1,8 @@
-import {Provide, Inject} from '@midwayjs/decorator';
+import { Provide, Inject } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
-import {SecondaryPersonEntity} from "../../entity/profile";
+import { SecondaryPersonEntity } from '../../entity/profile';
 
-import {SecondaryPersonService} from "../../service/profile";
+import { SecondaryPersonService } from '../../service/profile';
 
 /**
  * 图片空间信息
@@ -20,6 +20,5 @@ import {SecondaryPersonService} from "../../service/profile";
 })
 export class SecondaryPersonController extends BaseController {
   @Inject()
-  SecondaryPersonService: SecondaryPersonService
-
+  SecondaryPersonService: SecondaryPersonService;
 }

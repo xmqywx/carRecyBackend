@@ -16,7 +16,7 @@ export class JobTaskEntity extends BaseEntity {
   @Column({ comment: 'yardID', nullable: true })
   yardID: number;
 
-  @Column({ comment: 'driverID', nullable: true})
+  @Column({ comment: 'driverID', nullable: true })
   driverID: string;
 
   /**
@@ -24,15 +24,15 @@ export class JobTaskEntity extends BaseEntity {
    * 1 已经完成
    * 2 中途出现问题，任务失败
    */
-  @Column({ comment: 'status', type: "tinyint"})
+  @Column({ comment: 'status', type: 'tinyint' })
   status: number;
 
-  @Column({ comment: 'signature', nullable: true})
+  @Column({ comment: 'signature', nullable: true })
   signature: string;
 
-  @Column({ comment: 'photos', nullable: true})
+  @Column({ comment: 'photos', nullable: true })
   photos: string;
 
-  @Column({ comment: 'note',  nullable: true})
+  @Column({ comment: 'note', nullable: true })
   note: string;
 }

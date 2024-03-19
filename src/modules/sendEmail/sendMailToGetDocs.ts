@@ -1,9 +1,9 @@
-
 const nodemailer = require('nodemailer');
 // const puppeteer = require('puppeteer-core');
 // const fs = require('fs');
 const dotenv = require('dotenv');
-const envFile = process.env.NODE_ENV === 'local' ? '.env.local' : '.env.production';
+const envFile =
+  process.env.NODE_ENV === 'local' ? '.env.local' : '.env.production';
 const pdf = require('html-pdf-chrome');
 const AWS = require('aws-sdk');
 dotenv.config({ path: envFile });
@@ -12,7 +12,7 @@ const fromEmail = process.env.NODE_MAIL_USER;
 AWS.config.update({
   region: process.env.NODE_REGION,
   accessKeyId: process.env.NODE_ACCESS_KEY_ID,
-  secretAccessKey: process.env.NODE_SECRET_ACCESSKEY
+  secretAccessKey: process.env.NODE_SECRET_ACCESSKEY,
 });
 const s3 = new AWS.S3();
 
@@ -110,31 +110,38 @@ export async function saveS3(buffer) {
       Bucket: 'pickcar',
       Key: `invoices/invoice-${Date.now()}.pdf`,
       Body: buffer,
-      ContentType: 'application/pdf'
+      ContentType: 'application/pdf',
     };
     const s3Upload = await s3.upload(s3Params).promise();
     const pdfUrl = s3Upload.Location;
     attachment = {
       filename: 'Invoice.pdf',
       path: pdfUrl,
-      contentType: 'application/pdf'
+      contentType: 'application/pdf',
     };
-  } catch(e) {
+  } catch (e) {
     attachment = {
       filename: 'Invoice.pdf',
       content: buffer, // 传入 PDF 的二进制数据
-      contentType: 'application/pdf'
+      contentType: 'application/pdf',
     };
   }
   return attachment;
 }
 
-export default async function getDocs({ email, name, token, giveUploadBtn, attachment, sendBy }) {
+export default async function getDocs({
+  email,
+  name,
+  token,
+  giveUploadBtn,
+  attachment,
+  sendBy,
+}) {
   let toEmail = '';
   // 配置 Nodemailer
   const transport = nodemailer.createTransport({
     pool: true,
-    host: "smtp.qq.com",
+    host: 'smtp.qq.com',
     port: 465,
     secure: true,
     auth: {
@@ -218,16 +225,13 @@ export default async function getDocs({ email, name, token, giveUploadBtn, attac
 
     return sendEmail(transport, mailOptions, {});
   }
-  
 
   const mailOptions = {
     from: fromEmail,
     to: toEmail,
     subject: 'Invoice from WePickYourCar',
     text: `Invoice from WePickYourCar`,
-    attachments: [
-      attachment
-    ],
+    attachments: [attachment],
     html: `
         <html lang="en">
     <head>

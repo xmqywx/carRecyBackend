@@ -1,17 +1,18 @@
-const moment = require("moment");
+const moment = require('moment');
 const AWS = require('aws-sdk');
 const nodemailer = require('nodemailer');
 // const puppeteer = require('puppeteer-core');
 // const fs = require('fs');
 const dotenv = require('dotenv');
-const envFile = process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
+const envFile =
+  process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
 const pdf = require('html-pdf-chrome');
 dotenv.config({ path: envFile });
 // 配置 AWS SDK
 AWS.config.update({
   region: process.env.NODE_REGION,
   accessKeyId: process.env.NODE_ACCESS_KEY_ID,
-  secretAccessKey: process.env.NODE_SECRET_ACCESSKEY
+  secretAccessKey: process.env.NODE_SECRET_ACCESSKEY,
 });
 
 // 创建 S3 实例
@@ -20,9 +21,16 @@ const s3 = new AWS.S3();
 // const ses = new AWS.SES();
 // 电子邮件发送者和接收者
 const fromEmail = process.env.NODE_MAIL_USER;
-const logoUrl = "http://13.54.137.62/pickYourCar.png";
+const logoUrl = 'http://13.54.137.62/pickYourCar.png';
 
-export default async function main({ name, price, id, email, invoicePdf = null, info }) {
+export default async function main({
+  name,
+  price,
+  id,
+  email,
+  invoicePdf = null,
+  info,
+}) {
   console.log(invoicePdf);
   let toEmail = '';
   // 配置 Nodemailer
@@ -41,7 +49,7 @@ export default async function main({ name, price, id, email, invoicePdf = null, 
     //     },
     service: 'gmail',
     pool: true,
-    host: "smtp.gmail.com",
+    host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
@@ -59,10 +67,12 @@ export default async function main({ name, price, id, email, invoicePdf = null, 
       to: toEmail,
       subject: 'Invoice from WePickYourCar',
       text: 'Invoice from WePickYourCar',
-      attachments: [{
-        filename: 'Invoice.pdf',
-        path: invoicePdf,
-      }],
+      attachments: [
+        {
+          filename: 'Invoice.pdf',
+          path: invoicePdf,
+        },
+      ],
       html: `
         <html lang="en">
     <head>
@@ -124,7 +134,7 @@ We Pick Your Car</pre>
       </main>
     </body>
     </html>
-        `
+        `,
     };
 
     try {
@@ -146,7 +156,7 @@ We Pick Your Car</pre>
   // let subtotal = itemTotalPrice;
   // let Total = itemTotalPrice;
   // let adjustments = 0;
-  let invoiceNumber = id.toString().padStart(6, "0");
+  let invoiceNumber = id.toString().padStart(6, '0');
   // HTML 发票模板
   const invoiceHtml = `
   <html lang="en">
@@ -397,7 +407,7 @@ ${email}</pre>
   // let pdfBuffer;
 
   // pdf.create(invoiceHtml).toBuffer(function(err, buffer) {
-  //   // buffer 即包含生成的 PDF 内容        
+  //   // buffer 即包含生成的 PDF 内容
   //   pdfBuffer = buffer;
   // })
   // const pdfBuffer = await pdf.create(invoiceHtml).toBuffer();
@@ -419,14 +429,11 @@ ${email}</pre>
     Bucket: 'pickcar',
     Key: `invoices/invoice-${Date.now()}.pdf`,
     Body: pdfBuffer,
-    ContentType: 'application/pdf'
+    ContentType: 'application/pdf',
   };
   const s3Upload = await s3.upload(s3Params).promise();
   const pdfUrl = s3Upload.Location;
   console.log(pdfUrl);
-
-
-
 
   // 发送带有 PDF 附件的电子邮件
   const mailOptions = {
@@ -437,8 +444,8 @@ ${email}</pre>
     attachments: [
       {
         filename: 'Invoice.pdf',
-        path: pdfUrl
-      }
+        path: pdfUrl,
+      },
     ],
     html: `
         <html lang="en">
@@ -501,7 +508,7 @@ ${email}</pre>
       </main>
     </body>
     </html>
-        `
+        `,
   };
 
   try {
@@ -545,7 +552,5 @@ ${email}</pre>
   //   }
   // });
 
-
   // 将 PDF 上传到 S3
-
 }

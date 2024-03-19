@@ -1,25 +1,22 @@
-import {Body, Post, Provide, Inject} from '@midwayjs/decorator';
+import { Body, Post, Provide, Inject } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
-import {Repository} from "typeorm";
-import {InjectEntityModel} from "@midwayjs/orm";
-import {OrderInfoEntity} from "../../entity/info";
-import {CustomerProfileEntity} from "../../../customer/entity/profile";
-import {CarEntity} from "../../../car/entity/base";
-import {OrderActionEntity} from "../../entity/action";
+import { Repository } from 'typeorm';
+import { InjectEntityModel } from '@midwayjs/orm';
+import { OrderInfoEntity } from '../../entity/info';
+import { CustomerProfileEntity } from '../../../customer/entity/profile';
+import { CarEntity } from '../../../car/entity/base';
+import { OrderActionEntity } from '../../entity/action';
 import axios from 'axios';
-import * as xml2json from  'xml2json';
-import {CarRegEntity} from "../../../carReg/entity/info";
-import {JobEntity} from "../../../job/entity/info";
+import * as xml2json from 'xml2json';
+import { CarRegEntity } from '../../../carReg/entity/info';
+import { JobEntity } from '../../../job/entity/info';
 import { startOfDay, endOfDay } from 'date-fns';
-import { Between } from "typeorm";
-import {OrderService} from "../../service/order";
+import { Between } from 'typeorm';
+import { OrderService } from '../../service/order';
 import { BaseSysUserEntity } from '../../../base/entity/sys/user';
-// import nodemailer from 'nodemailer';
-
-
 
 /**
- * 图片空间信息
+ * 订单信息
  */
 @Provide()
 @CoolController({
@@ -28,7 +25,12 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
   listQueryOp: {
     keyWordLikeFields: [
       'firstName',
-      'surname', 'c.name', 'model', 'year', 'brand'],
+      'surname',
+      'c.name',
+      'model',
+      'year',
+      'brand',
+    ],
     select: [
       'a.*',
       'b.firstName',
@@ -64,44 +66,73 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.customerID', requestParam: 'customerID' },
       { column: 'a.status', requestParam: 'status' },
-      { column: 'a.id', requestParam: 'id'},
+      { column: 'a.id', requestParam: 'id' },
     ],
-    join: [{
-      entity: CustomerProfileEntity,
-      alias: 'b',
-      condition: 'a.customerID = b.id',
-      type: 'leftJoin'
-    }, {
-      entity: CarEntity,
-      alias: 'c',
-      condition: 'a.carID = c.id',
-      type: 'leftJoin'
-    },{
-      entity: BaseSysUserEntity,
-      alias: 'd',
-      condition: 'a.driverID = d.id',
-      type: 'leftJoin'
-    },{
-      entity: JobEntity,
-      alias: 'e',
-      condition: 'a.id = e.orderID',
-    }],
-    where:  async (ctx) => {
-      const { startDate, endDate, isPaid, notSchedule, searchRegistrationNumber } = ctx.request.body;
+    join: [
+      {
+        entity: CustomerProfileEntity,
+        alias: 'b',
+        condition: 'a.customerID = b.id',
+        type: 'leftJoin',
+      },
+      {
+        entity: CarEntity,
+        alias: 'c',
+        condition: 'a.carID = c.id',
+        type: 'leftJoin',
+      },
+      {
+        entity: BaseSysUserEntity,
+        alias: 'd',
+        condition: 'a.driverID = d.id',
+        type: 'leftJoin',
+      },
+      {
+        entity: JobEntity,
+        alias: 'e',
+        condition: 'a.id = e.orderID',
+      },
+    ],
+    where: async ctx => {
+      const {
+        startDate,
+        endDate,
+        isPaid,
+        notSchedule,
+        searchRegistrationNumber,
+      } = ctx.request.body;
       return [
-        isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice and e.status = 4', {actualPaymentPrice: 0}]:[],
-        startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
-        endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
-        notSchedule ? ['e.driverID IS NULL', {}]: [],
-        searchRegistrationNumber ? ['c.registrationNumber LIKE :registrationNumber', {registrationNumber: `%${searchRegistrationNumber}%`}]: [],
-      ]
+        isPaid
+          ? [
+              'a.actualPaymentPrice > :actualPaymentPrice and e.status = 4',
+              { actualPaymentPrice: 0 },
+            ]
+          : [],
+        startDate
+          ? ['a.createTime >= :startDate', { startDate: startDate }]
+          : [],
+        endDate ? ['a.createTime <= :endDate', { endDate: endDate }] : [],
+        notSchedule ? ['e.driverID IS NULL', {}] : [],
+        searchRegistrationNumber
+          ? [
+              'c.registrationNumber LIKE :registrationNumber',
+              { registrationNumber: `%${searchRegistrationNumber}%` },
+            ]
+          : [],
+      ];
     },
   },
   pageQueryOp: {
     keyWordLikeFields: [
       'firstName',
-      'c.registrationNumber','c.state',
-      'surname', 'c.name', 'model', 'year', 'brand'],
+      'c.registrationNumber',
+      'c.state',
+      'surname',
+      'c.name',
+      'model',
+      'year',
+      'brand',
+    ],
     select: [
       'a.*',
       'b.firstName',
@@ -132,48 +163,53 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
       'c.carInfo',
       'c.status as car_status',
       'e.status as job_status',
-      'e.id as jobID'
+      'e.id as jobID',
     ],
-    // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.customerID', requestParam: 'customerID' },
       { column: 'a.status', requestParam: 'status' },
-      { column: 'a.id', requestParam: 'id'},
-      { column: 'e.status', requestParam: 'job_status'},
+      { column: 'a.id', requestParam: 'id' },
+      { column: 'e.status', requestParam: 'job_status' },
     ],
-    join: [{
-      entity: CustomerProfileEntity,
-      alias: 'b',
-      condition: 'a.customerID = b.id',
-      type: 'leftJoin'
-    }, {
-      entity: CarEntity,
-      alias: 'c',
-      condition: 'a.carID = c.id',
-      type: 'leftJoin'
-    },{
-      entity: BaseSysUserEntity,
-      alias: 'd',
-      condition: 'a.driverID = d.id',
-      type: 'leftJoin'
-    },{
-      entity: JobEntity,
-      alias: 'e',
-      condition: 'a.id = e.orderID',
-    }],
-    where:  async (ctx) => {
+    join: [
+      {
+        entity: CustomerProfileEntity,
+        alias: 'b',
+        condition: 'a.customerID = b.id',
+        type: 'leftJoin',
+      },
+      {
+        entity: CarEntity,
+        alias: 'c',
+        condition: 'a.carID = c.id',
+        type: 'leftJoin',
+      },
+      {
+        entity: BaseSysUserEntity,
+        alias: 'd',
+        condition: 'a.driverID = d.id',
+        type: 'leftJoin',
+      },
+      {
+        entity: JobEntity,
+        alias: 'e',
+        condition: 'a.id = e.orderID',
+      },
+    ],
+    where: async ctx => {
       const { startDate, endDate, isPaid, notSchedule } = ctx.request.body;
       let isNotScheduleSearch = [];
-      if(notSchedule !== undefined) {
-        if(notSchedule === 0) {
+      if (notSchedule !== undefined) {
+        if (notSchedule === 0) {
           isNotScheduleSearch = [
-            '(e.driverID IS NULL OR e.driverID IS NOT NULL)', {}
+            '(e.driverID IS NULL OR e.driverID IS NOT NULL)',
+            {},
           ];
-        } else if(notSchedule === 1) {
+        } else if (notSchedule === 1) {
           isNotScheduleSearch = ['e.driverID IS NOT NULL', {}];
-        } else if(notSchedule === 2) {
+        } else if (notSchedule === 2) {
           isNotScheduleSearch = ['e.driverID IS NULL', {}];
         } else {
           isNotScheduleSearch = [];
@@ -182,25 +218,17 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
         isNotScheduleSearch = [];
       }
       return [
-        // isPaid ? ['a.actualPaymentPrice > :actualPaymentPrice and e.status = 4', {actualPaymentPrice: 0}]:[],
-        isPaid ? ['e.status = 4', {}]:[],
-        startDate ? ['a.createTime >= :startDate', {startDate: startDate}] : [],
-        endDate ? ['a.createTime <= :endDate', {endDate: endDate}]:[],
+        isPaid ? ['e.status = 4', {}] : [],
+        startDate
+          ? ['a.createTime >= :startDate', { startDate: startDate }]
+          : [],
+        endDate ? ['a.createTime <= :endDate', { endDate: endDate }] : [],
         isNotScheduleSearch,
-        // notSchedule ? ['e.driverID IS NULL', {}]: (notSchedule === undefined ? [] : ['e.driverID IS NOT NULL', {}]),
-      ]
+      ];
     },
   },
-  service: OrderService
-
+  service: OrderService,
 })
-
-// @Post('/sendEmail')
-// async sendEmail(@Body('name') name: string, @Body('number') number: string, @Body('price') price: number) {
-//   const info = await main({name, number, price});
-//   return this.ok({info});
-// }
-
 export class VehicleProfileController extends BaseController {
   @Inject()
   orderService: OrderService;
@@ -215,114 +243,131 @@ export class VehicleProfileController extends BaseController {
   @InjectEntityModel(CarRegEntity)
   carRegEntity: Repository<CarRegEntity>;
 
+  /**
+   * 获取统计信息
+   */
   @Post('/getCountBooking')
   async getCountBooking(
     @Body('status') status: number,
     @Body('departmentId') departmentId: number,
     @Body('startDate') startDate: Date,
     @Body('endDate') endDate: Date,
-    @Body('jobComplete') jobComplete: boolean = false
-  ){
-    if(jobComplete) {
-      return this.orderService.getCountCompleteJob(departmentId,startDate, endDate, status)
+    @Body('jobComplete') jobComplete = false
+  ) {
+    if (jobComplete) {
+      return this.orderService.getCountCompleteJob(
+        departmentId,
+        startDate,
+        endDate,
+        status
+      );
     }
-    const searchData: {[key: string]: any} = {
+    const searchData: { [key: string]: any } = {
       status,
-      departmentId
-    }
-    if(startDate && endDate) {
-      // searchData.startDate = startDate;
-      // searchData.endDate = endDate;
+      departmentId,
+    };
+    if (startDate && endDate) {
       searchData.createTime = Between(startDate, endDate);
     }
     const count = await this.orderInfoEntity.count({
-      where: searchData
-    })
+      where: searchData,
+    });
     const countDay = await this.orderInfoEntity.count({
       where: {
         status,
         departmentId,
-        createTime:Between(startOfDay(new Date()).toISOString(), endOfDay(new Date()).toISOString()),
-      }
-    })
+        createTime: Between(
+          startOfDay(new Date()).toISOString(),
+          endOfDay(new Date()).toISOString()
+        ),
+      },
+    });
     return {
       count,
-      countDay
-    }
+      countDay,
+    };
   }
+
+  /**
+   * 获取统计信息
+   */
   @Post('/getCountJob')
   async getCountJob(
     @Body('status') status: number,
     @Body('departmentId') departmentId: number,
     @Body('startDate') startDate: Date,
     @Body('endDate') endDate: Date
-  ){
-    const filter: any = {}
+  ) {
+    const filter: any = {};
     if (status != undefined) {
       filter.status = status;
     }
-    if(startDate && endDate) {
+    if (startDate && endDate) {
       filter.updateTime = Between(startDate, endDate);
     }
-    filter.departmentId = departmentId
-    // if (status != undefined) {
-    //   filter.departmentId = departmentId;
-    // }
+    filter.departmentId = departmentId;
     const count = await this.jobEntity.count({
-      where: filter
-    })
-    return this.ok(count)
+      where: filter,
+    });
+    return this.ok(count);
   }
 
   @Post('/getCountMonth')
-  async getCountMonth(@Body('status') status: number,
-                        @Body('departmentId') departmentId: number){
+  async getCountMonth(
+    @Body('status') status: number,
+    @Body('departmentId') departmentId: number
+  ) {
     const list = await this.orderService.getCountMonth(departmentId);
-    return this.ok(list)
+    return this.ok(list);
   }
 
-
   @Post('/getCarInfo')
-  async getCarInfo(@Body('registrationNumber') registrationNumber: string,
-                   @Body('state') state: string) {
+  async getCarInfo(
+    @Body('registrationNumber') registrationNumber: string,
+    @Body('state') state: string
+  ) {
     const carRegList = await this.carRegEntity.find({
       registrationNumber,
-      state
+      state,
     });
     if (carRegList.length) {
       const carString = xml2json.toJson(carRegList[0].xml);
       let json = JSON.parse(carString);
-      const vehicleJson = json.Vehicle.vehicleJson
-      return this.ok(JSON.parse(vehicleJson))
+      const vehicleJson = json.Vehicle.vehicleJson;
+      return this.ok(JSON.parse(vehicleJson));
     }
     try {
-      const data = await axios.get('http://www.carregistrationapi.com/api/reg.asmx/CheckAustralia', {
-        params:{
-          RegistrationNumber: registrationNumber,
-          State: state,
-          username:'smtm2099',
-        }
-      }).then(async (res) => {
-        await this.carRegEntity.save({
-          registrationNumber,
-          state,
-          xml: res.data
+      const data = await axios
+        .get('http://www.carregistrationapi.com/api/reg.asmx/CheckAustralia', {
+          params: {
+            RegistrationNumber: registrationNumber,
+            State: state,
+            username: 'smtm2099',
+          },
+        })
+        .then(async res => {
+          await this.carRegEntity.save({
+            registrationNumber,
+            state,
+            xml: res.data,
+          });
+          return xml2json.toJson(res.data);
         });
-        return xml2json.toJson(res.data);
-      });
       let json = JSON.parse(data);
-      const vehicleJson = json.Vehicle.vehicleJson
+      const vehicleJson = json.Vehicle.vehicleJson;
       return this.ok(JSON.parse(vehicleJson));
     } catch (e) {
-      return this.fail('Unable to obtain correct vehicle information')
+      return this.fail('Unable to obtain correct vehicle information');
     }
   }
 
   @Post('/getcredits')
-  async getCredits(){
-    const data = await axios.get('https://www.regcheck.org.uk/ajax/getcredits.aspx?username=smtm2099');
+  async getCredits() {
+    const data = await axios.get(
+      'https://www.regcheck.org.uk/ajax/getcredits.aspx?username=smtm2099'
+    );
     console.log(data.data);
-    if(data.data !== null) {
+    if (data.data !== null) {
       return this.ok(data.data);
     } else {
       return this.fail();
@@ -330,20 +375,28 @@ export class VehicleProfileController extends BaseController {
   }
 
   @Post('/bookedUpdateStatus')
-  // orderId: number, order_status: number, job_status: number
-  async bookedUpdateStatus(@Body('orderId') orderId: number, @Body('order_status') order_status: number, @Body('job_status') job_status: number, @Body('job_info') job_info: JobInfo,) {
-    const res = await this.orderService.bookedUpdateStatus(orderId, order_status, job_status, job_info);
-    if(res) {
+  async bookedUpdateStatus(
+    @Body('orderId') orderId: number,
+    @Body('order_status') order_status: number,
+    @Body('job_status') job_status: number,
+    @Body('job_info') job_info: JobInfo
+  ) {
+    const res = await this.orderService.bookedUpdateStatus(
+      orderId,
+      order_status,
+      job_status,
+      job_info
+    );
+    if (res) {
       return this.ok();
     } else {
       return this.fail();
     }
   }
-
 }
 interface JobInfo {
-    orderID: number,
-		carID: number,
-		departmentId: number,
-		status: number
+  orderID: number;
+  carID: number;
+  departmentId: number;
+  status: number;
 }

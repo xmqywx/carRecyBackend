@@ -10,7 +10,7 @@ export class BaseSysVehicleEntity extends BaseEntity {
   @Column({ comment: 'Car name', nullable: true, length: 100 })
   name: string;
 
-  @Column({ comment: 'year', nullable: true})
+  @Column({ comment: 'year', nullable: true })
   year: number;
 
   @Column({ comment: 'brand', length: 25, nullable: true })

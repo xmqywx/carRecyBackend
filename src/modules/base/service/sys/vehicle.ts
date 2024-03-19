@@ -3,7 +3,7 @@ import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { Repository } from 'typeorm';
 import { CacheManager } from '@midwayjs/cache';
-import {BaseSysVehicleEntity} from "../../entity/sys/vehicle";
+import { BaseSysVehicleEntity } from '../../entity/sys/vehicle';
 
 /**
  * 系统用户

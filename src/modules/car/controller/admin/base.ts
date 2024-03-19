@@ -1,13 +1,13 @@
-import {Provide, Get, Query, Inject} from '@midwayjs/decorator';
+import { Provide, Get, Query, Inject } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
-import {CarEntity} from "../../entity/base";
+import { CarEntity } from '../../entity/base';
 import { OrderInfoEntity } from '../../../order/entity/info';
 import { JobEntity } from '../../../job/entity/info';
-import {Repository} from "typeorm";
-import {InjectEntityModel} from "@midwayjs/orm";
+import { Repository } from 'typeorm';
+import { InjectEntityModel } from '@midwayjs/orm';
 import { CarBaseService, CarWreckedService } from '../../service/car';
 /**
- * 图片空间信息
+ * 汽车表
  */
 @Provide()
 @CoolController({
@@ -37,39 +37,42 @@ import { CarBaseService, CarWreckedService } from '../../service/car';
       'b.id as orderID',
       'b.createBy',
       'b.pickupAddress',
-      'b.expectedDate'
+      'b.expectedDate',
       // 'b.catalyticConverterPhotos'
     ],
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
-      { column: 'a.id', requestParam: 'id'},
-      { column: 'a.isVFP', requestParam: 'isVFP'},
-      { column: 'a.status', requestParam: 'status'}
+      { column: 'a.id', requestParam: 'id' },
+      { column: 'a.isVFP', requestParam: 'isVFP' },
+      { column: 'a.status', requestParam: 'status' },
     ],
-    join: [{
-      entity: OrderInfoEntity,
-      alias: 'b',
-      condition: 'a.id = b.carID',
-      type: 'leftJoin'
-    },{
-      entity: JobEntity,
-      alias: 'c',
-      condition: 'c.orderID = b.id',
-    }],
-    where:  async (ctx) => {
+    join: [
+      {
+        entity: OrderInfoEntity,
+        alias: 'b',
+        condition: 'a.id = b.carID',
+        type: 'leftJoin',
+      },
+      {
+        entity: JobEntity,
+        alias: 'c',
+        condition: 'c.orderID = b.id',
+      },
+    ],
+    where: async ctx => {
       const { isCompleted } = ctx.request.body;
       return [
-        isCompleted ? ['c.status = 4', {}]:[], 
+        isCompleted ? ['c.status = 4', {}] : [],
         // isVFP ? ['a.isVFP = true', {}] : ['(a.isVFP is NULL or a.isVFP = false)', {}]
         // isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
-      ]
+      ];
     },
   },
 })
 export class CarBaseController extends BaseController {
   @InjectEntityModel(CarEntity)
-  vehicleProfileEntity: Repository<CarEntity>
+  vehicleProfileEntity: Repository<CarEntity>;
 
   @Inject()
   carBaseService: CarBaseService;
@@ -77,17 +80,28 @@ export class CarBaseController extends BaseController {
   @Inject()
   carWreckedService: CarWreckedService;
 
-  @Get("/get_number")
-  async getNumber(@Query('catalyticConverterNumber') catalyticConverterNumber: string) {
-    const wrekcedRes = await this.carWreckedService.getWreckedNumber(catalyticConverterNumber);
-    const carRes = await this.carBaseService.getNumber(catalyticConverterNumber);
-    return [...wrekcedRes, ...carRes]
+  /**
+   * 根据catalytic converte的编号查询结果
+   */
+  @Get('/get_number')
+  async getNumber(
+    @Query('catalyticConverterNumber') catalyticConverterNumber: string
+  ) {
+    const wrekcedRes = await this.carWreckedService.getWreckedNumber(
+      catalyticConverterNumber
+    );
+    const carRes = await this.carBaseService.getNumber(
+      catalyticConverterNumber
+    );
+    return [...wrekcedRes, ...carRes];
   }
-
-  @Get("/getCarInfoWidthOrder")
+  /**
+   * 根据order id获取order详情
+   */
+  @Get('/getCarInfoWidthOrder')
   async getCarInfoWidthOrder(@Query('id') id: number) {
     const carInfo = await this.carBaseService.getCarInfoWidthOrder(id);
-    if(carInfo) return this.ok(carInfo);
+    if (carInfo) return this.ok(carInfo);
     return this.fail();
   }
 }

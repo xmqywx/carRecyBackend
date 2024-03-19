@@ -1,10 +1,10 @@
 import { EntityModel } from '@midwayjs/orm';
 import { BaseEntity } from '@cool-midway/core';
-import {Column, ManyToOne} from 'typeorm';
-import {CustomerProfileEntity} from "../../customer/entity/profile";
+import { Column, ManyToOne } from 'typeorm';
+import { CustomerProfileEntity } from '../../customer/entity/profile';
 
 /**
- * 系统用户
+ * 汽车表
  */
 @EntityModel('car')
 export class CarEntity extends BaseEntity {
@@ -15,12 +15,12 @@ export class CarEntity extends BaseEntity {
   yardID: number;
 
   @ManyToOne(() => CustomerProfileEntity, target => target.car)
-  theCustomer?: Promise<CustomerProfileEntity> | CustomerProfileEntity
+  theCustomer?: Promise<CustomerProfileEntity> | CustomerProfileEntity;
 
   @Column({ comment: 'Car name', nullable: true, length: 100 })
   name: string;
 
-  @Column({ comment: 'year', nullable: true})
+  @Column({ comment: 'year', nullable: true })
   year: number;
 
   @Column({ comment: 'brand', length: 25, nullable: true })
@@ -86,22 +86,22 @@ export class CarEntity extends BaseEntity {
   /**
    * 1. 已录入，未托运 2. 需要拆解 3. 已经拆解
    */
-  @Column({ comment: 'status', type:'tinyint', default: 1 })
+  @Column({ comment: 'status', type: 'tinyint', default: 1 })
   status: number;
 
-  @Column({ comment: 'Plates returned', type:'boolean', default: null })
+  @Column({ comment: 'Plates returned', type: 'boolean', default: null })
   platesReturned: boolean;
 
-  @Column({ comment: 'Registered', type:'boolean', default: null })
+  @Column({ comment: 'Registered', type: 'boolean', default: null })
   registered: boolean;
 
-  @Column({ comment: 'identificationSighted', type:'boolean', default: null })
+  @Column({ comment: 'identificationSighted', type: 'boolean', default: null })
   identificationSighted: boolean;
 
   @Column({ comment: '部门ID', type: 'bigint' })
   departmentId: number;
 
-  @Column({ comment: '车辆分解信息', type: 'json', nullable: true  })
+  @Column({ comment: '车辆分解信息', type: 'json', nullable: true })
   CarWreckedInfo: {
     dismantlingLabels: string[];
     extraPartsExtract: string[];
@@ -114,5 +114,4 @@ export class CarEntity extends BaseEntity {
 
   @Column({ comment: 'Engine Code', nullable: true })
   engineCode: string;
-
 }

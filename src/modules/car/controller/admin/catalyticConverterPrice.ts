@@ -1,12 +1,12 @@
 import { Provide, Get, Post, Body } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 
-import { Repository } from "typeorm";
-import { InjectEntityModel } from "@midwayjs/orm";
-import { CarCatalyticConverterEntity } from "../../entity/catalyticConverterPrice";
+import { Repository } from 'typeorm';
+import { InjectEntityModel } from '@midwayjs/orm';
+import { CarCatalyticConverterEntity } from '../../entity/catalyticConverterPrice';
 
 /**
- * 图片空间信息
+ * Catalytic Converter每日价格表
  */
 @Provide()
 @CoolController({
@@ -15,50 +15,52 @@ import { CarCatalyticConverterEntity } from "../../entity/catalyticConverterPric
   pageQueryOp: {
     keyWordLikeFields: [],
     select: ['a.*'],
-    fieldEq: [
-
-    ],
-
-  }
-
+    fieldEq: [],
+  },
 })
-
 export class CarCatalyticConverter extends BaseController {
   @InjectEntityModel(CarCatalyticConverterEntity)
-  carCatalyticConverterEntity: Repository<CarCatalyticConverterEntity>
+  carCatalyticConverterEntity: Repository<CarCatalyticConverterEntity>;
 
-  @Get("/get_today_price")
+  @Get('/get_today_price')
   async getTodayPrice() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const price = await this.carCatalyticConverterEntity.createQueryBuilder()
-      .where("createTime >= :today AND createTime < :tomorrow", { today, tomorrow })
+    const price = await this.carCatalyticConverterEntity
+      .createQueryBuilder()
+      .where('createTime >= :today AND createTime < :tomorrow', {
+        today,
+        tomorrow,
+      })
       .getOne();
 
     return price;
   }
 
-  @Post("/add_or_update_price")
+  @Post('/add_or_update_price')
   async addOrUpdatePrice(@Body() priceData: CarCatalyticConverterEntity) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    let price = await this.carCatalyticConverterEntity.createQueryBuilder()
-      .where("createTime >= :today AND createTime < :tomorrow", { today, tomorrow })
+    let price = await this.carCatalyticConverterEntity
+      .createQueryBuilder()
+      .where('createTime >= :today AND createTime < :tomorrow', {
+        today,
+        tomorrow,
+      })
       .getOne();
-    
-      
-      if (price) {
-        // Update today's price
-        price.platinumPrice = priceData.platinumPrice;
-        price.palladiumPrice = priceData.palladiumPrice;
-        price.rhodiumPrice = priceData.rhodiumPrice;
-        console.log('========================',price,'========================');
+
+    if (price) {
+      // Update today's price
+      price.platinumPrice = priceData.platinumPrice;
+      price.palladiumPrice = priceData.palladiumPrice;
+      price.rhodiumPrice = priceData.rhodiumPrice;
+      console.log(price);
       await this.carCatalyticConverterEntity.save(price); // Save the updated price
     } else {
       // Add new price
