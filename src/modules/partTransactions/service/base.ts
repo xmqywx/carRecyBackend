@@ -4,6 +4,7 @@ import { InjectEntityModel } from '@midwayjs/orm';
 import { Repository } from 'typeorm';
 import { PartTransactionsEntity } from '../entity/base';
 import { CarWreckedEntity } from '../../car/entity/carWrecked';
+import { ContainerEntity } from '../../container/entity/base';
 
 @Provide()
 export class PartTransactionsService extends BaseService {
@@ -18,10 +19,15 @@ export class PartTransactionsService extends BaseService {
         'car_wrecked',
         'part_transactions.carWreckedID = car_wrecked.id'
       )
+      .leftJoinAndSelect(
+        ContainerEntity,
+        'container',
+        'car_wrecked.containerID = container.id'
+      )
       .select([
         'part_transactions.*',
         'car_wrecked.disassmblingInformation',
-        'car_wrecked.containerNumber',
+        'container.containerNumber',
       ])
       .where('part_transactions.status = 0')
       .getRawMany();
@@ -36,7 +42,7 @@ export class PartTransactionsService extends BaseService {
       )
     );
     opts.containerNumber = Array.from(
-      new Set(results.map((result: any) => result.car_wrecked_containerNumber))
+      new Set(results.map((result: any) => result.container_containerNumber))
     );
 
     return opts;
