@@ -224,11 +224,12 @@ export class CarWreckedService extends BaseService {
         disassemblyNumber: partId,
       })
       .then(async (res: any) => {
-        if (res.containerNumber !== null) {
+        if (res.containerID !== null) {
           let containerInfo = await this.containerEntity.findOne({
-            containerNumber: res.containerNumber,
+            id: res.containerID,
           });
           res.containerStatus = containerInfo?.status;
+          res.containerNumber = containerInfo?.containerNumber;
         }
 
         return res;
