@@ -22,4 +22,7 @@ export class DisassemblyOptionsEntity extends BaseEntity {
 
   @Column({ comment: 'options', nullable: true, type: 'json' })
   options: [];
+
+  @Column({ comment: 'color', nullable: false })
+  color: string;
 }
