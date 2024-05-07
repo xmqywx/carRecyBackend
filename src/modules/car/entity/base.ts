@@ -114,4 +114,7 @@ export class CarEntity extends BaseEntity {
 
   @Column({ comment: 'Engine Code', nullable: true })
   engineCode: string;
+
+  @Column({ comment: 'Recycling status', nullable: true, default: 'new' })
+  recyclingStatus: string;
 }

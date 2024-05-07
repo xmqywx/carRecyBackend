@@ -46,6 +46,7 @@ import { CarBaseService, CarWreckedService } from '../../service/car';
       { column: 'a.id', requestParam: 'id' },
       { column: 'a.isVFP', requestParam: 'isVFP' },
       { column: 'a.status', requestParam: 'status' },
+      { column: 'a.recyclingStatus', requestParam: 'recyclingStatus' },
     ],
     join: [
       {
@@ -61,9 +62,10 @@ import { CarBaseService, CarWreckedService } from '../../service/car';
       },
     ],
     where: async ctx => {
-      const { isCompleted } = ctx.request.body;
+      const { isCompleted, isNew } = ctx.request.body;
       return [
         isCompleted ? ['c.status = 4', {}] : [],
+        isNew ? ['a.recyclingStatus = "new"', {}] : [],
         // isVFP ? ['a.isVFP = true', {}] : ['(a.isVFP is NULL or a.isVFP = false)', {}]
         // isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
       ];

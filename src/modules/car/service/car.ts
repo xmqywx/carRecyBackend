@@ -42,19 +42,19 @@ export class CarWreckedService extends BaseService {
 
   async getWreckedInfos(carID: number, disassemblyCategory?: string) {
     const searchData: { [key: string]: any } = { carID: Number(carID) };
-    if (disassemblyCategory) {
-      let category = '';
-      if (disassemblyCategory === 'CatalyticConverter') {
-        category = 'Catalytic Converter';
-      } else if (disassemblyCategory === 'ExtraPartExtraction') {
-        category = 'Extra Part Extraction';
-      } else if (disassemblyCategory === 'DismantlingLabels') {
-        category = 'Dismantling Labels';
-      } else {
-        category = disassemblyCategory;
-      }
-      searchData.disassemblyCategory = category;
-    }
+    // if (disassemblyCategory) {
+    //   let category = '';
+    //   if (disassemblyCategory === 'CatalyticConverter') {
+    //     category = 'Catalytic Converter';
+    //   } else if (disassemblyCategory === 'ExtraPartExtraction') {
+    //     category = 'Extra Part Extraction';
+    //   } else if (disassemblyCategory === 'DismantlingLabels') {
+    //     category = 'Dismantling Labels';
+    //   } else {
+    //     category = disassemblyCategory;
+    //   }
+    //   searchData.disassemblyCategory = category;
+    // }
     console.log(searchData, await this.carWreckedEntity.find(searchData));
     return await this.carWreckedEntity.find(searchData);
   }
@@ -495,6 +495,10 @@ export class CarBaseService extends BaseService {
 
   async getOneCarInfo(id: number) {
     return await this.carEntity.findOne({ id });
+  }
+
+  async getOneCarOrderInfo(id: number) {
+    return await this.orderInfoEntity.findOne({ carID: id });
   }
 
   // async getNumber(catalyticConverterNumber) {

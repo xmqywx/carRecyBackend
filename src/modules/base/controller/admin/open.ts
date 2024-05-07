@@ -244,10 +244,15 @@ export class BaseOpenController extends BaseController {
     @Query('carID') carID: number
   ) {
     let carInfo = await this.carBaseService.getOneCarInfo(carID);
+    let orderInfo = await this.carBaseService.getOneCarOrderInfo(carID);
     let queryInfos = await this.carWreckedService.getWreckedInfos(
       carID,
       disassemblyCategory
     );
-    return this.baseOpenService.returnWreckedInfo(queryInfos, carInfo);
+    return this.baseOpenService.returnWreckedInfo(
+      queryInfos,
+      carInfo,
+      orderInfo
+    );
   }
 }

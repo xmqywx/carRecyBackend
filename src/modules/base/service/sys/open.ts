@@ -1,10 +1,11 @@
 import { Provide } from '@midwayjs/decorator';
 import { BaseService } from '@cool-midway/core';
+import moment = require('moment');
 
 @Provide()
 export class BaseOpenService extends BaseService {
   // 返回汽车拆解内容
-  async returnWreckedInfo(partData: any, carData?: any) {
+  async returnWreckedInfo(partData: any, carData?: any, orderData?: any) {
     let partMapData = partData.map((v, index) =>
       Object.keys(partData[index]).map(key => ({
         label: key,
@@ -18,6 +19,13 @@ export class BaseOpenService extends BaseService {
       });
       let carInfoArr: { label: string; value: any }[] = [];
       carDataArr = [...carDataArr, ...carInfoArr];
+    }
+    let orderDataArr: { label: string; value: any }[] = [];
+    if (orderData) {
+      orderDataArr = Object.keys(orderData).map(key => {
+        return { label: key, value: orderData[key] };
+      });
+      orderDataArr = [...orderDataArr];
     }
     return `
         <html lang="en">
@@ -82,73 +90,7 @@ export class BaseOpenService extends BaseService {
             </style>
             <body>
                 <div class="w">
-                    <h3>Part Info</h3>
-                    ${partMapData
-                      .map(partDataArr =>
-                        partDataArr
-                          .map(v => {
-                            if (!v.value) {
-                              return null;
-                            }
-                            if (
-                              [
-                                'customerID',
-                                'CarWreckedInfo',
-                                'isVFP',
-                                'createTime',
-                                'updateTime',
-                                'carID',
-                              ].includes(v.label)
-                            ) {
-                              return null;
-                            }
-                            const disassemblyCategory = partDataArr.find(
-                              v => v.label === 'disassemblyCategory'
-                            ).value;
-                            if (
-                              v.label === 'disassmblingInformation' &&
-                              disassemblyCategory === 'Catalytic Converter'
-                            ) {
-                              const imgArr = JSON.parse(v.value);
-                              return `
-                                <div class='row'>
-                                    <div class='label'>${toTitleCase(
-                                      v.label
-                                    )}:</div>
-                                </div>
-                                <div class='row'>
-                                    ${imgArr
-                                      .map(i => `<img src="${i}" alt="car">`)
-                                      .join('')}
-                                </div>
-                                `;
-                            }
-                            if (v.label === 'disassemblyImages') {
-                              const imgArr = JSON.parse(v.value);
-                              return `
-                                <div class='row'>
-                                    <div class='label'>${toTitleCase(
-                                      v.label
-                                    )}:</div>
-                                </div>
-                                <div class='row'>
-                                    ${imgArr
-                                      .map(i => `<img src="${i}" alt="car">`)
-                                      .join('')}
-                                </div>
-                                `;
-                            }
-                            return `<div class='row'>
-                                <div class='label'>${toTitleCase(
-                                  v.label
-                                )} :</div>
-                                <div class='value'>${v.value}</div>
-                            </div>`;
-                          })
-                          .join('')
-                      )
-                      .join('<br />')}
-                    <h3>Car Info</h3>
+                    <h3>Vehicle detail</h3>
                     ${carDataArr
                       .map(v => {
                         if (!v.value) {
@@ -185,6 +127,116 @@ export class BaseOpenService extends BaseService {
                             </div>`;
                       })
                       .join('')}
+                      <h3>Order Details</h3>
+                      ${orderDataArr
+                        .map(v => {
+                          if (!v.value) {
+                            return null;
+                          }
+                          if (
+                            ![
+                              'createBy',
+                              'createTime',
+                              'pickupAddress',
+                              'expectedDate',
+                            ].includes(v.label)
+                          ) {
+                            return null;
+                          }
+                          if (v.label === 'carInfo') {
+                            return null;
+                          }
+                          if (v.label === 'createTime') {
+                            return `<div class='row'>
+                            <div class='label'>DATE :</div>
+                            <div class='value'>${moment(v.value).format(
+                              'DD/MM/YYYY HH:mm'
+                            )}</div>
+                        </div>`;
+                          }
+                          if (v.label === 'expectedDate') {
+                            return `<div class='row'>
+                            <div class='label'>Preferred Pick Up Time :</div>
+                            <div class='value'>${moment(Number(v.value)).format(
+                              'DD/MM/YYYY HH:mm'
+                            )}</div>
+                        </div>`;
+                          }
+                          return `<div class='row'>
+                                  <div class='label'>${toTitleCase(
+                                    v.label
+                                  )} :</div>
+                                  <div class='value'>${v.value}</div>
+                              </div>`;
+                        })
+                        .join('')}
+                      <h3>Dismantling information</h3>
+                      ${partMapData
+                        .map(partDataArr =>
+                          partDataArr
+                            .map(v => {
+                              if (!v.value) {
+                                return null;
+                              }
+                              if (
+                                [
+                                  'customerID',
+                                  'CarWreckedInfo',
+                                  'isVFP',
+                                  'createTime',
+                                  'updateTime',
+                                  'carID',
+                                  'id',
+                                ].includes(v.label)
+                              ) {
+                                return null;
+                              }
+                              const disassemblyCategory = partDataArr.find(
+                                v => v.label === 'disassemblyCategory'
+                              ).value;
+                              if (
+                                v.label === 'disassmblingInformation' &&
+                                disassemblyCategory === 'Catalytic Converter'
+                              ) {
+                                const imgArr = JSON.parse(v.value);
+                                return `
+                                  <div class='row'>
+                                      <div class='label'>${toTitleCase(
+                                        v.label
+                                      )}:</div>
+                                  </div>
+                                  <div class='row'>
+                                      ${imgArr
+                                        .map(i => `<img src="${i}" alt="car">`)
+                                        .join('')}
+                                  </div>
+                                  `;
+                              }
+                              if (v.label === 'disassemblyImages') {
+                                const imgArr = JSON.parse(v.value);
+                                return `
+                                  <div class='row'>
+                                      <div class='label'>${toTitleCase(
+                                        v.label
+                                      )}:</div>
+                                  </div>
+                                  <div class='row'>
+                                      ${imgArr
+                                        .map(i => `<img src="${i}" alt="car">`)
+                                        .join('')}
+                                  </div>
+                                  `;
+                              }
+                              return `<div class='row'>
+                                  <div class='label'>${toTitleCase(
+                                    v.label
+                                  )} :</div>
+                                  <div class='value'>${v.value}</div>
+                              </div>`;
+                            })
+                            .join('')
+                        )
+                        .join('<br />')}
                 </div>
             </body>
             </html>
