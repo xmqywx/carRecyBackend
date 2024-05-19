@@ -1,13 +1,14 @@
-import { Provide } from "@midwayjs/decorator";
-import { BaseService, CoolCommException } from "@cool-midway/core";
-import { InjectEntityModel } from "@midwayjs/orm";
-import { Repository, Between } from "typeorm";
-import { OrderInfoEntity } from "../entity/info";
-import { OrderActionEntity } from "../entity/action";
-import { JobEntity } from "../../job/entity/info";
-import { CarWreckedEntity } from "../../car/entity/carWrecked";
-import { CarEntity } from "../../car/entity/base";
+import { Provide } from '@midwayjs/decorator';
+import { BaseService, CoolCommException } from '@cool-midway/core';
+import { InjectEntityModel } from '@midwayjs/orm';
+import { Repository, Between } from 'typeorm';
+import { OrderInfoEntity } from '../entity/info';
+import { OrderActionEntity } from '../entity/action';
+import { JobEntity } from '../../job/entity/info';
+import { CarWreckedEntity } from '../../car/entity/carWrecked';
+import { CarEntity } from '../../car/entity/base';
 import * as jwt from 'jsonwebtoken';
+import axios from 'axios';
 
 @Provide()
 export class OrderService extends BaseService {
@@ -22,7 +23,6 @@ export class OrderService extends BaseService {
   @InjectEntityModel(CarEntity)
   carEntity: Repository<CarEntity>;
 
-
   async getCountMonth(departmentId) {
     const year = new Date().getFullYear();
     const sql = `
@@ -30,19 +30,19 @@ export class OrderService extends BaseService {
         DATE_FORMAT(createTime,'%Y') = '${year}'
           and departmentId = ${departmentId}
           and ( status = 1 or status = 3)
-          GROUP BY DATE_FORMAT(createTime,'%m');`
+          GROUP BY DATE_FORMAT(createTime,'%m');`;
     const sql2 = `
         SELECT DATE_FORMAT(createTime,'%m') as month, count(*) as count FROM \`order\` WHERE
         DATE_FORMAT(createTime,'%Y') = '${year}'
           and departmentId = ${departmentId}
           GROUP BY DATE_FORMAT(createTime,'%m');
-    `
-    const list1 = await this.nativeQuery(sql)
-    const list2 = await this.nativeQuery(sql2)
+    `;
+    const list1 = await this.nativeQuery(sql);
+    const list2 = await this.nativeQuery(sql2);
     return {
       order: list1,
-      lead: list2
-    }
+      lead: list2,
+    };
   }
   async getInvoice(id) {
     const getInvoiceSql = `
@@ -73,30 +73,32 @@ export class OrderService extends BaseService {
    * @param param
    */
   async add(params) {
-    return this.orderInfoEntity.save(params).then(async (savedOrder) => {
+    return this.orderInfoEntity.save(params).then(async savedOrder => {
       const getDepartment = `
         SELECT * FROM \`base_sys_department\` WHERE id = '${savedOrder.departmentId}';
       `;
       const getDepartmentSearch = await this.nativeQuery(getDepartment);
       const departName = getDepartmentSearch[0].name;
-      const quoteNumber = `${this.getInitials(departName)}${savedOrder.id.toString().padStart(7, '0')}`;
+      const quoteNumber = `${this.getInitials(departName)}${savedOrder.id
+        .toString()
+        .padStart(7, '0')}`;
       savedOrder.quoteNumber = quoteNumber;
       return this.orderInfoEntity.save(savedOrder);
-    })
+    });
   }
 
   // async add(params) {
   //   // return this.
   // }
   async generateToken(payload) {
-    const secret = "XIONWHEREICAN";
+    const secret = 'XIONWHEREICAN';
     const options = { expiresIn: '1h' }; // 令牌过期时间
     const token = jwt.sign(payload, secret, options);
     return token;
   }
 
   verifyToken(token) {
-    const secret = "XIONWHEREICAN";
+    const secret = 'XIONWHEREICAN';
     return new Promise((resolve, reject) => {
       jwt.verify(token, secret, (err, payload) => {
         if (err) {
@@ -121,13 +123,21 @@ export class OrderService extends BaseService {
     return initials;
   }
 
-  async updateOrderById(id: number, updateData: Pick<OrderInfoEntity, 'registrationDoc' | 'driverLicense' | 'vehiclePhoto'>): Promise<OrderInfoEntity> {
+  async updateOrderById(
+    id: number,
+    updateData: Pick<
+      OrderInfoEntity,
+      'registrationDoc' | 'driverLicense' | 'vehiclePhoto'
+    >
+  ): Promise<OrderInfoEntity> {
     const order = await this.orderInfoEntity.findOne(id);
     if (!order) {
       throw new CoolCommException(`Order with ID ${id} not found.`);
     }
     if (!order.allowUpload) {
-      throw new CoolCommException(`You do not have the permission to perform updates.`);
+      throw new CoolCommException(
+        `You do not have the permission to perform updates.`
+      );
     }
     order.registrationDoc = updateData.registrationDoc ?? order.registrationDoc;
     order.driverLicense = updateData.driverLicense ?? order.driverLicense;
@@ -136,7 +146,10 @@ export class OrderService extends BaseService {
     return this.orderInfoEntity.save(order);
   }
 
-  async updateEmailStatus(id: number, giveUploadBtn: boolean): Promise<OrderInfoEntity> {
+  async updateEmailStatus(
+    id: number,
+    giveUploadBtn: boolean
+  ): Promise<OrderInfoEntity> {
     const order = await this.orderInfoEntity.findOne(id);
     if (!order) {
       throw new CoolCommException(`Order with ID ${id} not found.`);
@@ -176,7 +189,6 @@ export class OrderService extends BaseService {
     return order.allowUpload;
   }
 
-
   async update(param) {
     const order = await this.orderInfoEntity.findOne(param.id);
     if (!order) {
@@ -203,21 +215,21 @@ export class OrderService extends BaseService {
     // `;
 
     // return await this.nativeQuery(query);
-    const filter: any = {}
+    const filter: any = {};
     if (status != undefined) {
       filter.status = status;
     }
-    if(startDate && endDate) {
+    if (startDate && endDate) {
       filter.createTime = Between(startDate, endDate);
     }
-    filter.departmentId = departmentId
+    filter.departmentId = departmentId;
     // if (status != undefined) {
     //   filter.departmentId = departmentId;
     // }
     const count = await this.jobEntity.count({
-      where: filter
-    })
-    return [{count}];
+      where: filter,
+    });
+    return [{ count }];
   }
 
   async updateOrderStatusAndDeleteJob(orderId: number) {
@@ -226,61 +238,83 @@ export class OrderService extends BaseService {
     //   status: 0
     // });
     return await this.jobEntity.find({
-      orderID: orderId
-    })
+      orderID: orderId,
+    });
   }
 
-  async bookedUpdateStatus(orderId: number, order_status: number | null, job_status: number | null, job_info) {
+  async bookedUpdateStatus(
+    orderId: number,
+    order_status: number | null,
+    job_status: number | null,
+    job_info
+  ) {
     const promise = [];
-    const orderDetail = await this.orderInfoEntity.findOne({id: orderId})
+    const orderDetail = await this.orderInfoEntity.findOne({ id: orderId });
     console.log(orderDetail);
-    if(orderDetail.carID) {
-      promise.push(this.carEntity.update({
-        id: orderDetail.carID,
-      }, {
-        status: 1,
-        isVFP: false,
-        CarWreckedInfo: null
-      }));
-      promise.push(this.carWreckedEntity.find({
-        carID: orderDetail.carID
-      }).then(res => {
-        const ids = res.map(v => v.id);
-        if(ids.length > 0) {
-          this.carWreckedEntity.delete(ids);
-        }
-      }))
+    if (orderDetail.carID) {
+      promise.push(
+        this.carEntity.update(
+          {
+            id: orderDetail.carID,
+          },
+          {
+            status: 1,
+            isVFP: false,
+            CarWreckedInfo: null,
+          }
+        )
+      );
+      promise.push(
+        this.carWreckedEntity
+          .find({
+            carID: orderDetail.carID,
+          })
+          .then(res => {
+            const ids = res.map(v => v.id);
+            if (ids.length > 0) {
+              this.carWreckedEntity.delete(ids);
+            }
+          })
+      );
     }
 
-    promise.push(this.jobEntity.findOne({
-      orderID: orderId
-    }).then(async res => {
-      if(res && res.id) {
-        if(job_status >= 0) {
-          res.status = job_status;
-          if(job_status === 0) {
-            res.driverID = null;
-            res.schedulerEnd = null;
-            res.schedulerStart = null;
+    promise.push(
+      this.jobEntity
+        .findOne({
+          orderID: orderId,
+        })
+        .then(async res => {
+          if (res && res.id) {
+            if (job_status >= 0) {
+              res.status = job_status;
+              if (job_status === 0) {
+                res.driverID = null;
+                res.schedulerEnd = null;
+                res.schedulerStart = null;
+              }
+              await this.jobEntity.save(res);
+            } else {
+              await this.jobEntity.delete(res.id);
+            }
+          } else {
+            if (job_info) {
+              await this.jobEntity.save(job_info);
+            }
           }
-          await this.jobEntity.save(res);
-        } else {
-          await this.jobEntity.delete(res.id);
-        }
-      } else {
-        if(job_info) {
-          await this.jobEntity.save(job_info);
-        }
-      }
-      return res;
-    }));
+          return res;
+        })
+    );
 
-    promise.push(this.update({
-      id: orderId,
-      status: order_status
-    }));
+    promise.push(
+      this.update({
+        id: orderId,
+        status: order_status,
+      })
+    );
 
-    return await Promise.all(promise).then(() => true).catch(() => false);
+    return await Promise.all(promise)
+      .then(() => true)
+      .catch(() => false);
     // if(job_status !== 0) {
     //   //booked -> booked(completed), orderId = ?, order_status = 1, job_status = 4
     //   //booked(completed) -> booked, orderId = ?, order_status = 1, job_status = 1
@@ -296,7 +330,75 @@ export class OrderService extends BaseService {
     // }
   }
 
-  
+  /**
+   * 获取api token
+   */
+
+  cachedToken: {
+    value: string | null;
+    expiry: number | null;
+  } = {
+    value: null,
+    expiry: null,
+  };
+
+  async getAccessToken() {
+    // 检查缓存的token是否存在且未过期
+    if (this.cachedToken.value && this.cachedToken.expiry > Date.now()) {
+      return this.cachedToken.value;
+    }
+
+    // 请求新的token
+    const response = await axios.post(
+      'https://api.dev.infoagent.com.au/auth/v1/token/oauth',
+      {
+        grant_type: 'client_credentials',
+        client_id: 'MtDpkDIrb0gej6A2mJWP',
+        client_secret: 'b23ed528-7cc1-469e-8df9-9a714e551280',
+      }
+    );
+
+    const { access_token, expires_in } = response.data;
+
+    // 更新缓存的token和过期时间
+    this.cachedToken = {
+      value: access_token,
+      expiry: Date.now() + expires_in * 1000 - 10000, // 提前10秒刷新token
+    };
+
+    return access_token;
+  }
+
+  async fetchDataWithToken(plate, state) {
+    const accessToken = await this.getAccessToken();
+    try {
+      const response = await axios.post(
+        'https://api.dev.infoagent.com.au/nevdis/v1/vehicle-report',
+        {
+          plate,
+          state,
+          products: [
+            'VEHICLE_AGE',
+            'EXTENDED_DATA',
+            'HIGH_PERFORMANCE_INFO',
+            'REGISTRATION',
+            'DETAILS',
+            'STOLEN_INFO',
+            'WRITTEN_OFF_INFO',
+          ],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log('success', response.data);
+      return response.data;
+    } catch (e) {
+      console.log(e);
+    }
+  }
 }
 
 @Provide()

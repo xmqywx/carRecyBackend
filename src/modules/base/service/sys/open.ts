@@ -38,59 +38,75 @@ export class BaseOpenService extends BaseService {
                 * {
                     margin: 0;
                     padding: 0;
-                }
-                li, ul, dl, dt {
-                    list-style: none;
-                }
-                a {
-                    text-decoration: none;
-                }
-                .w {
-                    margin: 0 auto;
-                    width: 100%;
-                    max-width: 800px;
                     box-sizing: border-box;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                }
+                
+                body {
+                    background-color: #f9f9f9;
+                    color: #4a4a4a;
+                    font-size: 16px;
+                    line-height: 1.6;
+                }
+                
+                .w {
+                    margin: 20px auto;
+                    width: 100%;
+                    max-width: 960px;
+                    background: #fff;
+                    padding: 20px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    border-radius: 10px;
+                }
+                
+                h3 {
+                    color: #4165d7;
+                    margin-bottom: 20px;
+                    text-align: center;
+                }
+                
+                .row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 10px;
+                    margin: 5px 0;
+                    background: linear-gradient(to right, #f9f9f9, #ffffff);
+                    border-radius: 5px;
+                }
+                
+                .label {
+                    flex-basis: 30%;
+                    color: #555;
+                    font-weight: bold;
+                }
+                
+                .value {
+                    flex-basis: 70%;
+                    text-align: right;
+                    color: #000;
+                }
+                
+                .imgContainer {
+                    text-align: center;
                     padding: 10px;
                 }
-                .w h3 {
-                    // text-align: center;
-                }
-                .row .label {
-                    text-align: left;
-                }
-                .row .value {
-                    flex: 1;
-                    white-space: pre-wrap;
-                    word-break: break-all;
-                    color: #4165d7;
-                    border-bottom: 1px solid #000000;
-                }
-                .imgContainer {
-                    width: 100%;
-                }
+                
                 img {
-                    // margin: auto;
-                    // display: block;
-                    width: 200px;
-                    max-height: 200px;
-                    object-fit: contain;
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 5px;
                 }
-                @media (min-width: 500px) {
-                    /* 在屏幕宽度大于等于 500px 时应用的样式 */
+                
+                @media (min-width: 768px) {
                     .row {
-                        display: flex;
-                        gap: 20px;
-                        align-items: center;
+                        padding: 15px 10px;
                     }
-                    .row .label {
-                        text-align: right;
-                        min-width: 200px;
-                    }
-                  }
+                }
             </style>
             <body>
                 <div class="w">
-                    <h3>Vehicle detail</h3>
+                    <h3>Vehicle</h3>
                     ${carDataArr
                       .map(v => {
                         if (!v.value) {
@@ -105,6 +121,7 @@ export class BaseOpenService extends BaseService {
                             'updateTime',
                             'departmentId',
                             'status',
+                            'id',
                           ].includes(v.label)
                         ) {
                           return null;
@@ -127,7 +144,7 @@ export class BaseOpenService extends BaseService {
                             </div>`;
                       })
                       .join('')}
-                      <h3>Order Details</h3>
+                      <h3>Order</h3>
                       ${orderDataArr
                         .map(v => {
                           if (!v.value) {
@@ -170,7 +187,7 @@ export class BaseOpenService extends BaseService {
                               </div>`;
                         })
                         .join('')}
-                      <h3>Dismantling information</h3>
+                      <h3>Dismantling info</h3>
                       ${partMapData
                         .map(partDataArr =>
                           partDataArr
@@ -187,6 +204,7 @@ export class BaseOpenService extends BaseService {
                                   'updateTime',
                                   'carID',
                                   'id',
+                                  'containerID',
                                 ].includes(v.label)
                               ) {
                                 return null;
@@ -270,57 +288,74 @@ export class BaseOpenService extends BaseService {
 </head>
         <style>
         * {
-            margin: 0;
-            padding: 0;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 更现代的字体 */
+    }
+    
+    body {
+        background-color: #f9f9f9; /* 更柔和的背景色 */
+        color: #333; /* 深色文字提高可读性 */
+        font-size: 16px;
+        line-height: 1.6;
+    }
+    
+    .w {
+        margin: 20px auto;
+        width: 100%;
+        max-width: 960px; /* 适当增加最大宽度 */
+        background: #fff;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 添加阴影以增强立体感 */
+        border-radius: 8px; /* 圆角边框 */
+    }
+    
+    h3 {
+        color: #4165d7; /* 标题颜色 */
+        margin-bottom: 20px;
+        text-align: center; /* 标题居中 */
+    }
+    
+    .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+        margin-bottom: 10px; /* 增加行间距 */
+        background: #f8f8f8; /* 每行使用淡色背景增强对比 */
+        border-radius: 5px; /* 行元素添加圆角 */
+    }
+    
+    .label {
+        flex-basis: 30%;
+        color: #555;
+        font-weight: bold; /* 加粗标签文字 */
+    }
+    
+    .value {
+        flex-basis: 70%;
+        text-align: right;
+        color: #000;
+    }
+    
+    .imgContainer {
+        text-align: center;
+        padding: 10px;
+    }
+    
+    img {
+        width: 100%; /* 图片宽度自适应 */
+        max-width: 200px; /* 最大宽度限制 */
+        height: auto;
+        border-radius: 5px; /* 图片添加圆角 */
+    }
+    
+    @media (min-width: 768px) {
+        .row {
+            padding: 15px 10px;
         }
-        li, ul, dl, dt {
-            list-style: none;
-        }
-        a {
-            text-decoration: none;
-        }
-        .w {
-            margin: 0 auto;
-            width: 100%;
-            max-width: 800px;
-            box-sizing: border-box;
-            padding: 10px;
-        }
-        .w h3 {
-            // text-align: center;
-        }
-        .row .label {
-            text-align: left;
-        }
-        .row .value {
-            flex: 1;
-            white-space: pre-wrap;
-            word-break: break-all;
-            color: #4165d7;
-            border-bottom: 1px solid #000000;
-        }
-        .imgContainer {
-            width: 100%;
-        }
-        img {
-            // margin: auto;
-            // display: block;
-            width: 200px;
-            max-height: 200px;
-            object-fit: contain;
-        }
-        @media (min-width: 500px) {
-            /* 在屏幕宽度大于等于 500px 时应用的样式 */
-            .row {
-                display: flex;
-                gap: 20px;
-                align-items: center;
-            }
-            .row .label {
-                text-align: right;
-                min-width: 200px;
-            }
-          }
+    }
     </style>
     <body>
         <div class="w">
@@ -337,6 +372,9 @@ export class BaseOpenService extends BaseService {
                     'isVFP',
                     'createTime',
                     'updateTime',
+                    'id',
+                    'containerID',
+                    'carID',
                   ].includes(v.label)
                 ) {
                   return null;
@@ -391,6 +429,7 @@ export class BaseOpenService extends BaseService {
                     'updateTime',
                     'departmentId',
                     'status',
+                    'id',
                   ].includes(v.label)
                 ) {
                   return null;

@@ -13,6 +13,9 @@ export class CarRegEntity extends BaseEntity {
   @Column({ comment: 'state', length: 20 })
   state: string;
 
-  @Column({ comment: 'xml', type: 'text' })
+  @Column({ comment: 'xml', type: 'text', nullable: true })
   xml: string;
+
+  @Column({ comment: 'json', type: 'json', nullable: true })
+  json: any;
 }

@@ -321,6 +321,51 @@ export class VehicleProfileController extends BaseController {
     return this.ok(list);
   }
 
+  // @Post('/getCarInfo')
+  // async getCarInfo(
+  //   @Body('registrationNumber') registrationNumber: string,
+  //   @Body('state') state: string
+  // ) {
+  //   const carRegList = await this.carRegEntity.find({
+  //     registrationNumber,
+  //     state,
+  //   });
+  //   if (carRegList.length && carRegList[0].xml) {
+  //     const carString = xml2json.toJson(carRegList[0].xml);
+  //     let json = JSON.parse(carString);
+  //     const vehicleJson = json.Vehicle.vehicleJson;
+  //     return this.ok(JSON.parse(vehicleJson));
+  //   }
+  //   try {
+  //     let carRegFind;
+  //     if (carRegList.length) {
+  //       carRegFind = carRegList[0].id ?? undefined;
+  //     }
+  //     const data = await axios
+  //       .get('http://www.carregistrationapi.com/api/reg.asmx/CheckAustralia', {
+  //         params: {
+  //           RegistrationNumber: registrationNumber,
+  //           State: state,
+  //           username: 'smtm2099',
+  //         },
+  //       })
+  //       .then(async res => {
+  //         await this.carRegEntity.save({
+  //           id: carRegFind,
+  //           registrationNumber,
+  //           state,
+  //           xml: res.data,
+  //         });
+  //         return xml2json.toJson(res.data);
+  //       });
+  //     let json = JSON.parse(data);
+  //     const vehicleJson = json.Vehicle.vehicleJson;
+  //     return this.ok(JSON.parse(vehicleJson));
+  //   } catch (e) {
+  //     return this.fail('Unable to obtain correct vehicle information');
+  //   }
+  // }
+
   @Post('/getCarInfo')
   async getCarInfo(
     @Body('registrationNumber') registrationNumber: string,
@@ -330,32 +375,31 @@ export class VehicleProfileController extends BaseController {
       registrationNumber,
       state,
     });
-    if (carRegList.length) {
-      const carString = xml2json.toJson(carRegList[0].xml);
-      let json = JSON.parse(carString);
-      const vehicleJson = json.Vehicle.vehicleJson;
-      return this.ok(JSON.parse(vehicleJson));
+    console.log('first step', carRegList);
+    if (carRegList.length && carRegList[0].json) {
+      return this.ok(carRegList[0].json);
     }
     try {
-      const data = await axios
-        .get('http://www.carregistrationapi.com/api/reg.asmx/CheckAustralia', {
-          params: {
-            RegistrationNumber: registrationNumber,
-            State: state,
-            username: 'smtm2099',
-          },
-        })
+      let carRegFind;
+      if (carRegList.length) {
+        carRegFind = carRegList[0].id ?? undefined;
+      }
+      const data = await this.orderService
+        .fetchDataWithToken(registrationNumber, state)
         .then(async res => {
+          const jsonData = res.result.vehicles[0] ?? null;
           await this.carRegEntity.save({
+            id: carRegFind,
             registrationNumber,
             state,
-            xml: res.data,
+            json: jsonData,
           });
-          return xml2json.toJson(res.data);
+          return jsonData;
         });
-      let json = JSON.parse(data);
-      const vehicleJson = json.Vehicle.vehicleJson;
-      return this.ok(JSON.parse(vehicleJson));
+      if (!data) {
+        return this.fail('Unable to find content');
+      }
+      return this.ok(data);
     } catch (e) {
       return this.fail('Unable to obtain correct vehicle information');
     }
