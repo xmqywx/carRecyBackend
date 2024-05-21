@@ -502,9 +502,9 @@ export class CarBaseService extends BaseService {
   }
 
   // async getNumber(catalyticConverterNumber) {
-  //   // CarWreckedInfo catalyticConverterNumber
+  //   // carWreckedInfo catalyticConverterNumber
   //   const sql = `SELECT * FROM \`car\`
-  //   WHERE CarWreckedInfo->'$.catalyticConverterNumber' = '${catalyticConverterNumber}';`;
+  //   WHERE carWreckedInfo->'$.catalyticConverterNumber' = '${catalyticConverterNumber}';`;
   //   const sqlSearch = await this.nativeQuery(sql);
   //   return sqlSearch;
   // }
@@ -512,7 +512,7 @@ export class CarBaseService extends BaseService {
   async getNumber(catalyticConverterNumber) {
     // 使用参数化查询来防止SQL注入
     const sql = `SELECT * FROM car
-    WHERE JSON_CONTAINS(CarWreckedInfo->'$.infos.activeCarForm.catalyticConverters', 
+    WHERE JSON_CONTAINS(carWreckedInfo->'$.infos.activeCarForm.catalyticConverters', 
     JSON_OBJECT('catalyticConverterNumber', ?), 
     '$')`;
 

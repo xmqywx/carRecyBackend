@@ -12,7 +12,4 @@ export class BaseSysUserRoleEntity extends BaseEntity {
 
   @Column({ comment: '角色ID', type: 'bigint' })
   roleId: number;
-
-  @Column({ comment: 'yardID', nullable: true })
-  yardID: number;
 }

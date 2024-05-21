@@ -10,9 +10,6 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'carID', nullable: true })
   carID: number;
 
-  @Column({ comment: 'yardID', nullable: true })
-  yardID: number;
-
   @Column({ comment: 'customer' })
   customerID: string;
 
@@ -101,7 +98,7 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'carColor', nullable: true })
   carColor: string;
 
-  @Column({ comment: 'imageFileDir', nullable: true, length: 5000 })
+  @Column({ comment: 'imageFileDir', nullable: true, type: 'text' })
   imageFileDir: string;
 
   @Column({ comment: 'signature', nullable: true })

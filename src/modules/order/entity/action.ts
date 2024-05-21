@@ -7,21 +7,21 @@ import { Column } from 'typeorm';
  */
 @EntityModel('order_action')
 export class OrderActionEntity extends BaseEntity {
-  @Column({ comment: 'timestamp',length:50})
+  @Column({ comment: 'timestamp', length: 50 })
   timestamp: string;
 
-  @Column({ comment: 'name', length: 100, nullable: true})
+  @Column({ comment: 'name', length: 100, nullable: true })
   name: string;
 
-  @Column({ comment: 'description', nullable: true})
+  @Column({ comment: 'description', nullable: true })
   description: string;
 
-  @Column({ comment: 'author'})
+  @Column({ comment: 'author' })
   authorID: number;
 
-  @Column({ comment: 'orderID'})
+  @Column({ comment: 'orderID' })
   orderID: number;
 
-  @Column({ comment: 'type', type:"tinyint"})
+  @Column({ comment: 'type', type: 'tinyint' })
   type: number;
 }

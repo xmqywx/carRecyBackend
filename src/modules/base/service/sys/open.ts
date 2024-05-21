@@ -115,7 +115,7 @@ export class BaseOpenService extends BaseService {
                         if (
                           [
                             'customerID',
-                            'CarWreckedInfo',
+                            'carWreckedInfo',
                             'isVFP',
                             'createTime',
                             'updateTime',
@@ -198,7 +198,7 @@ export class BaseOpenService extends BaseService {
                               if (
                                 [
                                   'customerID',
-                                  'CarWreckedInfo',
+                                  'carWreckedInfo',
                                   'isVFP',
                                   'createTime',
                                   'updateTime',
@@ -368,7 +368,7 @@ export class BaseOpenService extends BaseService {
                 if (
                   [
                     'customerID',
-                    'CarWreckedInfo',
+                    'carWreckedInfo',
                     'isVFP',
                     'createTime',
                     'updateTime',
@@ -423,7 +423,7 @@ export class BaseOpenService extends BaseService {
                 if (
                   [
                     'customerID',
-                    'CarWreckedInfo',
+                    'carWreckedInfo',
                     'isVFP',
                     'createTime',
                     'updateTime',

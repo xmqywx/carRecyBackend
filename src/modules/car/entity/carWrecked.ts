@@ -90,9 +90,6 @@ export class CarWreckedEntity extends BaseEntity {
   })
   rhodium: number;
 
-  @Column({ comment: 'content of components 内容', nullable: true })
-  contentOfComponents: string;
-
   @Column({ comment: 'cc cat type 催化转化器类型 ', nullable: true })
   catType: string;
 

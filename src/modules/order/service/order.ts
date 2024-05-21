@@ -87,9 +87,6 @@ export class OrderService extends BaseService {
     });
   }
 
-  // async add(params) {
-  //   // return this.
-  // }
   async generateToken(payload) {
     const secret = 'XIONWHEREICAN';
     const options = { expiresIn: '1h' }; // 令牌过期时间
@@ -136,7 +133,7 @@ export class OrderService extends BaseService {
     }
     if (!order.allowUpload) {
       throw new CoolCommException(
-        `You do not have the permission to perform updates.`
+        'You do not have the permission to perform updates.'
       );
     }
     order.registrationDoc = updateData.registrationDoc ?? order.registrationDoc;
@@ -159,25 +156,7 @@ export class OrderService extends BaseService {
     }
     return this.orderInfoEntity.save(order);
   }
-  // async updateEmailStatus(id: number, giveUploadBtn: boolean): Promise<OrderInfoEntity> {
-  //   const order = await this.orderInfoEntity.findOne(id);
-  //   if (!order) {
-  //     throw new CoolCommException(`Order with ID ${id} not found.`);
-  //   }
-  //   if (!order.allowUpload) {
-  //     throw new CoolCommException(`You do not have the permission to perform updates.`);
-  //   }
 
-  //   let status: number;
-  //   if (giveUploadBtn) {
-  //     status = (order.emailStatus === 1 || order.emailStatus === 3) ? 3 : 2;
-  //   } else {
-  //     status = (order.emailStatus === 2 || order.emailStatus === 3) ? 3 : 1;
-  //   }
-
-  //   order.emailStatus = status;
-  //   return this.orderInfoEntity.save(order);
-  // }
   async updateOrderAllowUpload(id: number, allowUpload: boolean) {
     const order = await this.orderInfoEntity.findOne(id);
     order.allowUpload = allowUpload;
@@ -201,20 +180,6 @@ export class OrderService extends BaseService {
   }
 
   async getCountCompleteJob(departmentId, startDate, endDate, status) {
-    // console.log(startDate, endDate)
-    // const query = `
-    // SELECT COUNT(*) AS count
-    // FROM \`order\`
-    // WHERE id IN (
-    //   SELECT orderID
-    //   FROM \`job\`
-    //   WHERE status = 4
-    // )
-    // AND departmentId = '${departmentId}'
-    // ${startDate && endDate ? `AND (createTime BETWEEN '${startDate}' AND '${endDate}')` : ''}
-    // `;
-
-    // return await this.nativeQuery(query);
     const filter: any = {};
     if (status != undefined) {
       filter.status = status;
@@ -223,9 +188,6 @@ export class OrderService extends BaseService {
       filter.createTime = Between(startDate, endDate);
     }
     filter.departmentId = departmentId;
-    // if (status != undefined) {
-    //   filter.departmentId = departmentId;
-    // }
     const count = await this.jobEntity.count({
       where: filter,
     });
@@ -233,10 +195,6 @@ export class OrderService extends BaseService {
   }
 
   async updateOrderStatusAndDeleteJob(orderId: number) {
-    // return await this.update({
-    //   id: 657,
-    //   status: 0
-    // });
     return await this.jobEntity.find({
       orderID: orderId,
     });
@@ -260,7 +218,7 @@ export class OrderService extends BaseService {
           {
             status: 1,
             isVFP: false,
-            CarWreckedInfo: null,
+            carWreckedInfo: null,
           }
         )
       );

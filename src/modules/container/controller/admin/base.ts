@@ -118,42 +118,42 @@ export class CarBaseController extends BaseController {
     return this.ok(returnData);
   }
 
-  /**
-   * 更改container状态
-   * @param departmentId
-   * @param createBy
-   * @param status
-   * @param containerID
-   * @param areEnginesComplete
-   * @param areEnginesRunningWell
-   * @param anyIssues
-   * @param issues
-   * @param statusChangeTime
-   * @returns
-   */
-  @Post('/change_container_status')
-  async change_container_status(
-    @Body('departmentId') departmentId: string,
-    @Body('createBy') createBy: number,
-    @Body('status') status: number,
-    @Body('containerID') containerID: number,
-    @Body('areEnginesComplete') areEnginesComplete: number,
-    @Body('areEnginesRunningWell') areEnginesRunningWell: number,
-    @Body('anyIssues') anyIssues: number,
-    @Body('issues') issues: string,
-    @Body('statusChangeTime') statusChangeTime: string
-  ) {
-    const returnData = await this.containerService.change_container_status({
-      status,
-      containerID,
-      areEnginesComplete,
-      areEnginesRunningWell,
-      anyIssues,
-      statusChangeTime,
-      issues,
-    });
-    return this.ok(returnData);
-  }
+  // /**
+  //  * 更改container状态
+  //  * @param departmentId
+  //  * @param createBy
+  //  * @param status
+  //  * @param containerID
+  //  * @param areEnginesComplete
+  //  * @param areEnginesRunningWell
+  //  * @param anyIssues
+  //  * @param issues
+  //  * @param statusChangeTime
+  //  * @returns
+  //  */
+  // @Post('/change_container_status')
+  // async change_container_status(
+  //   @Body('departmentId') departmentId: string,
+  //   @Body('createBy') createBy: number,
+  //   @Body('status') status: number,
+  //   @Body('containerID') containerID: number,
+  //   @Body('areEnginesComplete') areEnginesComplete: number,
+  //   @Body('areEnginesRunningWell') areEnginesRunningWell: number,
+  //   @Body('anyIssues') anyIssues: number,
+  //   @Body('issues') issues: string,
+  //   @Body('statusChangeTime') statusChangeTime: string
+  // ) {
+  //   const returnData = await this.containerService.change_container_status({
+  //     status,
+  //     containerID,
+  //     areEnginesComplete,
+  //     areEnginesRunningWell,
+  //     anyIssues,
+  //     statusChangeTime,
+  //     issues,
+  //   });
+  //   return this.ok(returnData);
+  // }
 
   /**
    * 获取container总价

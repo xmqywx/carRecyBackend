@@ -4,7 +4,6 @@ import { InjectEntityModel } from '@midwayjs/orm';
 import { Repository } from 'typeorm';
 import { ContainerEntity } from '../entity/base';
 import { CarWreckedEntity } from '../../car/entity/carWrecked';
-import { ContainerLogEntity } from '../entity/container-logs';
 import { BuyerEntity } from '../../buyer/entity/base';
 @Provide()
 export class ContainerService extends BaseService {
@@ -13,9 +12,6 @@ export class ContainerService extends BaseService {
 
   @InjectEntityModel(CarWreckedEntity)
   carWreckedEntity: Repository<CarWreckedEntity>;
-
-  @InjectEntityModel(ContainerLogEntity)
-  containerLogEntity: Repository<ContainerLogEntity>;
 
   @InjectEntityModel(BuyerEntity)
   buyerEntity: Repository<BuyerEntity>;
@@ -64,32 +60,6 @@ export class ContainerService extends BaseService {
         isExist: false,
       };
     }
-  }
-
-  async change_container_status({
-    status,
-    containerID,
-    areEnginesComplete,
-    areEnginesRunningWell,
-    anyIssues,
-    statusChangeTime,
-    issues,
-  }) {
-    const containerSearchData = await this.containerEntity.findOne({
-      id: containerID,
-    });
-    containerSearchData.status = status;
-    const saveStatus = await this.containerEntity.save(containerSearchData);
-    console.log(saveStatus);
-    this.containerLogEntity.save({
-      containerID,
-      areEnginesComplete,
-      areEnginesRunningWell,
-      anyIssues,
-      issues,
-      statusChangeTime,
-      statusTo: status,
-    });
   }
 
   /**

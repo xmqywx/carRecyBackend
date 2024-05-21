@@ -1,7 +1,6 @@
 import { EntityModel } from '@midwayjs/orm';
 import { BaseEntity } from '@cool-midway/core';
-import { Column, OneToMany } from 'typeorm';
-import { ContainerLogEntity } from './container-logs';
+import { Column } from 'typeorm';
 /**
  * 系统用户
  */
@@ -34,9 +33,6 @@ export class ContainerEntity extends BaseEntity {
   @Column({ comment: 'create by', nullable: true, type: 'tinyint' })
   createBy: number;
 
-  @OneToMany(type => ContainerLogEntity, log => log.container)
-  logs: ContainerLogEntity[];
-
   @Column({ comment: 'Dispatch location 发出地', length: 255, nullable: true })
   dispatchLocation: string;
 
@@ -49,10 +45,9 @@ export class ContainerEntity extends BaseEntity {
 
   @Column({
     comment: 'ETA arrival 到达时间',
-    type: 'timestamp',
     nullable: true,
   })
-  etaArrival: Date;
+  etaArrival: string;
 
   @Column({ comment: 'Consignee ID 接收人信息', nullable: true })
   consigneeID: number;

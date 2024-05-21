@@ -11,43 +11,40 @@ export class CarEntity extends BaseEntity {
   @Column({ comment: 'Customer ID', nullable: false })
   customerID: number;
 
-  @Column({ comment: 'yardID', nullable: true })
-  yardID: number;
-
   @ManyToOne(() => CustomerProfileEntity, target => target.car)
   theCustomer?: Promise<CustomerProfileEntity> | CustomerProfileEntity;
 
-  @Column({ comment: 'Car name', nullable: true, length: 100 })
+  @Column({ comment: 'Car name', nullable: true })
   name: string;
 
   @Column({ comment: 'year', nullable: true })
   year: number;
 
-  @Column({ comment: 'brand', length: 25, nullable: true })
+  @Column({ comment: 'brand', nullable: true })
   brand: string;
 
-  @Column({ comment: 'model', length: 24, nullable: true })
+  @Column({ comment: 'model', nullable: true })
   model: string;
 
-  @Column({ comment: 'colour', length: 100, nullable: true })
+  @Column({ comment: 'colour', nullable: true })
   colour: string;
 
   @Column({ comment: 'image', nullable: true })
   image: string;
 
-  @Column({ comment: 'vinNumber', length: 100, nullable: true })
+  @Column({ comment: 'vinNumber', nullable: true })
   vinNumber: string;
 
-  @Column({ comment: 'Series', length: 24, nullable: true })
+  @Column({ comment: 'Series', nullable: true })
   series: string;
 
-  @Column({ comment: 'registrationNumber', length: 24, nullable: true })
+  @Column({ comment: 'registrationNumber', nullable: true })
   registrationNumber: string;
 
-  @Column({ comment: 'state', length: 24, nullable: true })
+  @Column({ comment: 'state', nullable: true })
   state: string;
 
-  @Column({ comment: 'body Style', length: 254, nullable: true })
+  @Column({ comment: 'body Style', nullable: true })
   bodyStyle: string;
 
   @Column({ comment: 'engine', nullable: true })
@@ -80,7 +77,7 @@ export class CarEntity extends BaseEntity {
   @Column({ comment: 'TareWeight', nullable: true })
   tareWeight: number;
 
-  @Column({ comment: 'Car info', nullable: true, length: 10000 })
+  @Column({ comment: 'Car info', nullable: true, type: 'text' })
   carInfo: string;
 
   /**
@@ -102,7 +99,7 @@ export class CarEntity extends BaseEntity {
   departmentId: number;
 
   @Column({ comment: '车辆分解信息', type: 'json', nullable: true })
-  CarWreckedInfo: {
+  carWreckedInfo: {
     dismantlingLabels: string[];
     extraPartsExtract: string[];
     catalyticConverter: boolean;
