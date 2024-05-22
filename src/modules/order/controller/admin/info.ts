@@ -7,7 +7,6 @@ import { CustomerProfileEntity } from '../../../customer/entity/profile';
 import { CarEntity } from '../../../car/entity/base';
 import { OrderActionEntity } from '../../entity/action';
 import axios from 'axios';
-import * as xml2json from 'xml2json';
 import { CarRegEntity } from '../../../carReg/entity/info';
 import { JobEntity } from '../../../job/entity/info';
 import { startOfDay, endOfDay } from 'date-fns';

@@ -1,0 +1,2577 @@
+commit 5375d111ba09e3d1acaa11f91c4b858c7765a344
+Author: xmqywx <xmqywx@gmail.com>
+Date:   Tue May 21 23:41:04 2024 +0800
+
+    fix fields
+
+diff --git a/src/modules/address/config.ts b/src/modules/address/config.ts
+deleted file mode 100644
+index 1b42ce6..0000000
+--- a/src/modules/address/config.ts
++++ /dev/null
+@@ -1,19 +0,0 @@
+-import { ModuleConfig } from '@cool-midway/core';
+-
+-/**
+- * 模块配置
+- */
+-export default () => {
+-  return {
+-    // 模块名称
+-    name: '地址',
+-    // 模块描述
+-    description: '地址',
+-    // 中间件，只对本模块有效
+-    middlewares: [],
+-    // 中间件，全局有效
+-    globalMiddlewares: [],
+-    // 模块加载顺序，默认为0，值越大越优先加载
+-    order: 0,
+-  } as ModuleConfig;
+-};
+diff --git a/src/modules/address/entity/entity.ts b/src/modules/address/entity/entity.ts
+deleted file mode 100644
+index d4d124d..0000000
+--- a/src/modules/address/entity/entity.ts
++++ /dev/null
+@@ -1,17 +0,0 @@
+-import { EntityModel } from '@midwayjs/orm';
+-import { BaseEntity } from '@cool-midway/core';
+-import { Column } from 'typeorm';
+-
+-/**
+- * 系统用户
+- */
+-@EntityModel('address')
+-export class AddressInfoEntity extends BaseEntity {
+-  @Column({ comment: 'address info' })
+-  info: string;
+-  @Column({ comment: 'address info' })
+-  latitude: string;
+-
+-  @Column({ comment: 'address info' })
+-  longitude: string;
+-}
+diff --git a/src/modules/base/entity/sys/user.ts b/src/modules/base/entity/sys/user.ts
+index d78a892..a407e0a 100644
+--- a/src/modules/base/entity/sys/user.ts
++++ b/src/modules/base/entity/sys/user.ts
+@@ -21,9 +21,6 @@ export class BaseSysUserEntity extends BaseEntity {
+   @Column({ comment: '密码' })
+   password: string;
+ 
+-  @Column({ comment: 'yardID', nullable: true })
+-  yardID: number;
+-
+   @Column({
+     comment: '密码版本, 作用是改完密码，让原来的token失效',
+     default: 1,
+diff --git a/src/modules/base/entity/sys/user_role.ts b/src/modules/base/entity/sys/user_role.ts
+index f0aac46..382dcd1 100644
+--- a/src/modules/base/entity/sys/user_role.ts
++++ b/src/modules/base/entity/sys/user_role.ts
+@@ -12,7 +12,4 @@ export class BaseSysUserRoleEntity extends BaseEntity {
+ 
+   @Column({ comment: '角色ID', type: 'bigint' })
+   roleId: number;
+-
+-  @Column({ comment: 'yardID', nullable: true })
+-  yardID: number;
+ }
+diff --git a/src/modules/base/service/sys/open.ts b/src/modules/base/service/sys/open.ts
+index dc782d1..08ec49f 100644
+--- a/src/modules/base/service/sys/open.ts
++++ b/src/modules/base/service/sys/open.ts
+@@ -115,7 +115,7 @@ export class BaseOpenService extends BaseService {
+                         if (
+                           [
+                             'customerID',
+-                            'CarWreckedInfo',
++                            'carWreckedInfo',
+                             'isVFP',
+                             'createTime',
+                             'updateTime',
+@@ -198,7 +198,7 @@ export class BaseOpenService extends BaseService {
+                               if (
+                                 [
+                                   'customerID',
+-                                  'CarWreckedInfo',
++                                  'carWreckedInfo',
+                                   'isVFP',
+                                   'createTime',
+                                   'updateTime',
+@@ -368,7 +368,7 @@ export class BaseOpenService extends BaseService {
+                 if (
+                   [
+                     'customerID',
+-                    'CarWreckedInfo',
++                    'carWreckedInfo',
+                     'isVFP',
+                     'createTime',
+                     'updateTime',
+@@ -423,7 +423,7 @@ export class BaseOpenService extends BaseService {
+                 if (
+                   [
+                     'customerID',
+-                    'CarWreckedInfo',
++                    'carWreckedInfo',
+                     'isVFP',
+                     'createTime',
+                     'updateTime',
+diff --git a/src/modules/car/entity/base.ts b/src/modules/car/entity/base.ts
+index 4ccec29..fbf0c65 100644
+--- a/src/modules/car/entity/base.ts
++++ b/src/modules/car/entity/base.ts
+@@ -11,43 +11,40 @@ export class CarEntity extends BaseEntity {
+   @Column({ comment: 'Customer ID', nullable: false })
+   customerID: number;
+ 
+-  @Column({ comment: 'yardID', nullable: true })
+-  yardID: number;
+-
+   @ManyToOne(() => CustomerProfileEntity, target => target.car)
+   theCustomer?: Promise<CustomerProfileEntity> | CustomerProfileEntity;
+ 
+-  @Column({ comment: 'Car name', nullable: true, length: 100 })
++  @Column({ comment: 'Car name', nullable: true })
+   name: string;
+ 
+   @Column({ comment: 'year', nullable: true })
+   year: number;
+ 
+-  @Column({ comment: 'brand', length: 25, nullable: true })
++  @Column({ comment: 'brand', nullable: true })
+   brand: string;
+ 
+-  @Column({ comment: 'model', length: 24, nullable: true })
++  @Column({ comment: 'model', nullable: true })
+   model: string;
+ 
+-  @Column({ comment: 'colour', length: 100, nullable: true })
++  @Column({ comment: 'colour', nullable: true })
+   colour: string;
+ 
+   @Column({ comment: 'image', nullable: true })
+   image: string;
+ 
+-  @Column({ comment: 'vinNumber', length: 100, nullable: true })
++  @Column({ comment: 'vinNumber', nullable: true })
+   vinNumber: string;
+ 
+-  @Column({ comment: 'Series', length: 24, nullable: true })
++  @Column({ comment: 'Series', nullable: true })
+   series: string;
+ 
+-  @Column({ comment: 'registrationNumber', length: 24, nullable: true })
++  @Column({ comment: 'registrationNumber', nullable: true })
+   registrationNumber: string;
+ 
+-  @Column({ comment: 'state', length: 24, nullable: true })
++  @Column({ comment: 'state', nullable: true })
+   state: string;
+ 
+-  @Column({ comment: 'body Style', length: 254, nullable: true })
++  @Column({ comment: 'body Style', nullable: true })
+   bodyStyle: string;
+ 
+   @Column({ comment: 'engine', nullable: true })
+@@ -80,7 +77,7 @@ export class CarEntity extends BaseEntity {
+   @Column({ comment: 'TareWeight', nullable: true })
+   tareWeight: number;
+ 
+-  @Column({ comment: 'Car info', nullable: true, length: 10000 })
++  @Column({ comment: 'Car info', nullable: true, type: 'text' })
+   carInfo: string;
+ 
+   /**
+@@ -102,7 +99,7 @@ export class CarEntity extends BaseEntity {
+   departmentId: number;
+ 
+   @Column({ comment: '车辆分解信息', type: 'json', nullable: true })
+-  CarWreckedInfo: {
++  carWreckedInfo: {
+     dismantlingLabels: string[];
+     extraPartsExtract: string[];
+     catalyticConverter: boolean;
+diff --git a/src/modules/car/entity/carWrecked.ts b/src/modules/car/entity/carWrecked.ts
+index d964320..70ce9da 100644
+--- a/src/modules/car/entity/carWrecked.ts
++++ b/src/modules/car/entity/carWrecked.ts
+@@ -90,9 +90,6 @@ export class CarWreckedEntity extends BaseEntity {
+   })
+   rhodium: number;
+ 
+-  @Column({ comment: 'content of components 内容', nullable: true })
+-  contentOfComponents: string;
+-
+   @Column({ comment: 'cc cat type 催化转化器类型 ', nullable: true })
+   catType: string;
+ 
+diff --git a/src/modules/car/service/car.ts b/src/modules/car/service/car.ts
+index 8a37679..698355d 100644
+--- a/src/modules/car/service/car.ts
++++ b/src/modules/car/service/car.ts
+@@ -502,9 +502,9 @@ export class CarBaseService extends BaseService {
+   }
+ 
+   // async getNumber(catalyticConverterNumber) {
+-  //   // CarWreckedInfo catalyticConverterNumber
++  //   // carWreckedInfo catalyticConverterNumber
+   //   const sql = `SELECT * FROM \`car\`
+-  //   WHERE CarWreckedInfo->'$.catalyticConverterNumber' = '${catalyticConverterNumber}';`;
++  //   WHERE carWreckedInfo->'$.catalyticConverterNumber' = '${catalyticConverterNumber}';`;
+   //   const sqlSearch = await this.nativeQuery(sql);
+   //   return sqlSearch;
+   // }
+@@ -512,7 +512,7 @@ export class CarBaseService extends BaseService {
+   async getNumber(catalyticConverterNumber) {
+     // 使用参数化查询来防止SQL注入
+     const sql = `SELECT * FROM car
+-    WHERE JSON_CONTAINS(CarWreckedInfo->'$.infos.activeCarForm.catalyticConverters', 
++    WHERE JSON_CONTAINS(carWreckedInfo->'$.infos.activeCarForm.catalyticConverters', 
+     JSON_OBJECT('catalyticConverterNumber', ?), 
+     '$')`;
+ 
+diff --git a/src/modules/container/controller/admin/base.ts b/src/modules/container/controller/admin/base.ts
+index 2ecd053..1e23ebd 100644
+--- a/src/modules/container/controller/admin/base.ts
++++ b/src/modules/container/controller/admin/base.ts
+@@ -118,42 +118,42 @@ export class CarBaseController extends BaseController {
+     return this.ok(returnData);
+   }
+ 
+-  /**
+-   * 更改container状态
+-   * @param departmentId
+-   * @param createBy
+-   * @param status
+-   * @param containerID
+-   * @param areEnginesComplete
+-   * @param areEnginesRunningWell
+-   * @param anyIssues
+-   * @param issues
+-   * @param statusChangeTime
+-   * @returns
+-   */
+-  @Post('/change_container_status')
+-  async change_container_status(
+-    @Body('departmentId') departmentId: string,
+-    @Body('createBy') createBy: number,
+-    @Body('status') status: number,
+-    @Body('containerID') containerID: number,
+-    @Body('areEnginesComplete') areEnginesComplete: number,
+-    @Body('areEnginesRunningWell') areEnginesRunningWell: number,
+-    @Body('anyIssues') anyIssues: number,
+-    @Body('issues') issues: string,
+-    @Body('statusChangeTime') statusChangeTime: string
+-  ) {
+-    const returnData = await this.containerService.change_container_status({
+-      status,
+-      containerID,
+-      areEnginesComplete,
+-      areEnginesRunningWell,
+-      anyIssues,
+-      statusChangeTime,
+-      issues,
+-    });
+-    return this.ok(returnData);
+-  }
++  // /**
++  //  * 更改container状态
++  //  * @param departmentId
++  //  * @param createBy
++  //  * @param status
++  //  * @param containerID
++  //  * @param areEnginesComplete
++  //  * @param areEnginesRunningWell
++  //  * @param anyIssues
++  //  * @param issues
++  //  * @param statusChangeTime
++  //  * @returns
++  //  */
++  // @Post('/change_container_status')
++  // async change_container_status(
++  //   @Body('departmentId') departmentId: string,
++  //   @Body('createBy') createBy: number,
++  //   @Body('status') status: number,
++  //   @Body('containerID') containerID: number,
++  //   @Body('areEnginesComplete') areEnginesComplete: number,
++  //   @Body('areEnginesRunningWell') areEnginesRunningWell: number,
++  //   @Body('anyIssues') anyIssues: number,
++  //   @Body('issues') issues: string,
++  //   @Body('statusChangeTime') statusChangeTime: string
++  // ) {
++  //   const returnData = await this.containerService.change_container_status({
++  //     status,
++  //     containerID,
++  //     areEnginesComplete,
++  //     areEnginesRunningWell,
++  //     anyIssues,
++  //     statusChangeTime,
++  //     issues,
++  //   });
++  //   return this.ok(returnData);
++  // }
+ 
+   /**
+    * 获取container总价
+diff --git a/src/modules/container/controller/admin/container-logs.ts b/src/modules/container/controller/admin/container-logs.ts
+deleted file mode 100644
+index 1f9fc1f..0000000
+--- a/src/modules/container/controller/admin/container-logs.ts
++++ /dev/null
+@@ -1,14 +0,0 @@
+-import { Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-
+-import { ContainerLogEntity } from '../../entity/container-logs';
+-
+-/**
+- * 图片空间信息
+- */
+-@Provide()
+-@CoolController({
+-  api: ['add', 'delete', 'update', 'info', 'list', 'page'],
+-  entity: ContainerLogEntity,
+-})
+-export class ContainerLogController extends BaseController {}
+diff --git a/src/modules/container/entity/base.ts b/src/modules/container/entity/base.ts
+index 037e94d..99839c0 100644
+--- a/src/modules/container/entity/base.ts
++++ b/src/modules/container/entity/base.ts
+@@ -1,7 +1,6 @@
+ import { EntityModel } from '@midwayjs/orm';
+ import { BaseEntity } from '@cool-midway/core';
+-import { Column, OneToMany } from 'typeorm';
+-import { ContainerLogEntity } from './container-logs';
++import { Column } from 'typeorm';
+ /**
+  * 系统用户
+  */
+@@ -34,9 +33,6 @@ export class ContainerEntity extends BaseEntity {
+   @Column({ comment: 'create by', nullable: true, type: 'tinyint' })
+   createBy: number;
+ 
+-  @OneToMany(type => ContainerLogEntity, log => log.container)
+-  logs: ContainerLogEntity[];
+-
+   @Column({ comment: 'Dispatch location 发出地', length: 255, nullable: true })
+   dispatchLocation: string;
+ 
+@@ -49,10 +45,9 @@ export class ContainerEntity extends BaseEntity {
+ 
+   @Column({
+     comment: 'ETA arrival 到达时间',
+-    type: 'timestamp',
+     nullable: true,
+   })
+-  etaArrival: Date;
++  etaArrival: string;
+ 
+   @Column({ comment: 'Consignee ID 接收人信息', nullable: true })
+   consigneeID: number;
+diff --git a/src/modules/container/entity/container-logs.ts b/src/modules/container/entity/container-logs.ts
+deleted file mode 100644
+index c4920af..0000000
+--- a/src/modules/container/entity/container-logs.ts
++++ /dev/null
+@@ -1,35 +0,0 @@
+-import { EntityModel } from '@midwayjs/orm';
+-import { BaseEntity } from '@cool-midway/core';
+-import { Column,ManyToOne,JoinColumn } from 'typeorm';
+-import { ContainerEntity } from './base';
+-
+-/**
+- * 系统用户
+- */
+-@EntityModel('container_logs')
+-export class ContainerLogEntity extends BaseEntity {
+-  @Column({ comment: 'Container ID', nullable: false})
+-  containerID: number;
+-
+-  @Column({ type: 'tinyint', comment: 'Are engines complete?', nullable: true})
+-  areEnginesComplete: boolean;
+-
+-  @Column({ type: 'tinyint', comment: 'Are engines running well?', nullable: true})
+-  areEnginesRunningWell: boolean;
+-
+-  @Column({ type: 'tinyint',comment: 'Any issues?', nullable: true})
+-  anyIssues: boolean;
+-
+-  @Column({ comment: 'issues', length: 255, nullable: true})
+-  issues: string;
+-
+-  @Column({ comment: 'Status change time', length: 255, nullable: true})
+-  statusChangeTime: string;
+-
+-  @Column({ comment: 'Which status to go to', nullable: true})
+-  statusTo: number;
+-
+-  @ManyToOne(type => ContainerEntity, container => container.logs)
+-  @JoinColumn({name: 'containerID'})
+-  container: ContainerEntity;
+-}
+diff --git a/src/modules/container/service/base.ts b/src/modules/container/service/base.ts
+index 9694f18..770c44c 100644
+--- a/src/modules/container/service/base.ts
++++ b/src/modules/container/service/base.ts
+@@ -4,7 +4,6 @@ import { InjectEntityModel } from '@midwayjs/orm';
+ import { Repository } from 'typeorm';
+ import { ContainerEntity } from '../entity/base';
+ import { CarWreckedEntity } from '../../car/entity/carWrecked';
+-import { ContainerLogEntity } from '../entity/container-logs';
+ import { BuyerEntity } from '../../buyer/entity/base';
+ @Provide()
+ export class ContainerService extends BaseService {
+@@ -14,9 +13,6 @@ export class ContainerService extends BaseService {
+   @InjectEntityModel(CarWreckedEntity)
+   carWreckedEntity: Repository<CarWreckedEntity>;
+ 
+-  @InjectEntityModel(ContainerLogEntity)
+-  containerLogEntity: Repository<ContainerLogEntity>;
+-
+   @InjectEntityModel(BuyerEntity)
+   buyerEntity: Repository<BuyerEntity>;
+ 
+@@ -66,32 +62,6 @@ export class ContainerService extends BaseService {
+     }
+   }
+ 
+-  async change_container_status({
+-    status,
+-    containerID,
+-    areEnginesComplete,
+-    areEnginesRunningWell,
+-    anyIssues,
+-    statusChangeTime,
+-    issues,
+-  }) {
+-    const containerSearchData = await this.containerEntity.findOne({
+-      id: containerID,
+-    });
+-    containerSearchData.status = status;
+-    const saveStatus = await this.containerEntity.save(containerSearchData);
+-    console.log(saveStatus);
+-    this.containerLogEntity.save({
+-      containerID,
+-      areEnginesComplete,
+-      areEnginesRunningWell,
+-      anyIssues,
+-      issues,
+-      statusChangeTime,
+-      statusTo: status,
+-    });
+-  }
+-
+   /**
+    * 获取container导出内容
+    * @param param
+diff --git a/src/modules/customer/entity/profile.ts b/src/modules/customer/entity/profile.ts
+index ea3d6aa..f2cac59 100644
+--- a/src/modules/customer/entity/profile.ts
++++ b/src/modules/customer/entity/profile.ts
+@@ -11,9 +11,6 @@ export class CustomerProfileEntity extends BaseEntity {
+   @Column({ comment: 'user name', length: 100 })
+   firstName: string;
+ 
+-  @Column({ comment: 'yardID', nullable: true })
+-  yardID: number;
+-
+   @Column({ comment: 'surname', nullable: true, length: 100 })
+   surname: string;
+ 
+diff --git a/src/modules/demo/config.ts b/src/modules/demo/config.ts
+deleted file mode 100644
+index a12bf6b..0000000
+--- a/src/modules/demo/config.ts
++++ /dev/null
+@@ -1,22 +0,0 @@
+-import { ModuleConfig } from '@cool-midway/core';
+-import { DemoMiddleware } from './middleware/demo';
+-
+-/**
+- * 模块配置
+- */
+-export default () => {
+-  return {
+-    // 模块名称
+-    name: 'xxx',
+-    // 模块描述
+-    description: 'xxx',
+-    // 中间件，只对本模块有效
+-    middlewares: [DemoMiddleware],
+-    // 中间件，全局有效
+-    globalMiddlewares: [],
+-    // 模块加载顺序，默认为0，值越大越优先加载
+-    order: 0,
+-    // 其他配置
+-    a: 1,
+-  } as ModuleConfig;
+-};
+diff --git a/src/modules/demo/controller/admin/goods.ts b/src/modules/demo/controller/admin/goods.ts
+deleted file mode 100644
+index 7a0b626..0000000
+--- a/src/modules/demo/controller/admin/goods.ts
++++ /dev/null
+@@ -1,11 +0,0 @@
+-import { DemoGoodsEntity } from '../../entity/goods';
+-import { BaseController, CoolController } from '@cool-midway/core';
+-
+-/**
+- * 测试
+- */
+-@CoolController({
+-  api: ['add', 'delete', 'update', 'info', 'page', 'list'],
+-  entity: DemoGoodsEntity,
+-})
+-export class CoolGoodsController extends BaseController {}
+diff --git a/src/modules/demo/controller/app/cache.ts b/src/modules/demo/controller/app/cache.ts
+deleted file mode 100644
+index 5f68b43..0000000
+--- a/src/modules/demo/controller/app/cache.ts
++++ /dev/null
+@@ -1,40 +0,0 @@
+-import { DemoCacheService } from './../../service/cache';
+-import { Inject, Post, Provide, Get } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-import { CacheManager } from '@midwayjs/cache';
+-
+-/**
+- * 缓存
+- */
+-@Provide()
+-@CoolController()
+-export class AppDemoCacheController extends BaseController {
+-  @Inject()
+-  cacheManager: CacheManager;
+-
+-  @Inject()
+-  demoCacheService: DemoCacheService;
+-
+-  /**
+-   * 设置缓存
+-   * @returns
+-   */
+-  @Post('/set')
+-  async set() {
+-    await this.cacheManager.set('a', 1);
+-    // 缓存10秒
+-    await this.cacheManager.set('a', 1, {
+-      ttl: 10,
+-    });
+-    return this.ok(await this.cacheManager.get('a'));
+-  }
+-
+-  /**
+-   * 获得缓存
+-   * @returns
+-   */
+-  @Get('/get')
+-  async get() {
+-    return this.ok(await this.demoCacheService.get());
+-  }
+-}
+diff --git a/src/modules/demo/controller/app/config.ts b/src/modules/demo/controller/app/config.ts
+deleted file mode 100644
+index 61644e2..0000000
+--- a/src/modules/demo/controller/app/config.ts
++++ /dev/null
+@@ -1,18 +0,0 @@
+-import { Config, Get, Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-
+-/**
+- * 配置
+- */
+-@Provide()
+-@CoolController()
+-export class DemoConfigController extends BaseController {
+-  //获得模块配置，格式： module.模块名，模块文件夹名称，如demo
+-  @Config('module.demo')
+-  demoConfig;
+-
+-  @Get('/get')
+-  async get() {
+-    return this.ok(this.demoConfig);
+-  }
+-}
+diff --git a/src/modules/demo/controller/app/es.ts b/src/modules/demo/controller/app/es.ts
+deleted file mode 100644
+index f171bca..0000000
+--- a/src/modules/demo/controller/app/es.ts
++++ /dev/null
+@@ -1,29 +0,0 @@
+-import { Inject, Post, Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-import { TestEsIndex } from '../../es/test';
+-import { CoolElasticSearch } from '@cool-midway/es';
+-
+-/**
+- * elasticsearch
+- */
+-@Provide()
+-@CoolController()
+-export class AppDemoEsController extends BaseController {
+-  @Inject()
+-  testEsIndex: TestEsIndex;
+-
+-  @Inject()
+-  es: CoolElasticSearch;
+-
+-  @Post('/test')
+-  async test() {
+-    // es 客户端实例
+-    this.es.client;
+-    // 新增与修改
+-    await this.testEsIndex.upsert({
+-      name: '你好啊你是谁',
+-      age: 18,
+-    });
+-    return this.ok(await this.testEsIndex.find());
+-  }
+-}
+diff --git a/src/modules/demo/controller/app/event.ts b/src/modules/demo/controller/app/event.ts
+deleted file mode 100644
+index 34d6add..0000000
+--- a/src/modules/demo/controller/app/event.ts
++++ /dev/null
+@@ -1,22 +0,0 @@
+-import { Inject, Post, Provide } from '@midwayjs/decorator';
+-import {
+-  CoolController,
+-  BaseController,
+-  CoolEventManager,
+-} from '@cool-midway/core';
+-
+-/**
+- * 事件
+- */
+-@Provide()
+-@CoolController()
+-export class AppDemoEventController extends BaseController {
+-  @Inject()
+-  coolEventManager: CoolEventManager;
+-
+-  @Post('/send')
+-  async send() {
+-    await this.coolEventManager.emit('demo', { a: 1 }, 1);
+-    return this.ok();
+-  }
+-}
+diff --git a/src/modules/demo/controller/app/file.ts b/src/modules/demo/controller/app/file.ts
+deleted file mode 100644
+index 8ce2a83..0000000
+--- a/src/modules/demo/controller/app/file.ts
++++ /dev/null
+@@ -1,34 +0,0 @@
+-import { Get, Inject, Post, Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-import { Context } from 'koa';
+-import { CoolFile } from '@cool-midway/file';
+-
+-/**
+- * 文件上传
+- */
+-@Provide()
+-@CoolController()
+-export class AppDemoFileController extends BaseController {
+-  @Inject()
+-  ctx: Context;
+-
+-  @Inject()
+-  file: CoolFile;
+-
+-  @Post('/upload', { summary: '文件上传' })
+-  async uplod() {
+-    return this.ok(await this.file.upload(this.ctx));
+-  }
+-
+-  @Get('/uploadMode', { summary: '获得上传模式' })
+-  async uploadMode() {
+-    return this.ok(await this.file.getMode());
+-  }
+-
+-  @Post('/downAndUpload', { summary: '下载并上传' })
+-  async downAndUpload() {
+-    return this.ok(
+-      await this.file.downAndUpload('https://cool-js.com/admin/show.png')
+-    );
+-  }
+-}
+diff --git a/src/modules/demo/controller/app/goods.ts b/src/modules/demo/controller/app/goods.ts
+deleted file mode 100644
+index 7935ca0..0000000
+--- a/src/modules/demo/controller/app/goods.ts
++++ /dev/null
+@@ -1,13 +0,0 @@
+-import { DemoGoodsEntity } from '../../entity/goods';
+-import { BaseController, CoolController } from '@cool-midway/core';
+-import { DemoGoodsService } from '../../service/goods';
+-
+-/**
+- * 测试
+- */
+-@CoolController({
+-  api: ['add', 'delete', 'update', 'info', 'page', 'list'],
+-  entity: DemoGoodsEntity,
+-  service: DemoGoodsService,
+-})
+-export class CoolGoodsController extends BaseController {}
+diff --git a/src/modules/demo/controller/app/pay.ts b/src/modules/demo/controller/app/pay.ts
+deleted file mode 100644
+index f0cc784..0000000
+--- a/src/modules/demo/controller/app/pay.ts
++++ /dev/null
+@@ -1,108 +0,0 @@
+-import { ALL, App, Body, Inject, Post, Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-import { CoolWxPay, CoolAliPay } from '@cool-midway/pay';
+-import { parseString } from 'xml2js';
+-import { Context } from '@midwayjs/koa';
+-import { IMidwayApplication } from '@midwayjs/core';
+-
+-/**
+- * 支付示例
+- */
+-@Provide()
+-@CoolController()
+-export class DemoPayController extends BaseController {
+-  // 微信支付
+-  @Inject()
+-  wxPay: CoolWxPay;
+-
+-  // 支付宝支付
+-  @Inject()
+-  aliPay: CoolAliPay;
+-
+-  @Inject()
+-  ctx: Context;
+-
+-  @App()
+-  app: IMidwayApplication;
+-
+-  /**
+-   * 微信扫码支付
+-   */
+-  @Post('/wx')
+-  async wx() {
+-    const orderNum = await this.wxPay.createOrderNum();
+-    const data = await this.wxPay.getInstance().unifiedOrder({
+-      out_trade_no: orderNum,
+-      body: '测试微信支付',
+-      total_fee: 1,
+-      trade_type: 'NATIVE',
+-      product_id: 'test001',
+-    });
+-    return this.ok(data);
+-  }
+-
+-  /**
+-   * 微信支付通知回调
+-   */
+-  @Post('/wxNotify')
+-  async wxNotify() {
+-    let data = '';
+-    this.ctx.req.setEncoding('utf8');
+-    this.ctx.req.on('data', chunk => {
+-      data += chunk;
+-    });
+-    const results = await new Promise((resolve, reject) => {
+-      this.ctx.req.on('end', () => {
+-        parseString(data, { explicitArray: false }, async (err, json) => {
+-          if (err) {
+-            return reject('success');
+-          }
+-          const checkSign = await this.wxPay.signVerify(json.xml);
+-          if (checkSign && json.xml.result_code === 'SUCCESS') {
+-            // 处理业务逻辑
+-            console.log('微信支付成功', json.xml);
+-            return resolve(true);
+-          }
+-          return resolve(false);
+-        });
+-      });
+-    });
+-    if (results) {
+-      this.ctx.body =
+-        '<xml><return_msg>OK</return_msg><return_code>SUCCESS</return_code></xml>';
+-    }
+-  }
+-
+-  /**
+-   * 支付宝app支付
+-   * @returns
+-   */
+-  @Post('/alipay')
+-  async alipay() {
+-    const orderNum = await this.aliPay.createOrderNum();
+-    // app支付
+-    const params = await this.aliPay.getInstance().appPay({
+-      subject: '测试商品',
+-      body: '测试商品描述',
+-      outTradeId: orderNum,
+-      timeout: '10m',
+-      amount: '10.00',
+-      goodsType: '0',
+-    });
+-    return this.ok(params);
+-  }
+-
+-  /**
+-   * 支付宝支付回调
+-   */
+-  @Post('/aliNotify')
+-  async aliNotify(@Body(ALL) body: any) {
+-    const { trade_status, out_trade_no } = body;
+-    const check = await this.aliPay.signVerify(body);
+-    if (check && trade_status === 'TRADE_SUCCESS') {
+-      // 处理逻辑
+-      console.log('支付宝支付成功', out_trade_no);
+-    }
+-    this.ctx.body = 'success';
+-  }
+-}
+diff --git a/src/modules/demo/controller/app/queue.ts b/src/modules/demo/controller/app/queue.ts
+deleted file mode 100644
+index 230ae16..0000000
+--- a/src/modules/demo/controller/app/queue.ts
++++ /dev/null
+@@ -1,50 +0,0 @@
+-import { Get, Inject, Post, Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-import { DemoCommQueue } from '../../queue/comm';
+-import { DemoGetterQueue } from '../../queue/getter';
+-
+-/**
+- * 队列
+- */
+-@Provide()
+-@CoolController()
+-export class DemoQueueController extends BaseController {
+-  // 普通队列
+-  @Inject()
+-  demoCommQueue: DemoCommQueue;
+-
+-  // 主动消费队列
+-  @Inject()
+-  demoGetterQueue: DemoGetterQueue;
+-
+-  /**
+-   * 发送数据到队列
+-   */
+-  @Post('/add', { summary: '发送队列数据' })
+-  async queue() {
+-    this.demoCommQueue.add({ a: 2 });
+-    return this.ok();
+-  }
+-
+-  @Post('/addGetter')
+-  async addGetter() {
+-    await this.demoGetterQueue.add({ a: new Date() });
+-    return this.ok();
+-  }
+-
+-  /**
+-   * 获得队列中的数据，只有当队列类型为getter时有效
+-   */
+-  @Get('/getter')
+-  async getter() {
+-    const job = await this.demoGetterQueue.getters.getJobs(
+-      ['wait'],
+-      0,
+-      0,
+-      true
+-    );
+-    // 获得完将数据从队列移除
+-    await job[0]?.remove();
+-    return this.ok(job[0]?.data);
+-  }
+-}
+diff --git a/src/modules/demo/controller/app/rpc.ts b/src/modules/demo/controller/app/rpc.ts
+deleted file mode 100644
+index ef01f13..0000000
+--- a/src/modules/demo/controller/app/rpc.ts
++++ /dev/null
+@@ -1,36 +0,0 @@
+-import { Inject, Post, Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-import { CoolRpc } from '@cool-midway/rpc';
+-import { DemoRpcService } from '../../service/rpc';
+-
+-/**
+- * 微服务
+- */
+-@Provide()
+-@CoolController()
+-export class DemoRpcController extends BaseController {
+-  @Inject()
+-  rpc: CoolRpc;
+-
+-  @Inject()
+-  demoRpcService: DemoRpcService;
+-
+-  @Post('/call', { summary: '远程调用' })
+-  async call() {
+-    return this.ok(
+-      await this.rpc.call('goods', 'demoGoodsService', 'test', { a: 1 })
+-    );
+-  }
+-
+-  @Post('/event', { summary: '集群事件' })
+-  async event() {
+-    this.rpc.broadcastEvent('test', { a: 1 });
+-    return this.ok();
+-  }
+-
+-  @Post('/transaction', { summary: '分布式事务' })
+-  async transaction() {
+-    await this.demoRpcService.transaction({ a: 1 });
+-    return this.ok();
+-  }
+-}
+diff --git a/src/modules/demo/controller/app/swagger.ts b/src/modules/demo/controller/app/swagger.ts
+deleted file mode 100644
+index 2d967c0..0000000
+--- a/src/modules/demo/controller/app/swagger.ts
++++ /dev/null
+@@ -1,16 +0,0 @@
+-import { Param, Post, Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-
+-/**
+- * swagger 文档
+- */
+-@Provide()
+-@CoolController(null, {
+-  tagName: 'swagger demo',
+-})
+-export class AppSwaggerController extends BaseController {
+-  @Post('/create', { summary: '创建' })
+-  async create(@Param('id') id: number) {
+-    return this.ok(id);
+-  }
+-}
+diff --git a/src/modules/demo/controller/app/tag.ts b/src/modules/demo/controller/app/tag.ts
+deleted file mode 100644
+index 841b91b..0000000
+--- a/src/modules/demo/controller/app/tag.ts
++++ /dev/null
+@@ -1,35 +0,0 @@
+-import { Get, Inject, Provide } from '@midwayjs/decorator';
+-import {
+-  CoolController,
+-  BaseController,
+-  CoolUrlTag,
+-  TagTypes,
+-  CoolUrlTagData,
+-} from '@cool-midway/core';
+-
+-/**
+- * 测试给URL打标签
+- */
+-@Provide()
+-@CoolController({
+-  api: [],
+-  entity: '',
+-  pageQueryOp: () => {},
+-})
+-@CoolUrlTag({
+-  key: TagTypes.IGNORE_TOKEN,
+-  value: ['add'],
+-})
+-export class DemoAppTagController extends BaseController {
+-  @Inject()
+-  tag: CoolUrlTagData;
+-
+-  /**
+-   * 获得标签数据， 如可以标记忽略token的url，然后在中间件判断
+-   * @returns
+-   */
+-  @Get('/data')
+-  async data() {
+-    return this.ok(this.tag.byKey(TagTypes.IGNORE_TOKEN));
+-  }
+-}
+diff --git a/src/modules/demo/entity/goods-test.ts b/src/modules/demo/entity/goods-test.ts
+deleted file mode 100644
+index e679294..0000000
+--- a/src/modules/demo/entity/goods-test.ts
++++ /dev/null
+@@ -1,23 +0,0 @@
+-// import { EntityModel } from '@midwayjs/orm';
+-// import { BaseEntity } from '@cool-midway/core';
+-// import { Column } from 'typeorm';
+-
+-// /**
+-//  * 商品(多数据库连接)
+-//  */
+-// @EntityModel('demo_goods_1', {
+-//   connectionName: 'test',
+-// })
+-// export class DemoGoodsTestEntity extends BaseEntity {
+-//   @Column({ comment: '标题' })
+-//   title: string;
+-
+-//   @Column({ comment: '图片' })
+-//   pic: string;
+-
+-//   @Column({ comment: '价格', type: 'decimal', precision: 5, scale: 2 })
+-//   price: number;
+-
+-//   @Column({ comment: '分类', type: 'tinyint', default: 0 })
+-//   type: number;
+-// }
+diff --git a/src/modules/demo/entity/goods.ts b/src/modules/demo/entity/goods.ts
+deleted file mode 100644
+index 30632ee..0000000
+--- a/src/modules/demo/entity/goods.ts
++++ /dev/null
+@@ -1,21 +0,0 @@
+-import { EntityModel } from '@midwayjs/orm';
+-import { BaseEntity } from '@cool-midway/core';
+-import { Column } from 'typeorm';
+-
+-/**
+- * 商品
+- */
+-@EntityModel('demo_goods')
+-export class DemoGoodsEntity extends BaseEntity {
+-  @Column({ comment: '标题' })
+-  title: string;
+-
+-  @Column({ comment: '图片' })
+-  pic: string;
+-
+-  @Column({ comment: '价格', type: 'decimal', precision: 5, scale: 2 })
+-  price: number;
+-
+-  @Column({ comment: '分类 0-衣服 1-鞋子 2-裤子', type: 'tinyint', default: 0 })
+-  type: number;
+-}
+diff --git a/src/modules/demo/es/test.ts b/src/modules/demo/es/test.ts
+deleted file mode 100644
+index 1fcc014..0000000
+--- a/src/modules/demo/es/test.ts
++++ /dev/null
+@@ -1,26 +0,0 @@
+-import { CoolEsIndex, ICoolEs, BaseEsIndex } from '@cool-midway/es';
+-
+-/**
+- * 测试索引
+- */
+-@CoolEsIndex({ name: 'test', replicas: 0 })
+-export class TestEsIndex extends BaseEsIndex implements ICoolEs {
+-  indexInfo() {
+-    return {
+-      // 需要安装ik分词器 https://github.com/medcl/elasticsearch-analysis-ik
+-      name: {
+-        type: 'text',
+-        analyzer: 'ik_max_word',
+-        search_analyzer: 'ik_max_word',
+-        fields: {
+-          raw: {
+-            type: 'keyword',
+-          },
+-        },
+-      },
+-      age: {
+-        type: 'long',
+-      },
+-    };
+-  }
+-}
+diff --git a/src/modules/demo/event/demo.ts b/src/modules/demo/event/demo.ts
+deleted file mode 100644
+index 8aff92a..0000000
+--- a/src/modules/demo/event/demo.ts
++++ /dev/null
+@@ -1,17 +0,0 @@
+-import { CoolEvent, Event } from '@cool-midway/core';
+-
+-/**
+- * 接收事件
+- */
+-@CoolEvent()
+-export class DemoEvent {
+-  /**
+-   * 根据事件名接收事件
+-   * @param msg
+-   * @param a
+-   */
+-  @Event('demo')
+-  async updatdemoeUser(msg, a) {
+-    console.log('收到消息', msg, a);
+-  }
+-}
+diff --git a/src/modules/demo/middleware/demo.ts b/src/modules/demo/middleware/demo.ts
+deleted file mode 100644
+index a19ec9c..0000000
+--- a/src/modules/demo/middleware/demo.ts
++++ /dev/null
+@@ -1,28 +0,0 @@
+-import { CoolUrlTagData, TagTypes } from '@cool-midway/core';
+-import { IMiddleware } from '@midwayjs/core';
+-import { Inject, Middleware } from '@midwayjs/decorator';
+-import { NextFunction, Context } from '@midwayjs/koa';
+-
+-@Middleware()
+-export class DemoMiddleware implements IMiddleware<Context, NextFunction> {
+-  @Inject()
+-  tag: CoolUrlTagData;
+-
+-  resolve() {
+-    return async (ctx: Context, next: NextFunction) => {
+-      const urls = this.tag.byKey(TagTypes.IGNORE_TOKEN);
+-
+-      console.log('忽略token的URL数组', urls);
+-
+-      // 控制器前执行的逻辑
+-      const startTime = Date.now();
+-      // 执行下一个 Web 中间件，最后执行到控制器
+-      // 这里可以拿到下一个中间件或者控制器的返回值
+-      const result = await next();
+-      // 控制器之后执行的逻辑
+-      console.log(Date.now() - startTime);
+-      // 返回给上一个中间件的结果
+-      return result;
+-    };
+-  }
+-}
+diff --git a/src/modules/demo/queue/comm.ts b/src/modules/demo/queue/comm.ts
+deleted file mode 100644
+index 7bb9134..0000000
+--- a/src/modules/demo/queue/comm.ts
++++ /dev/null
+@@ -1,20 +0,0 @@
+-import { BaseCoolQueue, CoolQueue } from '@cool-midway/task';
+-import { IMidwayApplication } from '@midwayjs/core';
+-import { App } from '@midwayjs/decorator';
+-
+-/**
+- * 普通队列
+- */
+-@CoolQueue()
+-export class DemoCommQueue extends BaseCoolQueue {
+-  @App()
+-  app: IMidwayApplication;
+-
+-  async data(job: any, done: any): Promise<void> {
+-    // 这边可以执行定时任务具体的业务或队列的业务
+-    console.log('数据', job.data);
+-    // 抛出错误 可以让队列重试，默认重试5次
+-    //throw new Error('错误');
+-    done();
+-  }
+-}
+diff --git a/src/modules/demo/queue/getter.ts b/src/modules/demo/queue/getter.ts
+deleted file mode 100644
+index 8da42c9..0000000
+--- a/src/modules/demo/queue/getter.ts
++++ /dev/null
+@@ -1,7 +0,0 @@
+-import { BaseCoolQueue, CoolQueue } from '@cool-midway/task';
+-
+-/**
+- * 主动消费队列
+- */
+-@CoolQueue({ type: 'getter' })
+-export class DemoGetterQueue extends BaseCoolQueue {}
+diff --git a/src/modules/demo/service/cache.ts b/src/modules/demo/service/cache.ts
+deleted file mode 100644
+index 01d3de8..0000000
+--- a/src/modules/demo/service/cache.ts
++++ /dev/null
+@@ -1,18 +0,0 @@
+-import { Provide } from '@midwayjs/decorator';
+-import { CoolCache } from '@cool-midway/core';
+-
+-/**
+- * 缓存
+- */
+-@Provide()
+-export class DemoCacheService {
+-  // 数据缓存5秒
+-  @CoolCache(5)
+-  async get() {
+-    console.log('执行方法');
+-    return {
+-      a: 1,
+-      b: 2,
+-    };
+-  }
+-}
+diff --git a/src/modules/demo/service/goods.ts b/src/modules/demo/service/goods.ts
+deleted file mode 100644
+index eaf324e..0000000
+--- a/src/modules/demo/service/goods.ts
++++ /dev/null
+@@ -1,12 +0,0 @@
+-import { Provide } from '@midwayjs/decorator';
+-import { BaseService } from '@cool-midway/core';
+-
+-/**
+- * 缓存
+- */
+-@Provide()
+-export class DemoGoodsService extends BaseService {
+-  async test() {
+-    console.log('调用');
+-  }
+-}
+diff --git a/src/modules/demo/service/rpc.ts b/src/modules/demo/service/rpc.ts
+deleted file mode 100644
+index 4268966..0000000
+--- a/src/modules/demo/service/rpc.ts
++++ /dev/null
+@@ -1,59 +0,0 @@
+-import { App, Inject, Provide } from '@midwayjs/decorator';
+-import { DemoGoodsEntity } from '../entity/goods';
+-import { IMidwayApplication } from '@midwayjs/core';
+-import {
+-  BaseRpcService,
+-  CoolRpc,
+-  CoolRpcService,
+-  CoolRpcTransaction,
+-} from '@cool-midway/rpc';
+-import { QueryRunner } from 'typeorm';
+-
+-@Provide()
+-@CoolRpcService({
+-  entity: DemoGoodsEntity,
+-  method: ['info', 'add', 'page'],
+-})
+-export class DemoRpcService extends BaseRpcService {
+-  @App()
+-  app: IMidwayApplication;
+-
+-  @Inject()
+-  rpc: CoolRpc;
+-
+-  /**
+-   * 分布式事务
+-   * @param params 方法参数
+-   * @param rpcTransactionId 无需调用者传参， 本次事务的ID，ID会自动注入无需调用者传参
+-   * @param queryRunner 无需调用者传参，操作数据库，需要用queryRunner操作数据库，才能统一提交或回滚事务
+-   */
+-  // 注解启用分布式事务，参数可以指定事务类型
+-  @CoolRpcTransaction()
+-  async transaction(params, rpcTransactionId?, queryRunner?: QueryRunner) {
+-    console.log('获得的参数', params);
+-    const data = {
+-      title: '商品标题',
+-      pic: 'https://xxx',
+-      price: 99.0,
+-      type: 1,
+-    };
+-    await queryRunner.manager.save(DemoGoodsEntity, data);
+-
+-    // 将事务id传给调用的远程服务方法
+-    await this.rpc.call('goods', 'demoGoodsService', 'transaction', {
+-      rpcTransactionId,
+-    });
+-  }
+-
+-  async info(params) {
+-    return params;
+-  }
+-  async getUser() {
+-    return {
+-      uid: '123',
+-      username: 'mockedName',
+-      phone: '12345678901',
+-      email: 'xxx.xxx@xxx.com',
+-    };
+-  }
+-}
+diff --git a/src/modules/demo/socket/hello.ts b/src/modules/demo/socket/hello.ts
+deleted file mode 100644
+index 9260d74..0000000
+--- a/src/modules/demo/socket/hello.ts
++++ /dev/null
+@@ -1,27 +0,0 @@
+-import {
+-  WSController,
+-  OnWSConnection,
+-  Inject,
+-  OnWSMessage,
+-} from '@midwayjs/decorator';
+-import { Context } from '@midwayjs/socketio';
+-/**
+- * 测试
+- */
+-@WSController('/')
+-export class HelloController {
+-  @Inject()
+-  ctx: Context;
+-
+-  @OnWSConnection()
+-  async onConnectionMethod() {
+-    console.log('on client connect', this.ctx.id);
+-    console.log('参数', this.ctx.handshake.query);
+-    this.ctx.emit('data', '连接成功');
+-  }
+-
+-  @OnWSMessage('myEvent')
+-  async gotMessage(data) {
+-    console.log('on data got', this.ctx.id, data);
+-  }
+-}
+diff --git a/src/modules/dict/config.ts b/src/modules/dict/config.ts
+deleted file mode 100644
+index c0f21f7..0000000
+--- a/src/modules/dict/config.ts
++++ /dev/null
+@@ -1,19 +0,0 @@
+-import { ModuleConfig } from '@cool-midway/core';
+-
+-/**
+- * 模块配置
+- */
+-export default () => {
+-  return {
+-    // 模块名称
+-    name: '信息管理',
+-    // 模块描述
+-    description: '信息管理模块，主要管理数据字典等',
+-    // 中间件，只对本模块有效
+-    middlewares: [],
+-    // 中间件，全局有效
+-    globalMiddlewares: [],
+-    // 模块加载顺序，默认为0，值越大越优先加载
+-    order: 0,
+-  } as ModuleConfig;
+-};
+diff --git a/src/modules/dict/controller/admin/info.ts b/src/modules/dict/controller/admin/info.ts
+deleted file mode 100644
+index ebe684a..0000000
+--- a/src/modules/dict/controller/admin/info.ts
++++ /dev/null
+@@ -1,30 +0,0 @@
+-import { DictInfoEntity } from './../../entity/info';
+-import { Body, Inject, Post, Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-import { DictInfoService } from '../../service/info';
+-
+-/**
+- * 字典信息
+- */
+-@Provide()
+-@CoolController({
+-  api: ['add', 'delete', 'update', 'info', 'list', 'page'],
+-  entity: DictInfoEntity,
+-  service: DictInfoService,
+-  listQueryOp: {
+-    fieldEq: ['typeId'],
+-    keyWordLikeFields: ['name'],
+-    addOrderBy: {
+-      createTime: 'ASC',
+-    },
+-  },
+-})
+-export class AdminDictInfoController extends BaseController {
+-  @Inject()
+-  dictInfoService: DictInfoService;
+-
+-  @Post('/data', { summary: '获得字典数据' })
+-  async data(@Body('types') types: string[] = []) {
+-    return this.ok(await this.dictInfoService.data(types));
+-  }
+-}
+diff --git a/src/modules/dict/controller/admin/type.ts b/src/modules/dict/controller/admin/type.ts
+deleted file mode 100644
+index e31cdd8..0000000
+--- a/src/modules/dict/controller/admin/type.ts
++++ /dev/null
+@@ -1,18 +0,0 @@
+-import { DictTypeEntity } from './../../entity/type';
+-import { Provide } from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-import { DictTypeService } from '../../service/type';
+-
+-/**
+- * 字典类型
+- */
+-@Provide()
+-@CoolController({
+-  api: ['add', 'delete', 'update', 'info', 'list', 'page'],
+-  entity: DictTypeEntity,
+-  service: DictTypeService,
+-  listQueryOp: {
+-    keyWordLikeFields: ['name'],
+-  },
+-})
+-export class AdminDictTypeController extends BaseController {}
+diff --git a/src/modules/dict/controller/app/info.ts b/src/modules/dict/controller/app/info.ts
+deleted file mode 100644
+index aa8b9e9..0000000
+--- a/src/modules/dict/controller/app/info.ts
++++ /dev/null
+@@ -1,27 +0,0 @@
+-import { Body, Inject, Post, Provide } from '@midwayjs/decorator';
+-import {
+-  CoolController,
+-  BaseController,
+-  CoolUrlTag,
+-  TagTypes,
+-} from '@cool-midway/core';
+-import { DictInfoService } from '../../service/info';
+-
+-/**
+- * 字典信息
+- */
+-@Provide()
+-@CoolController()
+-@CoolUrlTag({
+-  key: TagTypes.IGNORE_TOKEN,
+-  value: ['data'],
+-})
+-export class AppDictInfoController extends BaseController {
+-  @Inject()
+-  dictInfoService: DictInfoService;
+-
+-  @Post('/data', { summary: '获得字典数据' })
+-  async data(@Body('types') types: string[] = []) {
+-    return this.ok(await this.dictInfoService.data(types));
+-  }
+-}
+diff --git a/src/modules/dict/entity/info.ts b/src/modules/dict/entity/info.ts
+deleted file mode 100644
+index 7af27c1..0000000
+--- a/src/modules/dict/entity/info.ts
++++ /dev/null
+@@ -1,24 +0,0 @@
+-import { EntityModel } from '@midwayjs/orm';
+-import { BaseEntity } from '@cool-midway/core';
+-import { Column } from 'typeorm';
+-
+-/**
+- * 字典信息
+- */
+-@EntityModel('dict_info')
+-export class DictInfoEntity extends BaseEntity {
+-  @Column({ comment: '类型ID' })
+-  typeId: number;
+-
+-  @Column({ comment: '名称' })
+-  name: string;
+-
+-  @Column({ comment: '排序', default: 0 })
+-  orderNum: number;
+-
+-  @Column({ comment: '备注', nullable: true })
+-  remark: string;
+-
+-  @Column({ comment: '父ID', default: null })
+-  parentId: number;
+-}
+diff --git a/src/modules/dict/entity/type.ts b/src/modules/dict/entity/type.ts
+deleted file mode 100644
+index 61b3006..0000000
+--- a/src/modules/dict/entity/type.ts
++++ /dev/null
+@@ -1,15 +0,0 @@
+-import { EntityModel } from '@midwayjs/orm';
+-import { BaseEntity } from '@cool-midway/core';
+-import { Column } from 'typeorm';
+-
+-/**
+- * 字典类别
+- */
+-@EntityModel('dict_type')
+-export class DictTypeEntity extends BaseEntity {
+-  @Column({ comment: '名称' })
+-  name: string;
+-
+-  @Column({ comment: '标识' })
+-  key: string;
+-}
+diff --git a/src/modules/dict/init.sql b/src/modules/dict/init.sql
+deleted file mode 100644
+index b90b582..0000000
+--- a/src/modules/dict/init.sql
++++ /dev/null
+@@ -1,69 +0,0 @@
+-BEGIN;
+-INSERT INTO `base_sys_menu` VALUES (197, '2022-07-05 16:05:27.403000', '2022-07-05 16:15:16.025000', NULL, '字典管理', NULL, NULL, 0, 'icon-log', 3, NULL, 1, 1);
+-INSERT INTO `base_sys_menu` VALUES (198, '2022-07-05 16:08:50.307000', '2022-07-05 16:14:13.196000', 197, '字典列表', '/dict/list', NULL, 1, 'icon-menu', 1, 'modules/dict/views/list.vue', 1, 1);
+-INSERT INTO `base_sys_menu` VALUES (199, '2022-07-05 16:08:50.748162', '2022-07-05 16:08:50.748162', 198, '删除', NULL, 'dict:info:delete', 2, NULL, 0, NULL, 1, 1);
+-INSERT INTO `base_sys_menu` VALUES (200, '2022-07-05 16:08:50.800623', '2022-07-05 16:08:50.800623', 198, '修改', NULL, 'dict:info:update,dict:info:info', 2, NULL, 0, NULL, 1, 1);
+-INSERT INTO `base_sys_menu` VALUES (201, '2022-07-05 16:08:50.859141', '2022-07-05 16:08:50.859141', 198, '获得字典数据', NULL, 'dict:info:data', 2, NULL, 0, NULL, 1, 1);
+-INSERT INTO `base_sys_menu` VALUES (202, '2022-07-05 16:08:50.916874', '2022-07-05 16:08:50.916874', 198, '单个信息', NULL, 'dict:info:info', 2, NULL, 0, NULL, 1, 1);
+-INSERT INTO `base_sys_menu` VALUES (203, '2022-07-05 16:08:50.972783', '2022-07-05 16:08:50.972783', 198, '列表查询', NULL, 'dict:info:list', 2, NULL, 0, NULL, 1, 1);
+-INSERT INTO `base_sys_menu` VALUES (204, '2022-07-05 16:08:51.030928', '2022-07-05 16:08:51.030928', 198, '分页查询', NULL, 'dict:info:page', 2, NULL, 0, NULL, 1, 1);
+-INSERT INTO `base_sys_menu` VALUES (205, '2022-07-05 16:08:51.087883', '2022-07-05 16:08:51.087883', 198, '新增', NULL, 'dict:info:add', 2, NULL, 0, NULL, 1, 1);
+-INSERT INTO `base_sys_menu` VALUES (206, '2022-07-06 10:41:26.503000', '2022-07-06 10:41:37.000000', 198, '组权限', NULL, 'dict:type:list,dict:type:update,dict:type:delete,dict:type:add', 2, NULL, 0, NULL, 1, 1);
+-COMMIT;
+-
+-SET NAMES utf8mb4;
+-SET FOREIGN_KEY_CHECKS = 0;
+-
+--- ----------------------------
+--- Table structure for dict_info
+--- ----------------------------
+-DROP TABLE IF EXISTS `dict_info`;
+-CREATE TABLE `dict_info` (
+-  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+-  `createTime` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
+-  `updateTime` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
+-  `typeId` int NOT NULL COMMENT '类型ID',
+-  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
+-  `orderNum` int NOT NULL DEFAULT '0' COMMENT '排序',
+-  `remark` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '备注',
+-  `parentId` int COMMENT '父ID',
+-  PRIMARY KEY (`id`),
+-  KEY `IDX_5c311a4af30de1181a5d7a7cc2` (`createTime`),
+-  KEY `IDX_10362a62adbf120821fff209d8` (`updateTime`)
+-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+-
+--- ----------------------------
+--- Records of dict_info
+--- ----------------------------
+-BEGIN;
+-INSERT INTO `dict_info` VALUES (1, '2022-07-06 14:18:53.841000', '2022-07-06 14:19:10.954000', 1, '衣服', 2, NULL, NULL);
+-INSERT INTO `dict_info` VALUES (2, '2022-07-06 14:18:59.834000', '2022-07-06 14:18:59.834000', 1, '裤子', 1, NULL, NULL);
+-INSERT INTO `dict_info` VALUES (3, '2022-07-06 14:19:03.993000', '2022-07-06 14:19:15.251000', 1, '鞋子', 3, NULL, NULL);
+-INSERT INTO `dict_info` VALUES (4, '2022-07-06 14:21:47.122000', '2022-07-06 14:22:26.131000', 2, '闪酷', 2, NULL, NULL);
+-INSERT INTO `dict_info` VALUES (5, '2022-07-06 14:22:18.309000', '2022-07-06 14:22:18.309000', 2, 'COOL', 1, NULL, NULL);
+-COMMIT;
+-
+--- ----------------------------
+--- Table structure for dict_type
+--- ----------------------------
+-DROP TABLE IF EXISTS `dict_type`;
+-CREATE TABLE `dict_type` (
+-  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+-  `createTime` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
+-  `updateTime` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
+-  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
+-  `key` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT '标识',
+-  PRIMARY KEY (`id`),
+-  KEY `IDX_69734e5c2d29cc2139d5078f2c` (`createTime`),
+-  KEY `IDX_6cccb2e33846cd354e8dc0e0ef` (`updateTime`)
+-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+-
+--- ----------------------------
+--- Records of dict_type
+--- ----------------------------
+-BEGIN;
+-INSERT INTO `dict_type` VALUES (1, '2022-07-06 14:18:41.879000', '2022-07-06 14:18:41.879000', '类别', 'type');
+-INSERT INTO `dict_type` VALUES (2, '2022-07-06 14:21:33.778000', '2022-07-06 14:21:33.778000', '品牌', 'brand');
+-COMMIT;
+-
+-SET FOREIGN_KEY_CHECKS = 1;
+\ No newline at end of file
+diff --git a/src/modules/dict/service/info.ts b/src/modules/dict/service/info.ts
+deleted file mode 100644
+index 0c396a7..0000000
+--- a/src/modules/dict/service/info.ts
++++ /dev/null
+@@ -1,103 +0,0 @@
+-import { DictTypeEntity } from './../entity/type';
+-import { DictInfoEntity } from './../entity/info';
+-import { Provide } from '@midwayjs/decorator';
+-import { BaseService } from '@cool-midway/core';
+-import { InjectEntityModel } from '@midwayjs/orm';
+-import { Repository, In } from 'typeorm';
+-import * as _ from 'lodash';
+-
+-/**
+- * 字典信息
+- */
+-@Provide()
+-export class DictInfoService extends BaseService {
+-  @InjectEntityModel(DictInfoEntity)
+-  dictInfoEntity: Repository<DictInfoEntity>;
+-
+-  @InjectEntityModel(DictTypeEntity)
+-  dictTypeEntity: Repository<DictTypeEntity>;
+-
+-  /**
+-   * 获得字典数据
+-   * @param types
+-   */
+-  async data(types: string[]) {
+-    const result = {};
+-    const find = await this.dictTypeEntity.createQueryBuilder();
+-    if (!_.isEmpty(types)) {
+-      find.where('`key` in(:key)', { key: types });
+-    }
+-    const typeData = await find.getMany();
+-    if (_.isEmpty(typeData)) {
+-      return {};
+-    }
+-    const data = await this.dictInfoEntity
+-      .createQueryBuilder('a')
+-      .select(['a.id', 'a.name', 'a.typeId', 'a.parentId'])
+-      .where('typeId in(:typeIds)', {
+-        typeIds: typeData.map(e => {
+-          return e.id;
+-        }),
+-      })
+-      .orderBy('orderNum', 'ASC')
+-      .addOrderBy('a.createTime', 'ASC')
+-      .getMany();
+-    for (const item of typeData) {
+-      result[item.key] = _.filter(data, { typeId: item.id });
+-    }
+-    return result;
+-  }
+-
+-  /**
+-   * 获得字典值
+-   * @param infoId
+-   * @returns
+-   */
+-  async value(infoId: number) {
+-    const info = await this.dictInfoEntity.findOne({ id: infoId });
+-    return info?.name;
+-  }
+-
+-  /**
+-   * 获得字典值
+-   * @param infoId
+-   * @returns
+-   */
+-  async values(infoIds: number[]) {
+-    const infos = await this.dictInfoEntity.find({ id: In(infoIds) });
+-    return infos.map(e => {
+-      return e.name;
+-    });
+-  }
+-
+-  /**
+-   * 修改之后
+-   * @param data
+-   * @param type
+-   */
+-  async modifyAfter(data: any, type: 'delete' | 'update' | 'add') {
+-    if (type === 'delete') {
+-      for (const id of data) {
+-        await this.delChildDict(id);
+-      }
+-    }
+-  }
+-
+-  /**
+-   * 删除子字典
+-   * @param id
+-   */
+-  private async delChildDict(id) {
+-    const delDict = await this.dictInfoEntity.find({ parentId: id });
+-    if (_.isEmpty(delDict)) {
+-      return;
+-    }
+-    const delDictIds = delDict.map(e => {
+-      return e.id;
+-    });
+-    await this.dictInfoEntity.delete(delDictIds);
+-    for (const dictId of delDictIds) {
+-      await this.delChildDict(dictId);
+-    }
+-  }
+-}
+diff --git a/src/modules/dict/service/type.ts b/src/modules/dict/service/type.ts
+deleted file mode 100644
+index 5f5c8d7..0000000
+--- a/src/modules/dict/service/type.ts
++++ /dev/null
+@@ -1,25 +0,0 @@
+-import { DictInfoEntity } from './../entity/info';
+-import { Provide } from '@midwayjs/decorator';
+-import { BaseService } from '@cool-midway/core';
+-import { InjectEntityModel } from '@midwayjs/orm';
+-import { Repository, In } from 'typeorm';
+-
+-/**
+- * 描述
+- */
+-@Provide()
+-export class DictTypeService extends BaseService {
+-  @InjectEntityModel(DictInfoEntity)
+-  dictInfoEntity: Repository<DictInfoEntity>;
+-
+-  /**
+-   * 删除
+-   * @param ids
+-   */
+-  async delete(ids) {
+-    super.delete(ids);
+-    await this.dictInfoEntity.delete({
+-      typeId: In(ids),
+-    });
+-  }
+-}
+diff --git a/src/modules/job/entity/info.ts b/src/modules/job/entity/info.ts
+index ef12150..9503bdb 100644
+--- a/src/modules/job/entity/info.ts
++++ b/src/modules/job/entity/info.ts
+@@ -13,9 +13,6 @@ export class JobEntity extends BaseEntity {
+   @Column({ comment: 'driverID', nullable: true })
+   driverID: number;
+ 
+-  @Column({ comment: 'yardID', nullable: true })
+-  yardID: number;
+-
+   @Column({ comment: 'status', type: 'tinyint' })
+   status: number;
+ 
+diff --git a/src/modules/job/entity/task.ts b/src/modules/job/entity/task.ts
+index ea357c7..6314991 100644
+--- a/src/modules/job/entity/task.ts
++++ b/src/modules/job/entity/task.ts
+@@ -13,9 +13,6 @@ export class JobTaskEntity extends BaseEntity {
+   @Column({ comment: 'carID' })
+   jobID: number;
+ 
+-  @Column({ comment: 'yardID', nullable: true })
+-  yardID: number;
+-
+   @Column({ comment: 'driverID', nullable: true })
+   driverID: string;
+ 
+diff --git a/src/modules/order/entity/action.ts b/src/modules/order/entity/action.ts
+index 6ecfd16..392ff0e 100644
+--- a/src/modules/order/entity/action.ts
++++ b/src/modules/order/entity/action.ts
+@@ -7,21 +7,21 @@ import { Column } from 'typeorm';
+  */
+ @EntityModel('order_action')
+ export class OrderActionEntity extends BaseEntity {
+-  @Column({ comment: 'timestamp',length:50})
++  @Column({ comment: 'timestamp', length: 50 })
+   timestamp: string;
+ 
+-  @Column({ comment: 'name', length: 100, nullable: true})
++  @Column({ comment: 'name', length: 100, nullable: true })
+   name: string;
+ 
+-  @Column({ comment: 'description', nullable: true})
++  @Column({ comment: 'description', nullable: true })
+   description: string;
+ 
+-  @Column({ comment: 'author'})
++  @Column({ comment: 'author' })
+   authorID: number;
+ 
+-  @Column({ comment: 'orderID'})
++  @Column({ comment: 'orderID' })
+   orderID: number;
+ 
+-  @Column({ comment: 'type', type:"tinyint"})
++  @Column({ comment: 'type', type: 'tinyint' })
+   type: number;
+ }
+diff --git a/src/modules/order/entity/info.ts b/src/modules/order/entity/info.ts
+index c44c194..d089ae8 100644
+--- a/src/modules/order/entity/info.ts
++++ b/src/modules/order/entity/info.ts
+@@ -10,9 +10,6 @@ export class OrderInfoEntity extends BaseEntity {
+   @Column({ comment: 'carID', nullable: true })
+   carID: number;
+ 
+-  @Column({ comment: 'yardID', nullable: true })
+-  yardID: number;
+-
+   @Column({ comment: 'customer' })
+   customerID: string;
+ 
+@@ -101,7 +98,7 @@ export class OrderInfoEntity extends BaseEntity {
+   @Column({ comment: 'carColor', nullable: true })
+   carColor: string;
+ 
+-  @Column({ comment: 'imageFileDir', nullable: true, length: 5000 })
++  @Column({ comment: 'imageFileDir', nullable: true, type: 'text' })
+   imageFileDir: string;
+ 
+   @Column({ comment: 'signature', nullable: true })
+diff --git a/src/modules/order/service/order.ts b/src/modules/order/service/order.ts
+index ea868bd..0a72eb5 100644
+--- a/src/modules/order/service/order.ts
++++ b/src/modules/order/service/order.ts
+@@ -87,9 +87,6 @@ export class OrderService extends BaseService {
+     });
+   }
+ 
+-  // async add(params) {
+-  //   // return this.
+-  // }
+   async generateToken(payload) {
+     const secret = 'XIONWHEREICAN';
+     const options = { expiresIn: '1h' }; // 令牌过期时间
+@@ -136,7 +133,7 @@ export class OrderService extends BaseService {
+     }
+     if (!order.allowUpload) {
+       throw new CoolCommException(
+-        `You do not have the permission to perform updates.`
++        'You do not have the permission to perform updates.'
+       );
+     }
+     order.registrationDoc = updateData.registrationDoc ?? order.registrationDoc;
+@@ -159,25 +156,7 @@ export class OrderService extends BaseService {
+     }
+     return this.orderInfoEntity.save(order);
+   }
+-  // async updateEmailStatus(id: number, giveUploadBtn: boolean): Promise<OrderInfoEntity> {
+-  //   const order = await this.orderInfoEntity.findOne(id);
+-  //   if (!order) {
+-  //     throw new CoolCommException(`Order with ID ${id} not found.`);
+-  //   }
+-  //   if (!order.allowUpload) {
+-  //     throw new CoolCommException(`You do not have the permission to perform updates.`);
+-  //   }
+ 
+-  //   let status: number;
+-  //   if (giveUploadBtn) {
+-  //     status = (order.emailStatus === 1 || order.emailStatus === 3) ? 3 : 2;
+-  //   } else {
+-  //     status = (order.emailStatus === 2 || order.emailStatus === 3) ? 3 : 1;
+-  //   }
+-
+-  //   order.emailStatus = status;
+-  //   return this.orderInfoEntity.save(order);
+-  // }
+   async updateOrderAllowUpload(id: number, allowUpload: boolean) {
+     const order = await this.orderInfoEntity.findOne(id);
+     order.allowUpload = allowUpload;
+@@ -201,20 +180,6 @@ export class OrderService extends BaseService {
+   }
+ 
+   async getCountCompleteJob(departmentId, startDate, endDate, status) {
+-    // console.log(startDate, endDate)
+-    // const query = `
+-    // SELECT COUNT(*) AS count
+-    // FROM \`order\`
+-    // WHERE id IN (
+-    //   SELECT orderID
+-    //   FROM \`job\`
+-    //   WHERE status = 4
+-    // )
+-    // AND departmentId = '${departmentId}'
+-    // ${startDate && endDate ? `AND (createTime BETWEEN '${startDate}' AND '${endDate}')` : ''}
+-    // `;
+-
+-    // return await this.nativeQuery(query);
+     const filter: any = {};
+     if (status != undefined) {
+       filter.status = status;
+@@ -223,9 +188,6 @@ export class OrderService extends BaseService {
+       filter.createTime = Between(startDate, endDate);
+     }
+     filter.departmentId = departmentId;
+-    // if (status != undefined) {
+-    //   filter.departmentId = departmentId;
+-    // }
+     const count = await this.jobEntity.count({
+       where: filter,
+     });
+@@ -233,10 +195,6 @@ export class OrderService extends BaseService {
+   }
+ 
+   async updateOrderStatusAndDeleteJob(orderId: number) {
+-    // return await this.update({
+-    //   id: 657,
+-    //   status: 0
+-    // });
+     return await this.jobEntity.find({
+       orderID: orderId,
+     });
+@@ -260,7 +218,7 @@ export class OrderService extends BaseService {
+           {
+             status: 1,
+             isVFP: false,
+-            CarWreckedInfo: null,
++            carWreckedInfo: null,
+           }
+         )
+       );
+diff --git a/src/modules/task/config.ts b/src/modules/task/config.ts
+deleted file mode 100644
+index b919075..0000000
+--- a/src/modules/task/config.ts
++++ /dev/null
+@@ -1,18 +0,0 @@
+-import { ModuleConfig } from '@cool-midway/core';
+-import { TaskMiddleware } from './middleware/task';
+-
+-/**
+- * 模块配置
+- */
+-export default () => {
+-  return {
+-    // 模块名称
+-    name: '任务调度',
+-    // 模块描述
+-    description: '任务调度模块，支持分布式任务，由redis整个集群的任务',
+-    // 中间件
+-    middlewares: [TaskMiddleware],
+-    // 模块加载顺序，默认为0，值越大越优先加载
+-    order: 0,
+-  } as ModuleConfig;
+-};
+diff --git a/src/modules/task/controller/admin/info.ts b/src/modules/task/controller/admin/info.ts
+deleted file mode 100644
+index bca8ee9..0000000
+--- a/src/modules/task/controller/admin/info.ts
++++ /dev/null
+@@ -1,67 +0,0 @@
+-import {
+-  ALL,
+-  Body,
+-  Get,
+-  Inject,
+-  Post,
+-  Provide,
+-  Query,
+-} from '@midwayjs/decorator';
+-import { CoolController, BaseController } from '@cool-midway/core';
+-import { TaskInfoEntity } from '../../entity/info';
+-import { TaskInfoService } from '../../service/info';
+-
+-/**
+- * 任务
+- */
+-@Provide()
+-@CoolController({
+-  api: ['add', 'delete', 'update', 'info', 'page'],
+-  entity: TaskInfoEntity,
+-  service: TaskInfoService,
+-  before: ctx => {
+-    ctx.request.body.limit = ctx.request.body.repeatCount;
+-  },
+-  pageQueryOp: {
+-    fieldEq: ['status', 'type'],
+-  },
+-})
+-export class TaskInfoController extends BaseController {
+-  @Inject()
+-  taskInfoService: TaskInfoService;
+-
+-  /**
+-   * 手动执行一次
+-   */
+-  @Post('/once', { summary: '执行一次' })
+-  async once(@Body('id') id: number) {
+-    await this.taskInfoService.once(id);
+-    this.ok();
+-  }
+-
+-  /**
+-   * 暂停任务
+-   */
+-  @Post('/stop', { summary: '停止' })
+-  async stop(@Body('id') id: number) {
+-    await this.taskInfoService.stop(id);
+-    this.ok();
+-  }
+-
+-  /**
+-   * 开始任务
+-   */
+-  @Post('/start', { summary: '开始' })
+-  async start(@Body('id') id: number, @Body('type') type: number) {
+-    await this.taskInfoService.start(id, type);
+-    this.ok();
+-  }
+-
+-  /**
+-   * 日志
+-   */
+-  @Get('/log', { summary: '日志' })
+-  async log(@Query(ALL) params: any) {
+-    return this.ok(await this.taskInfoService.log(params));
+-  }
+-}
+diff --git "a/src/modules/task/controller/\350\257\264\346\230\216.md" "b/src/modules/task/controller/\350\257\264\346\230\216.md"
+deleted file mode 100644
+index 440a373..0000000
+--- "a/src/modules/task/controller/\350\257\264\346\230\216.md"
++++ /dev/null
+@@ -1 +0,0 @@
+-编写接口
+\ No newline at end of file
+diff --git a/src/modules/task/entity/info.ts b/src/modules/task/entity/info.ts
+deleted file mode 100644
+index 5efaca3..0000000
+--- a/src/modules/task/entity/info.ts
++++ /dev/null
+@@ -1,57 +0,0 @@
+-import { EntityModel } from '@midwayjs/orm';
+-import { BaseEntity } from '@cool-midway/core';
+-import { Column } from 'typeorm';
+-
+-/**
+- * 任务信息
+- */
+-@EntityModel('task_info')
+-export class TaskInfoEntity extends BaseEntity {
+-  @Column({ comment: '任务ID', nullable: true })
+-  jobId: string;
+-
+-  @Column({ comment: '任务配置', nullable: true, length: 1000 })
+-  repeatConf: string;
+-
+-  @Column({ comment: '名称' })
+-  name: string;
+-
+-  @Column({ comment: 'cron', nullable: true })
+-  cron: string;
+-
+-  @Column({ comment: '最大执行次数 不传为无限次', nullable: true })
+-  limit: number;
+-
+-  @Column({
+-    comment: '每间隔多少毫秒执行一次 如果cron设置了 这项设置就无效',
+-    nullable: true,
+-  })
+-  every: number;
+-
+-  @Column({ comment: '备注', nullable: true })
+-  remark: string;
+-
+-  @Column({ comment: '状态 0:停止 1：运行', default: 1, type: 'tinyint' })
+-  status: number;
+-
+-  @Column({ comment: '开始时间', nullable: true })
+-  startDate: Date;
+-
+-  @Column({ comment: '结束时间', nullable: true })
+-  endDate: Date;
+-
+-  @Column({ comment: '数据', nullable: true })
+-  data: string;
+-
+-  @Column({ comment: '执行的service实例ID', nullable: true })
+-  service: string;
+-
+-  @Column({ comment: '状态 0:系统 1：用户', default: 0, type: 'tinyint' })
+-  type: number;
+-
+-  @Column({ comment: '下一次执行时间', nullable: true })
+-  nextRunTime: Date;
+-
+-  @Column({ comment: '状态 0:cron 1：时间间隔', default: 0, type: 'tinyint' })
+-  taskType: number;
+-}
+diff --git a/src/modules/task/entity/log.ts b/src/modules/task/entity/log.ts
+deleted file mode 100644
+index 94ba97b..0000000
+--- a/src/modules/task/entity/log.ts
++++ /dev/null
+@@ -1,19 +0,0 @@
+-import { EntityModel } from '@midwayjs/orm';
+-import { BaseEntity } from '@cool-midway/core';
+-import { Column, Index } from 'typeorm';
+-
+-/**
+- * 任务日志
+- */
+-@EntityModel('task_log')
+-export class TaskLogEntity extends BaseEntity {
+-  @Index()
+-  @Column({ comment: '任务ID', nullable: true, type: 'bigint' })
+-  taskId: number;
+-
+-  @Column({ comment: '状态 0:失败 1：成功', default: 0, type: 'tinyint' })
+-  status: number;
+-
+-  @Column({ comment: '详情描述', nullable: true, type: 'text' })
+-  detail: string;
+-}
+diff --git a/src/modules/task/event/app.ts b/src/modules/task/event/app.ts
+deleted file mode 100644
+index 3245b58..0000000
+--- a/src/modules/task/event/app.ts
++++ /dev/null
+@@ -1,17 +0,0 @@
+-import { TaskInfoService } from './../service/info';
+-import { CoolEvent, Event } from '@cool-midway/core';
+-import { Inject } from '@midwayjs/decorator';
+-
+-/**
+- * 应用事件
+- */
+-@CoolEvent()
+-export class AppEvent {
+-  @Inject()
+-  taskInfoService: TaskInfoService;
+-
+-  @Event('onServerReady')
+-  async onServerReady() {
+-    this.taskInfoService.initTask();
+-  }
+-}
+diff --git a/src/modules/task/init.sql b/src/modules/task/init.sql
+deleted file mode 100644
+index 4417665..0000000
+--- a/src/modules/task/init.sql
++++ /dev/null
+@@ -1,17 +0,0 @@
+-BEGIN;
+-INSERT INTO `task_info` VALUES (1, '2021-03-10 14:25:13.381172', '2021-03-10 14:25:19.011000', NULL, '{\"count\":1,\"type\":1,\"limit\":5,\"name\":\"每秒执行,总共5次\",\"taskType\":1,\"every\":1000,\"service\":\"taskDemoService.test()\",\"status\":1,\"id\":1,\"createTime\":\"2021-03-10 14:25:13\",\"updateTime\":\"2021-03-10 14:25:13\",\"jobId\":1}', '每秒执行,总共5次', NULL, 5, 1000, NULL, 0, NULL, NULL, NULL, 'taskDemoService.test()', 1, '2021-03-10 14:25:18', 1);
+-INSERT INTO `task_info` VALUES (2, '2021-03-10 14:25:53.000000', '2021-03-10 14:26:18.209202', NULL, '{\"count\":1,\"id\":2,\"createTime\":\"2021-03-10 14:25:53\",\"updateTime\":\"2021-03-10 14:25:55\",\"name\":\"cron任务，5秒执行一次\",\"cron\":\"0/5 * * * * ? \",\"status\":1,\"service\":\"taskDemoService.test()\",\"type\":1,\"nextRunTime\":\"2021-03-10 14:26:00\",\"taskType\":0,\"jobId\":2}', 'cron任务，5秒执行一次', '0/5 * * * * ? ', NULL, NULL, NULL, 0, NULL, NULL, NULL, 'taskDemoService.test()', 1, NULL, 0);
+-COMMIT;
+-
+-BEGIN;
+-INSERT INTO `task_log` VALUES (1, '2021-03-10 14:25:14.020930', '2021-03-10 14:25:14.020930', 1, 1, '\"任务执行成功\"');
+-INSERT INTO `task_log` VALUES (2, '2021-03-10 14:25:15.012030', '2021-03-10 14:25:15.012030', 1, 1, '\"任务执行成功\"');
+-INSERT INTO `task_log` VALUES (3, '2021-03-10 14:25:16.011443', '2021-03-10 14:25:16.011443', 1, 1, '\"任务执行成功\"');
+-INSERT INTO `task_log` VALUES (4, '2021-03-10 14:25:17.009939', '2021-03-10 14:25:17.009939', 1, 1, '\"任务执行成功\"');
+-INSERT INTO `task_log` VALUES (5, '2021-03-10 14:25:18.010410', '2021-03-10 14:25:18.010410', 1, 1, '\"任务执行成功\"');
+-INSERT INTO `task_log` VALUES (6, '2021-03-10 14:25:55.012816', '2021-03-10 14:25:55.012816', 2, 1, '');
+-INSERT INTO `task_log` VALUES (7, '2021-03-10 14:26:00.011880', '2021-03-10 14:26:00.011880', 2, 1, '');
+-INSERT INTO `task_log` VALUES (8, '2021-03-10 14:26:05.016832', '2021-03-10 14:26:05.016832', 2, 1, '\"任务执行成功\"');
+-INSERT INTO `task_log` VALUES (9, '2021-03-10 14:26:10.011763', '2021-03-10 14:26:10.011763', 2, 1, '\"任务执行成功\"');
+-INSERT INTO `task_log` VALUES (10, '2021-03-10 14:26:15.010246', '2021-03-10 14:26:15.010246', 2, 1, '\"任务执行成功\"');
+-COMMIT;
+\ No newline at end of file
+diff --git a/src/modules/task/middleware/task.ts b/src/modules/task/middleware/task.ts
+deleted file mode 100644
+index 8926852..0000000
+--- a/src/modules/task/middleware/task.ts
++++ /dev/null
+@@ -1,31 +0,0 @@
+-import { CoolCommException } from '@cool-midway/core';
+-import { Inject, Middleware } from '@midwayjs/decorator';
+-import { NextFunction, Context } from '@midwayjs/koa';
+-import { IMiddleware } from '@midwayjs/core';
+-import { TaskInfoQueue } from '../queue/task';
+-
+-/**
+- * 任务中间件
+- */
+-@Middleware()
+-export class TaskMiddleware implements IMiddleware<Context, NextFunction> {
+-  @Inject()
+-  taskInfoQueue: TaskInfoQueue;
+-  resolve() {
+-    return async (ctx: Context, next: NextFunction) => {
+-      const urls = ctx.url.split('/');
+-      if (
+-        ['add', 'update', 'once', 'stop', 'start'].includes(
+-          urls[urls.length - 1]
+-        )
+-      ) {
+-        if (!this.taskInfoQueue.metaQueue) {
+-          throw new CoolCommException(
+-            'task插件未启用或redis配置错误或redis版本过低(>=6.x)'
+-          );
+-        }
+-      }
+-      await next();
+-    };
+-  }
+-}
+diff --git a/src/modules/task/queue/task.ts b/src/modules/task/queue/task.ts
+deleted file mode 100644
+index 6d1bd1f..0000000
+--- a/src/modules/task/queue/task.ts
++++ /dev/null
+@@ -1,31 +0,0 @@
+-import { App, Inject } from '@midwayjs/decorator';
+-import { BaseCoolQueue, CoolQueue } from '@cool-midway/task';
+-import { TaskInfoService } from '../service/info';
+-import { Job } from 'bullmq';
+-import { IMidwayApplication } from '@midwayjs/core';
+-
+-/**
+- * 任务
+- */
+-@CoolQueue()
+-export abstract class TaskInfoQueue extends BaseCoolQueue {
+-  @App()
+-  app: IMidwayApplication;
+-
+-  @Inject()
+-  taskInfoService: TaskInfoService;
+-
+-  async data(job: Job, done: any): Promise<void> {
+-    try {
+-      const result = await this.taskInfoService.invokeService(job.data.service);
+-      this.taskInfoService.record(job.data, 1, JSON.stringify(result));
+-    } catch (error) {
+-      this.taskInfoService.record(job.data, 0, error.message);
+-    }
+-    if (!job.data.isOnce) {
+-      this.taskInfoService.updateNextRunTime(job.data.id);
+-      this.taskInfoService.updateStatus(job.data.id);
+-    }
+-    done();
+-  }
+-}
+diff --git a/src/modules/task/service/demo.ts b/src/modules/task/service/demo.ts
+deleted file mode 100644
+index 9cc5bed..0000000
+--- a/src/modules/task/service/demo.ts
++++ /dev/null
+@@ -1,19 +0,0 @@
+-import { Logger, Provide } from '@midwayjs/decorator';
+-import { BaseService } from '@cool-midway/core';
+-import { ILogger } from '@midwayjs/logger';
+-
+-/**
+- * 描述
+- */
+-@Provide()
+-export class TaskDemoService extends BaseService {
+-  @Logger()
+-  logger: ILogger;
+-  /**
+-   * 描述
+-   */
+-  async test() {
+-    this.logger.info('我被调用了');
+-    return '任务执行成功';
+-  }
+-}
+diff --git a/src/modules/task/service/info.ts b/src/modules/task/service/info.ts
+deleted file mode 100644
+index b8a2783..0000000
+--- a/src/modules/task/service/info.ts
++++ /dev/null
+@@ -1,346 +0,0 @@
+-import {
+-  App,
+-  Inject,
+-  Logger,
+-  Provide,
+-  Scope,
+-  ScopeEnum,
+-} from '@midwayjs/decorator';
+-import { BaseService } from '@cool-midway/core';
+-import { InjectEntityModel } from '@midwayjs/orm';
+-import { Repository } from 'typeorm';
+-import { TaskInfoEntity } from '../entity/info';
+-import { TaskLogEntity } from '../entity/log';
+-import { ILogger } from '@midwayjs/logger';
+-import * as _ from 'lodash';
+-import { Utils } from '../../../comm/utils';
+-import { TaskInfoQueue } from '../queue/task';
+-import { IMidwayApplication } from '@midwayjs/core';
+-
+-/**
+- * 任务
+- */
+-@Provide()
+-@Scope(ScopeEnum.Request, { allowDowngrade: true })
+-export class TaskInfoService extends BaseService {
+-  @InjectEntityModel(TaskInfoEntity)
+-  taskInfoEntity: Repository<TaskInfoEntity>;
+-
+-  @Logger()
+-  logger: ILogger;
+-
+-  @InjectEntityModel(TaskLogEntity)
+-  taskLogEntity: Repository<TaskLogEntity>;
+-
+-  @Inject()
+-  taskInfoQueue: TaskInfoQueue;
+-
+-  @App()
+-  app: IMidwayApplication;
+-
+-  @Inject()
+-  utils: Utils;
+-
+-  /**
+-   * 停止任务
+-   * @param id
+-   */
+-  async stop(id) {
+-    const task = await this.taskInfoEntity.findOne({ id });
+-    if (task) {
+-      const result = await this.taskInfoQueue.getRepeatableJobs();
+-      const job = _.find(result, { id: task.id + '' });
+-      if (job) {
+-        await this.taskInfoQueue.removeRepeatableByKey(job.key);
+-      }
+-      task.status = 0;
+-      await this.taskInfoEntity.update(task.id, task);
+-      await this.updateNextRunTime(task.id);
+-    }
+-  }
+-
+-  /**
+-   * 移除任务
+-   * @param taskId
+-   */
+-  async remove(taskId) {
+-    const result = await this.taskInfoQueue.getRepeatableJobs();
+-    const job = _.find(result, { id: taskId + '' });
+-    await this.taskInfoQueue.removeRepeatableByKey(job.key);
+-  }
+-
+-  /**
+-   * 开始任务
+-   * @param id
+-   * @param type
+-   */
+-  async start(id, type?) {
+-    const task = await this.taskInfoEntity.findOne({ id });
+-    task.status = 1;
+-    if (type || type == 0) {
+-      task.type = type;
+-    }
+-    await this.addOrUpdate(task);
+-  }
+-
+-  /**
+-   * 手动执行一次
+-   * @param id
+-   */
+-  async once(id) {
+-    const task = await this.taskInfoEntity.findOne({ id });
+-    if (task) {
+-      await this.taskInfoQueue.add(
+-        {
+-          ...task,
+-          isOnce: true,
+-        },
+-        {
+-          jobId: task.id.toString(),
+-          removeOnComplete: true,
+-          removeOnFail: true,
+-        }
+-      );
+-    }
+-  }
+-
+-  /**
+-   * 检查任务是否存在
+-   * @param jobId
+-   */
+-  async exist(jobId) {
+-    const result = await this.taskInfoQueue.getRepeatableJobs();
+-    const ids = result.map(e => {
+-      return e.id;
+-    });
+-    return ids.includes(jobId.toString());
+-  }
+-
+-  /**
+-   * 新增或修改
+-   * @param params
+-   */
+-  async addOrUpdate(params) {
+-    delete params.repeatCount;
+-    let repeatConf;
+-    await this.getOrmManager().transaction(async transactionalEntityManager => {
+-      if (params.taskType === 0) {
+-        params.limit = null;
+-        params.every = null;
+-      } else {
+-        params.cron = null;
+-      }
+-      await transactionalEntityManager.save(TaskInfoEntity, params);
+-
+-      if (params.status === 1) {
+-        const exist = await this.exist(params.id);
+-        if (exist) {
+-          await this.remove(params.id);
+-        }
+-        const { every, limit, startDate, endDate, cron } = params;
+-        const repeat = {
+-          every,
+-          limit,
+-          jobId: params.id,
+-          startDate,
+-          endDate,
+-          cron,
+-        };
+-        await this.utils.removeEmptyP(repeat);
+-        const result = await this.taskInfoQueue.add(params, {
+-          jobId: params.id,
+-          removeOnComplete: true,
+-          removeOnFail: true,
+-          repeat,
+-        });
+-        if (!result) {
+-          throw new Error('任务添加失败，请检查任务配置');
+-        }
+-        // await transactionalEntityManager.update(TaskInfoEntity, params.id, {
+-        //   jobId: params.id,
+-        //   type: params.type,
+-        // });
+-        repeatConf = result.opts;
+-      }
+-    });
+-    if (params.status === 1) {
+-      this.utils.sleep(1000);
+-      await this.updateNextRunTime(params.id);
+-      await this.nativeQuery(
+-        'update task_info a set a.repeatConf = ? where a.id = ?',
+-        [JSON.stringify(repeatConf.repeat), params.id]
+-      );
+-    }
+-  }
+-
+-  /**
+-   * 删除
+-   * @param ids
+-   */
+-  async delete(ids) {
+-    let idArr;
+-    if (ids instanceof Array) {
+-      idArr = ids;
+-    } else {
+-      idArr = ids.split(',');
+-    }
+-    for (const id of idArr) {
+-      const task = await this.taskInfoEntity.findOne({ id });
+-      const exist = await this.exist(task.id);
+-      if (exist) {
+-        this.stop(task.id);
+-      }
+-      await this.taskInfoEntity.delete({ id });
+-      await this.taskLogEntity.delete({ taskId: id });
+-    }
+-  }
+-
+-  /**
+-   * 任务日志
+-   * @param query
+-   */
+-  async log(query) {
+-    const { id, status } = query;
+-    return await this.sqlRenderPage(
+-      `
+-      SELECT
+-          a.*,
+-          b.NAME AS taskName
+-      FROM
+-      task_log a
+-      JOIN task_info b ON a.taskId = b.id
+-      where 1=1
+-      ${this.setSql(id, 'and a.taskId = ?', [id])}
+-      ${this.setSql(status, 'and a.status = ?', [status])}
+-      `,
+-      query
+-    );
+-  }
+-
+-  /**
+-   * 保存任务记录，成功任务每个任务保留最新20条日志，失败日志不会删除
+-   * @param task
+-   * @param status
+-   * @param detail
+-   */
+-  async record(task, status, detail?) {
+-    await this.taskLogEntity.save({
+-      taskId: task.id,
+-      status,
+-      detail: detail || '',
+-    });
+-    await this.nativeQuery(
+-      `DELETE a
+-      FROM
+-      task_log a,
+-          ( SELECT id FROM task_log where taskId = ? AND status = 1 ORDER BY id DESC LIMIT ?, 1 ) b
+-      WHERE
+-      a.taskId = ? AND
+-      a.status = 1 AND
+-      a.id < b.id`,
+-      [task.id, 19, task.id]
+-    ); // 日志保留最新的20条
+-  }
+-
+-  /**
+-   * 初始化任务
+-   */
+-  async initTask() {
+-    setTimeout(async () => {
+-      const runningTasks = await this.taskInfoEntity.find({ status: 1 });
+-      if (!_.isEmpty(runningTasks)) {
+-        for (const task of runningTasks) {
+-          const job = await this.exist(task.id); // 任务已存在就不添加
+-          if (!job) {
+-            this.logger.info(`init task ${task.name}`);
+-            await this.addOrUpdate(task);
+-          }
+-        }
+-      }
+-    }, 3000);
+-  }
+-
+-  /**
+-   * 任务ID
+-   * @param jobId
+-   */
+-  async getNextRunTime(jobId) {
+-    let nextRunTime;
+-    const result = await this.taskInfoQueue.getRepeatableJobs();
+-    const task = _.find(result, { id: jobId + '' });
+-    if (task) {
+-      nextRunTime = new Date(task.next);
+-    }
+-    return nextRunTime;
+-  }
+-
+-  /**
+-   * 更新下次执行时间
+-   * @param jobId
+-   */
+-  async updateNextRunTime(jobId) {
+-    await this.nativeQuery(
+-      'update task_info a set a.nextRunTime = ? where a.id = ?',
+-      [await this.getNextRunTime(jobId), jobId]
+-    );
+-  }
+-
+-  /**
+-   * 详情
+-   * @param id
+-   * @returns
+-   */
+-  async info(id: any): Promise<any> {
+-    const info = await this.taskInfoEntity.findOne({ id });
+-    return {
+-      ...info,
+-      repeatCount: info.limit,
+-    };
+-  }
+-
+-  /**
+-   * 刷新任务状态
+-   */
+-  async updateStatus(jobId) {
+-    const result = await this.taskInfoQueue.getRepeatableJobs();
+-    const job = _.find(result, { id: jobId + '' });
+-    if (!job) {
+-      return;
+-    }
+-    // @ts-ignore
+-    const task = await this.taskInfoEntity.findOne({ id: job.id });
+-    const nextTime = await this.getNextRunTime(task.id);
+-    if (task) {
+-      //   if (task.nextRunTime.getTime() == nextTime.getTime()) {
+-      //     task.status = 0;
+-      //     task.nextRunTime = nextTime;
+-      //     this.taskInfoQueue.removeRepeatableByKey(job.key);
+-      //   } else {
+-      task.nextRunTime = nextTime;
+-      //   }
+-      await this.taskInfoEntity.update(task.id, task);
+-    }
+-  }
+-
+-  /**
+-   * 调用service
+-   * @param serviceStr
+-   */
+-  async invokeService(serviceStr) {
+-    if (serviceStr) {
+-      const arr = serviceStr.split('.');
+-      const service = await this.app.getApplicationContext().getAsync(arr[0]);
+-      for (const child of arr) {
+-        if (child.includes('(')) {
+-          const lastArr = child.split('(');
+-          const param = lastArr[1].replace(')', '');
+-          if (!param) {
+-            return service[lastArr[0]]();
+-          } else {
+-            return service[lastArr[0]](JSON.parse(param));
+-          }
+-        }
+-      }
+-    }
+-  }
+-}
