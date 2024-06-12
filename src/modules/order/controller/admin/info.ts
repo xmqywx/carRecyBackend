@@ -374,7 +374,6 @@ export class VehicleProfileController extends BaseController {
       registrationNumber,
       state,
     });
-    console.log('first step', carRegList);
     if (carRegList.length && carRegList[0].json) {
       return this.ok(carRegList[0].json);
     }
@@ -383,24 +382,38 @@ export class VehicleProfileController extends BaseController {
       if (carRegList.length) {
         carRegFind = carRegList[0].id ?? undefined;
       }
-      const data = await this.orderService
-        .fetchDataWithToken(registrationNumber, state)
-        .then(async res => {
-          const jsonData = res.result.vehicles[0] ?? null;
-          await this.carRegEntity.save({
-            id: carRegFind,
-            registrationNumber,
-            state,
-            json: jsonData,
-          });
-          return jsonData;
-        });
-      if (!data) {
+      let jsonData1;
+      let jsonData2;
+      const promise = [];
+      promise.push(
+        this.orderService
+          .fetchDataWithToken(registrationNumber, state)
+          .then(async res => {
+            jsonData1 = res.result.vehicles[0] ?? null;
+          })
+      );
+      promise.push(
+        this.orderService
+          .fetchEnhancedDataWithToken(registrationNumber, state)
+          .then(async res => {
+            jsonData2 = res.result.vehicle ?? null;
+          })
+      );
+      await Promise.all(promise);
+      if (!jsonData1 && !jsonData2) {
         return this.fail('Unable to find content');
       }
-      return this.ok(data);
+      const jsonData = { ...jsonData1, enhancedData: jsonData2 };
+      await this.carRegEntity.save({
+        id: carRegFind,
+        registrationNumber,
+        state,
+        json: jsonData,
+      });
+
+      return this.ok(jsonData);
     } catch (e) {
-      return this.fail('Unable to obtain correct vehicle information');
+      return this.fail('Unable to obtain correct vehicle information.' + e);
     }
   }
 

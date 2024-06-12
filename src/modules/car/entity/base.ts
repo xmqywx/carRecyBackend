@@ -1,7 +1,8 @@
 import { EntityModel } from '@midwayjs/orm';
 import { BaseEntity } from '@cool-midway/core';
-import { Column, ManyToOne } from 'typeorm';
+import { Column, ManyToOne, OneToMany } from 'typeorm';
 import { CustomerProfileEntity } from '../../customer/entity/profile';
+import { CarPartsEntity } from './carParts';
 
 /**
  * 汽车表
@@ -114,4 +115,12 @@ export class CarEntity extends BaseEntity {
 
   @Column({ comment: 'Recycling status', nullable: true, default: 'new' })
   recyclingStatus: string;
+
+  @OneToMany(() => CarPartsEntity, (part) => part.car, {
+    eager: true  // 自动加载关联的 CarPartsEntity
+  })
+  parts: CarPartsEntity[];
+
+  @Column({ comment: 'stolenInfo', type: 'text', nullable: true })
+  stolenInfo: string
 }

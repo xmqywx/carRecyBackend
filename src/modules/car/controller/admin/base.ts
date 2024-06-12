@@ -6,6 +6,7 @@ import { JobEntity } from '../../../job/entity/info';
 import { Repository } from 'typeorm';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { CarBaseService, CarWreckedService } from '../../service/car';
+
 /**
  * 汽车表
  */

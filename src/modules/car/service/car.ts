@@ -1,7 +1,7 @@
 import { Provide, Inject } from '@midwayjs/decorator';
 import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CarCommentEntity } from '../entity/comment';
 import { CarWreckedEntity } from '../entity/carWrecked';
 import { CarEntity } from '../entity/base';
@@ -9,6 +9,9 @@ import { OrderInfoEntity } from '../../order/entity/info';
 import { ContainerEntity } from '../../container/entity/base';
 import { PartLogEntity } from '../../partLog/entity/base';
 import { PartTransactionsEntity } from '../../partTransactions/entity/base';
+import { CarPartsEntity } from '../entity/carParts';
+import { CarLabelsEntity } from '../entity/carLabels';
+import { CarCatalyticConverterEntity } from '../entity/carCatalyticConverter';
 @Provide()
 export class CarCommentService extends BaseService {
   @InjectEntityModel(CarCommentEntity)
@@ -561,5 +564,125 @@ export class CarBaseService extends BaseService {
     } catch (e) {
       return null;
     }
+  }
+}
+
+/**
+ * car parts
+ */
+@Provide()
+export class CarPartsService extends BaseService {
+  @InjectEntityModel(CarPartsEntity)
+  carPartsEntity: Repository<CarPartsEntity>;
+
+  @InjectEntityModel(CarEntity)
+  carEntity: Repository<CarEntity>;
+
+  /**
+   * 新增
+   * @param param
+   */
+  async add(params) {
+    return this.carPartsEntity.save(params).then(async partDetail => {
+      const cate = 'EPE';
+      partDetail.disassemblyNumber = cate + partDetail.id;
+      return await this.carPartsEntity.save(partDetail);
+    });
+  }
+
+  /**
+   * 描述
+   */
+  async addParts(params: any) {
+    const promise = [];
+    if (params.parts?.length > 0) {
+      params.parts.forEach(v => {
+        if (v.name === 'Other') {
+          v.others.forEach(pt => {
+            promise.push(
+              this.add({
+                carID: params.carID,
+                disassemblyDescription: pt.value,
+                disassmblingInformation: pt.name,
+                color: v.color
+              })
+            );
+          });
+          return;
+        }
+        v.parts.forEach(pt => {
+          promise.push(
+            this.add({
+              carID: params.carID,
+              disassemblyDescription: pt.description,
+              disassmblingInformation: v.name,
+              color: v.color
+            })
+          );
+        });
+      });
+    }
+    return await Promise.all(promise);
+  }
+
+  async gerPartsWidthIds(carIds: number[]) {
+    return this.carPartsEntity.find({
+      where: {
+        carID: In(carIds),
+      },
+    });
+  }
+}
+/**
+ * 描述
+ */
+interface AddLabels {
+  name: string;
+  parts: {
+    description: string;
+  }[];
+}
+@Provide()
+export class CarLabelsService extends BaseService {
+  @InjectEntityModel(CarLabelsEntity)
+  carLabelsEntity: Repository<CarLabelsEntity>;
+
+  /**
+   * 描述
+   */
+  async addLabels(labels: AddLabels[]) {
+    const promise = [];
+    labels.forEach(label => {
+      label.parts.forEach(element => {});
+      promise.push(this.carLabelsEntity.save({}));
+    });
+  }
+}
+
+@Provide()
+export class CarCatalyticConverterService extends BaseService {
+  @InjectEntityModel(CarCatalyticConverterEntity)
+  carCatalyticConverterEntity: Repository<CarCatalyticConverterEntity>;
+
+  /**
+   * 新增
+   * @param param
+   */
+  async add(params) {
+    return this.carCatalyticConverterEntity
+      .save(params)
+      .then(async partDetail => {
+        const cate = 'CC';
+        partDetail.disassemblyNumber = cate + partDetail.id;
+        return await this.carCatalyticConverterEntity.save(partDetail);
+      });
+  }
+
+  async getCatalyticConverterWidthIds(carIds: number[]) {
+    return this.carCatalyticConverterEntity.find({
+      where: {
+        carID: In(carIds),
+      },
+    });
   }
 }

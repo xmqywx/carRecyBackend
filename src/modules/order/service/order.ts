@@ -357,6 +357,28 @@ export class OrderService extends BaseService {
       console.log(e);
     }
   }
+
+  async fetchEnhancedDataWithToken(plate, state) {
+    const accessToken = await this.getAccessToken();
+    try {
+      const response = await axios.post(
+        'https://api.dev.infoagent.com.au/ivds/v1/au/vehicle-report/enhanced-basic',
+        {
+          plate,
+          state
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log('success', response.data);
+      return response.data;
+    } catch (e) {
+      console.log(e);
+    }
+  }
 }
 
 @Provide()
