@@ -9,6 +9,7 @@ import { CarWreckedEntity } from '../../car/entity/carWrecked';
 import { CarEntity } from '../../car/entity/base';
 import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
+import { CarRegEntity } from '../../carReg/entity/info';
 
 @Provide()
 export class OrderService extends BaseService {
@@ -22,6 +23,8 @@ export class OrderService extends BaseService {
   carWreckedEntity: Repository<CarWreckedEntity>;
   @InjectEntityModel(CarEntity)
   carEntity: Repository<CarEntity>;
+  @InjectEntityModel(CarRegEntity)
+  carRegEntity: Repository<CarRegEntity>;
 
   async getCountMonth(departmentId) {
     const year = new Date().getFullYear();
@@ -327,7 +330,24 @@ export class OrderService extends BaseService {
     return access_token;
   }
 
-  async fetchDataWithToken(plate, state) {
+  async fetchDataWithS1(registrationNumber, state) {
+    try {
+      const data = await axios
+        .get('http://www.carregistrationapi.com/api/reg.asmx/CheckAustralia', {
+          params: {
+            RegistrationNumber: registrationNumber,
+            State: state,
+            username: 'smtm2099',
+          },
+        })
+      return data.data
+    } catch (e) {
+      console.log(e);
+    }
+
+  }
+
+  async fetchDataWithV1(plate, state) {
     const accessToken = await this.getAccessToken();
     try {
       const response = await axios.post(
@@ -351,14 +371,13 @@ export class OrderService extends BaseService {
           },
         }
       );
-      console.log('success', response.data);
       return response.data;
     } catch (e) {
       console.log(e);
     }
   }
 
-  async fetchEnhancedDataWithToken(plate, state) {
+  async fetchDataWithV2(plate, state) {
     const accessToken = await this.getAccessToken();
     try {
       const response = await axios.post(

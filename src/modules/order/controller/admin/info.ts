@@ -13,6 +13,7 @@ import { startOfDay, endOfDay } from 'date-fns';
 import { Between } from 'typeorm';
 import { OrderService } from '../../service/order';
 import { BaseSysUserEntity } from '../../../base/entity/sys/user';
+import * as xml2json from 'xml2json';
 
 /**
  * 订单信息
@@ -368,52 +369,114 @@ export class VehicleProfileController extends BaseController {
   @Post('/getCarInfo')
   async getCarInfo(
     @Body('registrationNumber') registrationNumber: string,
-    @Body('state') state: string
+    @Body('state') state: string,
+    @Body('api') api: number
   ) {
     const carRegList = await this.carRegEntity.find({
       registrationNumber,
       state,
     });
-    if (carRegList.length && carRegList[0].json) {
-      return this.ok(carRegList[0].json);
+    let carRegFind;
+    if (carRegList.length) {
+      carRegFind = carRegList[0].id ?? undefined;
     }
-    try {
-      let carRegFind;
-      if (carRegList.length) {
-        carRegFind = carRegList[0].id ?? undefined;
+    if (api === SEARCH_CAR_API.S1) {
+      if (carRegList.length && carRegList[0].xml) {
+        const carString = xml2json.toJson(carRegList[0].xml);
+        let json = JSON.parse(carString);
+        const vehicleJson = json.Vehicle.vehicleJson;
+        return this.ok(JSON.parse(vehicleJson));
       }
-      let jsonData1;
-      let jsonData2;
-      const promise = [];
-      promise.push(
-        this.orderService
-          .fetchDataWithToken(registrationNumber, state)
-          .then(async res => {
-            jsonData1 = res.result.vehicles[0] ?? null;
-          })
-      );
-      promise.push(
-        this.orderService
-          .fetchEnhancedDataWithToken(registrationNumber, state)
-          .then(async res => {
-            jsonData2 = res.result.vehicle ?? null;
-          })
-      );
-      await Promise.all(promise);
-      if (!jsonData1 && !jsonData2) {
-        return this.fail('Unable to find content');
+      try {
+        const data = await this.orderService.fetchDataWithS1(
+          registrationNumber,
+          state
+        );
+        await this.carRegEntity.save({
+          id: carRegFind,
+          registrationNumber,
+          state,
+          xml: data,
+        });
+        let handleData = xml2json.toJson(data);
+        let json = JSON.parse(handleData);
+        const vehicleJson = json.Vehicle.vehicleJson;
+        return this.ok(JSON.parse(vehicleJson));
+      } catch (e) {
+        return this.fail('Unable to obtain correct vehicle information' + e);
       }
-      const jsonData = { ...jsonData1, enhancedData: jsonData2 };
-      await this.carRegEntity.save({
-        id: carRegFind,
-        registrationNumber,
-        state,
-        json: jsonData,
-      });
+    } else if (api === SEARCH_CAR_API.V1) {
+      if (carRegList.length && carRegList[0].json) {
+        return this.ok(carRegList[0].json);
+      }
 
-      return this.ok(jsonData);
-    } catch (e) {
-      return this.fail('Unable to obtain correct vehicle information.' + e);
+      try {
+        let carRegFind;
+        if (carRegList.length) {
+          carRegFind = carRegList[0].id ?? undefined;
+        }
+        let jsonData1;
+        const promise = [];
+
+        promise.push(
+          this.orderService
+            .fetchDataWithV1(registrationNumber, state)
+            .then(async res => {
+              console.log();
+              jsonData1 = res.result.vehicles[0] ?? null;
+            })
+        );
+        await Promise.all(promise);
+
+        if (!jsonData1) {
+          return this.fail('Unable to find content');
+        }
+        const jsonData = { ...jsonData1 };
+        await this.carRegEntity.save({
+          id: carRegFind,
+          registrationNumber,
+          state,
+          json: jsonData,
+        });
+        return this.ok(jsonData);
+      } catch (e) {
+        return this.fail('Unable to obtain correct vehicle information' + e);
+      }
+    } else if (api === SEARCH_CAR_API.V2) {
+      if (carRegList.length && carRegList[0].json_v2) {
+        return this.ok(carRegList[0].json_v2);
+      }
+      try {
+        let carRegFind;
+        if (carRegList.length) {
+          carRegFind = carRegList[0].id ?? undefined;
+        }
+        let jsonData2;
+        const promise = [];
+        promise.push(
+          this.orderService
+            .fetchDataWithV2(registrationNumber, state)
+            .then(async res => {
+              jsonData2 = res.result.vehicle ?? null;
+            })
+        );
+        await Promise.all(promise);
+        if (!jsonData2) {
+          return this.fail('Unable to find content');
+        }
+        const jsonData = { ...jsonData2 };
+        await this.carRegEntity.save({
+          id: carRegFind,
+          registrationNumber,
+          state,
+          json_v2: jsonData,
+        });
+        return this.ok(jsonData);
+      } catch (e) {
+        return this.fail('Unable to obtain correct vehicle information' + e);
+      }
+    } else {
+      return this.fail('API type not supported.');
     }
   }
 
@@ -455,4 +518,10 @@ interface JobInfo {
   carID: number;
   departmentId: number;
   status: number;
+}
+
+enum SEARCH_CAR_API {
+  S1 = 0,
+  V1,
+  V2,
 }

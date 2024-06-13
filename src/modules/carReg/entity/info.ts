@@ -18,4 +18,7 @@ export class CarRegEntity extends BaseEntity {
 
   @Column({ comment: 'json', type: 'json', nullable: true })
   json: any;
+
+  @Column({ comment: 'json_v2', type: 'json', nullable: true })
+  json_v2: any;
 }
