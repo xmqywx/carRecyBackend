@@ -578,6 +578,18 @@ export class CarPartsService extends BaseService {
   @InjectEntityModel(CarEntity)
   carEntity: Repository<CarEntity>;
 
+  @InjectEntityModel(ContainerEntity)
+  containerEntity: Repository<ContainerEntity>;
+
+  @Inject()
+  ctx;
+
+  @InjectEntityModel(PartTransactionsEntity)
+  partTransactionsEntity: Repository<PartTransactionsEntity>;
+
+  @InjectEntityModel(PartLogEntity)
+  partLogEntity: Repository<PartLogEntity>;
+
   /**
    * 新增
    * @param param
@@ -586,6 +598,11 @@ export class CarPartsService extends BaseService {
     return this.carPartsEntity.save(params).then(async partDetail => {
       const cate = 'EPE';
       partDetail.disassemblyNumber = cate + partDetail.id;
+      // this.partTransactionsEntity.save({
+      //   carWreckedID: partDetail.id,
+      //   billNo: `${partDetail.disassemblyNumber}`,
+      //   status: 0,
+      // });
       return await this.carPartsEntity.save(partDetail);
     });
   }
@@ -604,7 +621,7 @@ export class CarPartsService extends BaseService {
                 carID: params.carID,
                 disassemblyDescription: pt.value,
                 disassmblingInformation: pt.name,
-                color: v.color
+                color: v.color,
               })
             );
           });
@@ -616,7 +633,7 @@ export class CarPartsService extends BaseService {
               carID: params.carID,
               disassemblyDescription: pt.description,
               disassmblingInformation: v.name,
-              color: v.color
+              color: v.color,
             })
           );
         });
@@ -631,6 +648,159 @@ export class CarPartsService extends BaseService {
         carID: In(carIds),
       },
     });
+  }
+
+  // 将零件从集装箱中移除
+  async moveOutFromContainer(id: number, containerNumber: string) {
+    await this.carPartsEntity.save({
+      id,
+      containerID: null,
+    });
+    const containerItem = await this.containerEntity.findOne({
+      containerNumber,
+    });
+    const containerPartsList = await this.carPartsEntity.find({
+      containerID: containerItem.id,
+    });
+
+    if (containerPartsList.length <= 0) {
+      const containerItem = await this.containerEntity.findOne({
+        containerNumber,
+      });
+      if (!containerItem) return;
+      containerItem.status = 0;
+      this.containerEntity.save(containerItem);
+    }
+  }
+
+  async updateAndInsertLog(
+    params: {
+      id: number;
+      type: 'sold' | 'paid' | 'deposit' | 'collected';
+      isCollected?: number;
+    } & {
+      [key in 'sold' | 'paid' | 'deposit']: number;
+    }
+  ) {
+    const info = await this.carPartsEntity.findOne({ id: params.id });
+    if (info) {
+      const promise = [];
+      let previousValue = info[params.type];
+      let uid = this.ctx.admin?.userId;
+      // if (params.type === 'collected') {
+      //   if (params.isCollected !== null) {
+      //     info.collected = params.isCollected;
+      //     if (info.collected === 0) {
+      //       info.sold = null;
+      //       info.paid = null;
+      //       info.deposit = null;
+      //       info.buyerID = null;
+      //     }
+      //   }
+      // } else {
+      //   info[params.type] = params[params.type];
+      // }
+      // info[params.type] = params.type === 'collected' && params.isCollected !== null ? params.isCollected : params[params.type];
+      const transactionsInfo = await this.partTransactionsEntity.findOne({
+        carWreckedID: params.id,
+        status: 0,
+      });
+      if (transactionsInfo) {
+        if (params.type !== 'collected') {
+          transactionsInfo[`${params.type}Price`] = Number(params[params.type]);
+          transactionsInfo[`${params.type}Date`] = new Date();
+        } else {
+          if (params.isCollected === 1) {
+            transactionsInfo.collectedDate = new Date();
+            transactionsInfo.collected = 1;
+          } else {
+            transactionsInfo.status = 1;
+            transactionsInfo.canceledDate = new Date();
+          }
+        }
+        promise.push(this.partTransactionsEntity.save(transactionsInfo));
+      } else {
+        const containerItem = await this.containerEntity.findOne({
+          id: info.containerID,
+        });
+        if (params.type !== 'collected') {
+          promise.push(
+            this.partTransactionsEntity.save({
+              carWreckedID: params.id,
+              billNo: `${info.disassemblyNumber}${
+                containerItem ? ' ' + containerItem.containerNumber : ''
+              }`,
+              [`${params.type}Price`]: params[params.type],
+              [`${params.type}Date`]: new Date(),
+              status: 0,
+            })
+          );
+        } else {
+          promise.push(
+            this.partTransactionsEntity.save({
+              carWreckedID: params.id,
+              collectedDate: new Date(),
+              collected: params.isCollected,
+              billNo: `${info.disassemblyNumber}${
+                containerItem ? ' ' + containerItem.containerNumber : ''
+              }`,
+              status: 0,
+            })
+          );
+        }
+      }
+      // promise.push(this.carWreckedEntity.save(info));
+      promise.push(
+        await this.partLogEntity.save({
+          previousValue,
+          carWreckedID: params.id,
+          currentValue: params[params.type] ?? 0,
+          changeType: params.type,
+          changedBy: uid,
+        })
+      );
+      try {
+        const res = await Promise.all(promise);
+        return res;
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      throw new Error('ID does not exist');
+    }
+  }
+
+  async getCarWreckedWidthTransaction(id) {
+    let carWreckedInfo;
+    let partTransactionInfo;
+    const promise = [];
+    try {
+      promise.push(
+        this.carPartsEntity.findOne({ id }).then(res => {
+          carWreckedInfo = res;
+        })
+      );
+      promise.push(
+        this.partTransactionsEntity
+          .findOne({ carWreckedID: id, status: 0 })
+          .then(res => (partTransactionInfo = res))
+      );
+      await Promise.all(promise);
+
+      return {
+        collectedDate: partTransactionInfo?.collectedDate,
+        paidDate: partTransactionInfo?.paidDate,
+        soldDate: partTransactionInfo?.soldDate,
+        depositDate: partTransactionInfo?.depositDate,
+        part_transaction_id: partTransactionInfo?.id,
+        sold: partTransactionInfo?.soldPrice,
+        deposit: partTransactionInfo?.depositPrice,
+        paid: partTransactionInfo?.paidPrice,
+        collected: partTransactionInfo?.collected,
+      };
+    } catch (e) {
+      return null;
+    }
   }
 }
 /**

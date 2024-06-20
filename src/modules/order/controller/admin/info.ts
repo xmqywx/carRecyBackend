@@ -167,6 +167,7 @@ import * as xml2json from 'xml2json';
     ],
     fieldEq: [
       { column: 'a.createTime', requestParam: 'createTime' },
+      { column: 'a.payMethod', requestParam: 'payMethod' },
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.customerID', requestParam: 'customerID' },
       { column: 'a.status', requestParam: 'status' },
@@ -199,7 +200,8 @@ import * as xml2json from 'xml2json';
       },
     ],
     where: async ctx => {
-      const { startDate, endDate, isPaid, notSchedule } = ctx.request.body;
+      const { startDate, endDate, isPaid, notSchedule, keywordCustomer } =
+        ctx.request.body;
       let isNotScheduleSearch = [];
       if (notSchedule !== undefined) {
         if (notSchedule === 0) {
@@ -217,6 +219,7 @@ import * as xml2json from 'xml2json';
       } else {
         isNotScheduleSearch = [];
       }
+
       return [
         isPaid ? ['e.status = 4', {}] : [],
         startDate
@@ -224,6 +227,7 @@ import * as xml2json from 'xml2json';
           : [],
         endDate ? ['a.createTime <= :endDate', { endDate: endDate }] : [],
         isNotScheduleSearch,
+        keywordCustomer ? ['b.firstName LIKE :keywordCustomer', { keywordCustomer: `%${keywordCustomer}%` }] : [],
       ];
     },
   },

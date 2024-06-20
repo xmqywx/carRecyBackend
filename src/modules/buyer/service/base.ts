@@ -6,6 +6,7 @@ import { BuyerEntity } from '../entity/base';
 import { CarWreckedEntity } from '../../car/entity/carWrecked';
 import { PartTransactionsEntity } from '../../partTransactions/entity/base';
 import { ContainerEntity } from '../../container/entity/base';
+import { CarPartsEntity } from '../../car/entity/carParts';
 /**
  * 描述
  */
@@ -22,6 +23,9 @@ export class BuyerService extends BaseService {
 
   @InjectEntityModel(ContainerEntity)
   containerEntity: Repository<ContainerEntity>;
+
+  @InjectEntityModel(CarPartsEntity)
+  carPartsEntity: Repository<CarPartsEntity>;
 
   /**
    * 保存或更新buyer，将其添加给carWrecked
@@ -60,12 +64,12 @@ export class BuyerService extends BaseService {
     }
     if (finalID) {
       try {
-        const info = await this.carWreckedEntity.findOne({ id: partID });
-        info.buyerID = finalID;
+        const info = await this.carPartsEntity.findOne({ id: partID });
+        // info.buyerID = finalID;
         const containerItem = await this.containerEntity.findOne({
           id: info.containerID,
         });
-        await this.carWreckedEntity.save(info);
+        await this.carPartsEntity.save(info);
         await this.partTransactionsEntity
           .findOne({ carWreckedID: partID, status: 0 })
           .then(async ptRes => {
@@ -132,10 +136,10 @@ export class BuyerService extends BaseService {
     }
     if (finalID) {
       try {
-        await this.carWreckedEntity.update(
-          { id: partID },
-          { collectorID: finalID }
-        );
+        // await this.carPartsEntity.update(
+        //   { id: partID },
+        //   { collectorID: finalID }
+        // );
         await this.partTransactionsEntity
           .findOne({ carWreckedID: partID, status: 0 })
           .then(async ptRes => {

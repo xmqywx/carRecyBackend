@@ -3,9 +3,10 @@ import { CoolController, BaseController } from '@cool-midway/core';
 import { CarEntity } from '../../entity/base';
 import { OrderInfoEntity } from '../../../order/entity/info';
 import { JobEntity } from '../../../job/entity/info';
-import { Repository } from 'typeorm';
+import { Repository, getRepository, Like } from 'typeorm';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { CarBaseService, CarWreckedService } from '../../service/car';
+import { CarPartsEntity } from '../../entity/carParts';
 
 /**
  * 汽车表
@@ -62,13 +63,42 @@ import { CarBaseService, CarWreckedService } from '../../service/car';
         condition: 'c.orderID = b.id',
       },
     ],
-    where: async ctx => {
-      const { isCompleted, isNew } = ctx.request.body;
+    where: async function (ctx) {
+      const { isCompleted, isNew, labelKeyWords, partKeyWords } =
+        ctx.request.body;
+      let labelSearch = [];
+      if (labelKeyWords) {
+        // 构造一个 JSON 对象，用于搜索
+        labelSearch = [
+          `LOWER(a.carWreckedInfo->'$.infos.dismantlingLabelsData[*].name') LIKE :labelPattern`,
+          { labelPattern: `%${labelKeyWords.toLowerCase()}%` }
+        ];
+      }
+
+      let partSearch = [];
+      if (partKeyWords) {
+        const carPartRepository = getRepository(CarPartsEntity);
+        const parts = await carPartRepository.find({
+          select: ['carID'],
+          where: [
+            { disassmblingInformation: Like(`%${partKeyWords}%`) },
+            { disassemblyDescription: Like(`%${partKeyWords}%`) },
+            { disassemblyNumber: Like(`%${partKeyWords}%`) },
+          ],
+        });
+        const partCarIDs = parts.map(v => v.carID);
+        if (partCarIDs.length > 0) {
+          partSearch = ['(a.id in (:partCarIDs))', { partCarIDs }];
+        }
+      }
+
       return [
         isCompleted ? ['c.status = 4', {}] : [],
         isNew ? ['a.recyclingStatus = "new"', {}] : [],
         // isVFP ? ['a.isVFP = true', {}] : ['(a.isVFP is NULL or a.isVFP = false)', {}]
         // isCompleted ? ['b.actualPaymentPrice > :actualPaymentPrice and c.status = 4', {actualPaymentPrice: 0}]:[],
+        labelSearch,
+        partSearch,
       ];
     },
   },

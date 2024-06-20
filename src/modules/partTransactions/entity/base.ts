@@ -49,6 +49,14 @@ export class PartTransactionsEntity extends BaseEntity {
   @Column({ type: 'datetime', comment: 'Paid Date', nullable: true })
   paidDate: Date;
 
+  
+  @Column({
+    type: 'tinyint',
+    comment: 'Collected 0 1 是否收集',
+    default: false,
+  })
+  collected: number;
+
   @Column({ type: 'datetime', comment: 'Collected Date', nullable: true })
   collectedDate: Date;
 
@@ -75,4 +83,17 @@ export class PartTransactionsEntity extends BaseEntity {
 
   @Column({ comment: 'Collector ID', nullable: true })
   collectorID: number;
+
+  @Column({ type: 'tinyint', comment: 'Complete 是否完整', nullable: true })
+  complete: boolean;
+
+  @Column({ type: 'tinyint', comment: 'Turns over 可转动', nullable: true })
+  turnsOver: boolean;
+
+  @Column({
+    type: 'tinyint',
+    comment: 'Missing parts 是否缺件',
+    nullable: true,
+  })
+  missingParts: boolean;
 }

@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { ContainerEntity } from '../entity/base';
 import { CarWreckedEntity } from '../../car/entity/carWrecked';
 import { BuyerEntity } from '../../buyer/entity/base';
+import { CarPartsEntity } from '../../car/entity/carParts';
+import { PartTransactionsEntity } from '../../partTransactions/entity/base';
 @Provide()
 export class ContainerService extends BaseService {
   @InjectEntityModel(ContainerEntity)
@@ -13,8 +15,14 @@ export class ContainerService extends BaseService {
   @InjectEntityModel(CarWreckedEntity)
   carWreckedEntity: Repository<CarWreckedEntity>;
 
+  @InjectEntityModel(CarPartsEntity)
+  carPartsEntity: Repository<CarPartsEntity>;
+
   @InjectEntityModel(BuyerEntity)
   buyerEntity: Repository<BuyerEntity>;
+
+  @InjectEntityModel(PartTransactionsEntity)
+  partTransactionsEntity: Repository<PartTransactionsEntity>;
 
   /**
    *  获取container number的数据
@@ -83,34 +91,36 @@ export class ContainerService extends BaseService {
    * @param param
    */
   async containerWidthAmountPage(params) {
-    // 创建子查询以聚合carWrecked表的数据
-    const carWreckedSubQuery = this.carWreckedEntity
-      .createQueryBuilder('carWrecked')
-      .select('carWrecked.containerID', 'containerID')
-      .addSelect('SUM(carWrecked.paid)', 'totalPaid')
-      .addSelect('SUM(carWrecked.deposit)', 'totalDeposit')
-      .addSelect('SUM(carWrecked.sold)', 'totalSold')
-      .groupBy('carWrecked.containerID');
+    const partTransactionSubQuery = this.partTransactionsEntity
+      .createQueryBuilder('t')
+      .select('p.containerID', 'containerID')
+      .addSelect('SUM(t.paidPrice)', 'totalPaidPrice')
+      .addSelect('SUM(t.depositPrice)', 'totalDepositPrice')
+      .addSelect('SUM(t.soldPrice)', 'totalSoldPrice')
+      .innerJoin('car_parts', 'p', 't.carWreckedID = p.id')
+      .where('t.status = :status', { status: 0 })
+      .groupBy('p.containerID');
 
-    // 创建主查询，连接container表和聚合的carWrecked数据
+    console.log('-----------------------',await partTransactionSubQuery.getRawMany());
+
     const queryBuilder = this.containerEntity
-      .createQueryBuilder('container')
+      .createQueryBuilder('c')
       .leftJoin(
-        '(' + carWreckedSubQuery.getQuery() + ')',
-        'carWreckedAggregated',
-        'carWreckedAggregated.containerID = container.id'
+        '(' + partTransactionSubQuery.getQuery() + ')',
+        'partTransactionsAggregated',
+        'partTransactionsAggregated.containerID = c.id'
       )
       .addSelect([
-        'container.*', // 选择container表中的所有字段
-        'carWreckedAggregated.totalPaid',
-        'carWreckedAggregated.totalDeposit',
-        'carWreckedAggregated.totalSold',
+        'c.*', // 选择 container 表中的所有字段
+        'partTransactionsAggregated.totalPaidPrice',
+        'partTransactionsAggregated.totalDepositPrice',
+        'partTransactionsAggregated.totalSoldPrice',
       ])
-      .setParameters(carWreckedSubQuery.getParameters());
+      .setParameters(partTransactionSubQuery.getParameters());
 
     // 应用过滤条件
     if (params.containerNumber) {
-      queryBuilder.andWhere('container.containerNumber = :containerNumber', {
+      queryBuilder.andWhere('c.containerNumber = :containerNumber', {
         containerNumber: params.containerNumber,
       });
     }

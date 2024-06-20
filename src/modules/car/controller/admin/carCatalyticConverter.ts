@@ -41,7 +41,38 @@ import { CarCatalyticConverterService } from '../../service/car';
         type: 'leftJoin',
       },
     ]
-  }
+  },
+  listQueryOp:  {
+    keyWordLikeFields: [
+      'carID',
+    ],
+    select: [
+      'a.*',
+      'b.model',
+      'b.year',
+      'b.brand',
+      'b.colour',
+      'b.vinNumber',
+      'b.name',
+      'b.registrationNumber',
+      'b.state',
+      'b.series',
+      'b.engine',
+      'b.bodyStyle',
+      'b.carInfo',
+    ],
+    fieldEq: [
+      { column: 'a.carID', requestParam: 'carID' },
+    ],
+    join: [
+      {
+        entity: CarEntity,
+        alias: 'b',
+        condition: 'a.carID = b.id',
+        type: 'leftJoin',
+      },
+    ]
+  },
 })
 export class CarCatalyticConverterController extends BaseController {
   @Inject()

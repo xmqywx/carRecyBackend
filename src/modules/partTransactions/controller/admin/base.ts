@@ -1,11 +1,11 @@
 import { Provide, Inject, Post } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import { PartTransactionsEntity } from '../../entity/base';
-import { CarWreckedEntity } from '../../../car/entity/carWrecked';
 import { BuyerEntity } from '../../../buyer/entity/base';
 import { CarEntity } from '../../../car/entity/base';
 import { PartTransactionsService } from '../../service/base';
 import { ContainerEntity } from '../../../container/entity/base';
+import { CarPartsEntity } from '../../../car/entity/carParts';
 
 /**
  * 零件交易
@@ -49,7 +49,7 @@ import { ContainerEntity } from '../../../container/entity/base';
     },
     join: [
       {
-        entity: CarWreckedEntity,
+        entity: CarPartsEntity,
         alias: 'b',
         condition: 'a.carWreckedID = b.id',
         type: 'leftJoin',
