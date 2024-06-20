@@ -797,6 +797,7 @@ export class CarPartsService extends BaseService {
         deposit: partTransactionInfo?.depositPrice,
         paid: partTransactionInfo?.paidPrice,
         collected: partTransactionInfo?.collected,
+        carWreckedInfo
       };
     } catch (e) {
       return null;
