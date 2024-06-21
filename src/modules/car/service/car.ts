@@ -803,6 +803,10 @@ export class CarPartsService extends BaseService {
       return null;
     }
   }
+
+  async getWreckedInfo(id: number) {
+    return await this.carPartsEntity.findOne({ id });
+  }
 }
 /**
  * 描述
@@ -855,5 +859,9 @@ export class CarCatalyticConverterService extends BaseService {
         carID: In(carIds),
       },
     });
+  }
+
+  async geCatInfo(id: number) {
+    return this.carCatalyticConverterEntity.findOne({ id });
   }
 }

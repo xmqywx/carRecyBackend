@@ -13,6 +13,8 @@ import getDocs, {
 } from '../../../sendEmail/sendMailToGetDocs';
 import { CarWreckedService, CarBaseService } from '../../../car/service/car';
 import { BaseOpenService } from '../../service/sys/open';
+import { CarPartsService } from '../../../car/service/car';
+import { CarCatalyticConverterService } from '../../../car/service/car';
 
 const url = require('url');
 const querystring = require('querystring');
@@ -52,6 +54,12 @@ export class BaseOpenController extends BaseController {
 
   @Inject()
   baseOpenService: BaseOpenService;
+
+  @Inject()
+  carPartsService: CarPartsService;
+
+  @Inject()
+  carCatalyticConverterService: CarCatalyticConverterService;
 
   /**
    * 实体信息与路径
@@ -202,15 +210,95 @@ export class BaseOpenController extends BaseController {
     return isAllow;
   }
 
+  // @Get('/wrecked_parts')
+  // async getWreckedParts(@Query('dn') dn: string) {
+  //   let queryInfo = await this.carWreckedService.getWreckedInfo(dn);
+  //   let carInfo;
+  //   if (queryInfo && queryInfo.carID) {
+  //     carInfo = await this.carBaseService.getOneCarInfo(queryInfo.carID);
+  //   }
+  //   return this.baseOpenService.returnPartsInfo(queryInfo, carInfo);
+  // }
+
+  /**
+   *
+   * @param dn
+   * @param ln
+   * @param ld
+   * @param catID
+   * @param carID
+   * @returns
+   * 查询label 需要参数：ln: label name, ld: label description, carID
+   * 查询part 需要参数：partID, carID
+   * 查询cat 需要参数：catID, carID
+   */
   @Get('/wrecked_parts')
-  async getWreckedParts(@Query('dn') dn: string) {
-    let queryInfo = await this.carWreckedService.getWreckedInfo(dn);
-    let carInfo;
-    if (queryInfo && queryInfo.carID) {
-      carInfo = await this.carBaseService.getOneCarInfo(queryInfo.carID);
+  async getWreckedParts(
+    @Query('partID') partID: number,
+    @Query('ln') ln: string,
+    @Query('ld') ld: string,
+    @Query('catID') catID: number,
+    @Query('carID') carID: number
+  ) {
+    if (carID) {
+      let carInfo: any;
+      let mapData = {};
+      let promise = [];
+      promise.push(
+        this.carBaseService.getOneCarInfo(carID).then(res => (carInfo = res))
+      );
+      if (partID) {
+        promise.push(
+          this.carPartsService.getWreckedInfo(partID).then(res => {
+            console.log("PART RES=============", res);
+            mapData = {
+              'No.': res.disassemblyNumber,
+              Name: res.disassmblingInformation,
+              Description: res.disassemblyDescription,
+              'Part Images': res.disassemblyImages,
+              title: 'Part'
+            };
+          })
+        );
+      } else if (catID) {
+        promise.push(
+          this.carCatalyticConverterService.geCatInfo(catID).then(res => {
+            mapData = {
+              'No.': res.catalyticConverterNumber,
+              Name: res.catalyticConverterName,
+              Description: res.disassemblyDescription,
+              'Part Images': res.disassemblyImages,
+              'Cat Type': res.catType,
+              'Location of Cat': res.locationOfCat,
+              title: 'Catalytic Converter'
+            };
+          })
+        );
+      } else if (ln && ld) {
+        mapData = {
+          Name: ln,
+          Description: ld,
+          title: 'Label'
+        };
+      }
+      try {
+        await Promise.all(promise);
+        console.log("MAP DATA ===========", mapData);
+        return this.baseOpenService.returnPartsInfo(mapData, carInfo);
+      } catch (e) {
+        console.log("error ===============", e);
+        return this.fail(
+          'The QR code is incorrect, please regenerate the QR code.',
+          e
+        );
+      }
+    } else {
+      return this.fail(
+        'The QR code is incorrect, please regenerate the QR code.'
+      )
     }
-    return this.baseOpenService.returnPartsInfo(queryInfo, carInfo);
   }
+
   @Get('/wrecked_infos')
   async getWreckedInfo(
     @Query('disassemblyCategory') disassemblyCategory: string,

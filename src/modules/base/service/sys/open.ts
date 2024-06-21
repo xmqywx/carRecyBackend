@@ -260,6 +260,7 @@ export class BaseOpenService extends BaseService {
             </html>
         `;
   }
+
   // 返回零件的内容
   async returnPartsInfo(partData: any, carData?: any) {
     let partDataArr = Object.keys(partData).map(key => {
@@ -271,12 +272,6 @@ export class BaseOpenService extends BaseService {
         return { label: key, value: carData[key] };
       });
       let carInfoArr: { label: string; value: any }[] = [];
-      // if(carData && carData.carInfo) {
-      //     const carInfo = JSON.parse(carData.carInfo);
-      //     carInfoArr = Object.keys(carInfo).map(key => {
-      //         return { label: key, value: carInfo[key] };
-      //     });
-      // }
       carDataArr = [...carDataArr, ...carInfoArr];
     }
     return `
@@ -340,8 +335,16 @@ export class BaseOpenService extends BaseService {
     }
     
     .imgContainer {
-        text-align: center;
+        display: flex;
+        justify-content: start;
+        gap: 10px;
         padding: 10px;
+    }
+    .imgContainer img {
+      max-width: 200px;  /* 最大宽度为200px */
+      max-height: 200px; /* 最大高度为200px */
+      width: auto;       /* 宽度自动，保持原始比例 */
+      height: auto;      /* 高度自动，保持原始比例 */
     }
     
     img {
@@ -359,7 +362,7 @@ export class BaseOpenService extends BaseService {
     </style>
     <body>
         <div class="w">
-            <h3>Part Info</h3>
+            <h3>${partData.title}</h3>
             ${partDataArr
               .map(v => {
                 if (!v.value) {
@@ -375,33 +378,18 @@ export class BaseOpenService extends BaseService {
                     'id',
                     'containerID',
                     'carID',
+                    'title',
                   ].includes(v.label)
                 ) {
                   return null;
                 }
-                if (
-                  v.label === 'disassmblingInformation' &&
-                  partData.disassemblyCategory === 'Catalytic Converter'
-                ) {
+                if (v.label === 'Part Images') {
                   const imgArr = JSON.parse(v.value);
                   return `
                         <div class='row'>
-                            <div class='label'>${toTitleCase(v.label)}:</div>
+                            <div class='label'>${v.label}:</div>
                         </div>
-                        <div class='row'>
-                            ${imgArr
-                              .map(i => `<img src="${i}" alt="car">`)
-                              .join('')}
-                        </div>
-                        `;
-                }
-                if (v.label === 'disassemblyImages') {
-                  const imgArr = JSON.parse(v.value);
-                  return `
-                        <div class='row'>
-                            <div class='label'>${toTitleCase(v.label)}:</div>
-                        </div>
-                        <div class='row'>
+                        <div class='imgContainer'>
                             ${imgArr
                               .map(i => `<img src="${i}" alt="car">`)
                               .join('')}
@@ -409,7 +397,7 @@ export class BaseOpenService extends BaseService {
                         `;
                 }
                 return `<div class='row'>
-                        <div class='label'>${toTitleCase(v.label)} :</div>
+                        <div class='label'>${v.label} :</div>
                         <div class='value'>${v.value}</div>
                     </div>`;
               })
@@ -430,6 +418,7 @@ export class BaseOpenService extends BaseService {
                     'departmentId',
                     'status',
                     'id',
+                    'parts',
                   ].includes(v.label)
                 ) {
                   return null;
