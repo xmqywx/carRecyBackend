@@ -42,6 +42,7 @@ import { JobService } from '../../service/job';
       'c.image',
       'e.phoneNumber',
       'e.firstName',
+      'b.floating',
     ],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [
@@ -51,6 +52,7 @@ import { JobService } from '../../service/job';
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.id', requestParam: 'id' },
       { column: 'a.orderID', requestParam: 'orderID' },
+      { column: 'b.floating', requestParam: 'floating' },
     ],
     join: [
       {
@@ -137,6 +139,7 @@ import { JobService } from '../../service/job';
       'c.colour',
       'c.vinNumber',
       'd.username',
+      'b.floating',
     ],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [
@@ -145,6 +148,7 @@ import { JobService } from '../../service/job';
       { column: 'a.departmentId', requestParam: 'departmentId' },
       { column: 'a.driverID', requestParam: 'driverID' },
       { column: 'a.orderID', requestParam: 'orderID' },
+      { column: 'b.floating', requestParam: 'floating' },
     ],
     join: [
       {

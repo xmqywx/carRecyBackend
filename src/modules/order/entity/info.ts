@@ -243,4 +243,8 @@ export class OrderInfoEntity extends BaseEntity {
     scale: 2,
   })
   priceExGST: number;
+
+  // is floating
+  @Column({ type: 'tinyint', nullable: true })
+  floating: boolean;
 }
