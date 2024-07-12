@@ -83,17 +83,4 @@ export class PartTransactionsEntity extends BaseEntity {
 
   @Column({ comment: 'Collector ID', nullable: true })
   collectorID: number;
-
-  @Column({ type: 'tinyint', comment: 'Complete 是否完整', nullable: true })
-  complete: boolean;
-
-  @Column({ type: 'tinyint', comment: 'Turns over 可转动', nullable: true })
-  turnsOver: boolean;
-
-  @Column({
-    type: 'tinyint',
-    comment: 'Missing parts 是否缺件',
-    nullable: true,
-  })
-  missingParts: boolean;
 }

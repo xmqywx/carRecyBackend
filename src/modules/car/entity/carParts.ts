@@ -44,4 +44,17 @@ export class CarPartsEntity extends BaseEntity {
   @ManyToOne(() => CarEntity, (car) => car.parts, { cascade: true })
   @JoinColumn({ name: 'carID' })  // 确保这里的字段名与数据库中的外键列名一致
   car ?: Promise<CarEntity> | CarEntity;
+
+  @Column({ type: 'tinyint', comment: 'Complete 是否完整', nullable: true })
+  complete: boolean;
+
+  @Column({ type: 'tinyint', comment: 'Turns over 可转动', nullable: true })
+  turnsOver: boolean;
+
+  @Column({
+    type: 'tinyint',
+    comment: 'Missing parts 是否缺件',
+    nullable: true,
+  })
+  missingParts: boolean;
 }

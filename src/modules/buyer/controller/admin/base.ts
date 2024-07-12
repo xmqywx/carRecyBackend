@@ -13,6 +13,10 @@ import { BuyerService } from '../../service/base';
     fieldEq: [{ column: 'type', requestParam: 'type' }],
     keyWordLikeFields: ['name'],
   },
+  pageQueryOp: {
+    fieldEq: [{ column: 'type', requestParam: 'type' }],
+    keyWordLikeFields: ['name', 'phone', 'address'],
+  }
 })
 export class BuyerController extends BaseController {
   @Inject()

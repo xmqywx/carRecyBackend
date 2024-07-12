@@ -23,7 +23,12 @@ import { BuyerEntity } from '../../../buyer/entity/base';
   },
 
   pageQueryOp: {
-    keyWordLikeFields: [],
+    keyWordLikeFields: [
+      'a.containerNumber',
+      'a.sealNumber',
+      'a.dispatchLocation',
+      'a.finalDestination',
+    ],
     select: [
       'a.*',
       'b.name as consignee_name',

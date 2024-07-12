@@ -17,7 +17,15 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
   entity: CarPartsEntity,
 
   pageQueryOp: {
-    keyWordLikeFields: ['carID', 'b.name', 'b.model', 'b.year', 'b.brand'],
+    keyWordLikeFields: [
+      'a.carID',
+      'a.disassmblingInformation',
+      'a.disassemblyNumber',
+      'b.name',
+      'b.model',
+      'b.year',
+      'b.brand',
+    ],
     select: [
       'a.*',
       'c.containerNumber',
@@ -51,6 +59,16 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
     ],
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
+      {
+        column: 'a.disassmblingInformation',
+        requestParam: 'disassmblingInformation',
+      },
+      { column: 'a.disassemblyNumber', requestParam: 'disassemblyNumber' },
+      { column: 'p.collected', requestParam: 'collected' },
+      { column: 'b.model', requestParam: 'model' },
+      { column: 'b.departmentId', requestParam: 'departmentId' },
+      { column: 'b.year', requestParam: 'year' },
+      { column: 'b.brand', requestParam: 'brand' },
       { column: 'c.containerNumber', requestParam: 'containerNumber' },
       { column: 'b.recyclingStatus', requestParam: 'recyclingStatus' },
     ],
@@ -86,19 +104,68 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
         type: 'leftJoin',
       },
     ],
-    where: async (ctx) => {
-      const { partKeyWord } = ctx.request.body;
+    where: async ctx => {
+      const {
+        partKeyWord,
+        isSold,
+        isPaid,
+        isDeposit,
+        noSold,
+        noPaid,
+        noDeposit,
+        lowestSoldPrice,
+        highestSoldPrice,
+        containerNumber,
+      } = ctx.request.body;
+      // 因为根据分类排序了，所以会导致就算是后端列表排序了也会打乱顺序
+      let hightSqlSearch = '';
+      let lowestSqlSearch = '';
+      if (lowestSoldPrice || highestSoldPrice) {
+        const hightSql =
+          'p.soldPrice = (select MAX(soldPrice) from `cool-admin`.part_transactions';
+        const lowestSql =
+          'p.soldPrice = (select MIN(soldPrice) from `cool-admin`.part_transactions';
+        const sqlArr = [];
+        if (containerNumber) {
+          sqlArr.push(`containerNumber = '${containerNumber}'`);
+        }
+        // if (keyWord) {
+        //   sqlArr.push(
+        //     `(carID LIKE '%${keyWord}%' OR disassemblyNumber LIKE '%${keyWord}%' OR disassmblingInformation LIKE '%${keyWord}%' OR disassemblyDescription LIKE '%${keyWord}%')`
+        //   );
+        // }
+        hightSqlSearch =
+          hightSql +
+          (sqlArr.length > 0 ? ' where ' : '') +
+          sqlArr.join(' and ') +
+          ')';
+        lowestSqlSearch =
+          lowestSql +
+          (sqlArr.length > 0 ? ' where ' : '') +
+          sqlArr.join(' and ') +
+          ')';
+      }
       return [
-        partKeyWord ? [
-          `(a.disassmblingInformation LIKE :partKeyWord1 OR a.disassemblyDescription LIKE :partKeyWord2 OR a.disassemblyNumber LIKE :partKeyWord3)`,
-          { 
-            partKeyWord1: `%${partKeyWord}%`,
-            partKeyWord2: `%${partKeyWord}%`,
-            partKeyWord3: `%${partKeyWord}%`,
-           }
-        ] : []
-      ]
-    }
+        partKeyWord
+          ? [
+              `(a.disassmblingInformation LIKE :partKeyWord1 OR a.disassemblyDescription LIKE :partKeyWord2 OR a.disassemblyNumber LIKE :partKeyWord3)`,
+              {
+                partKeyWord1: `%${partKeyWord}%`,
+                partKeyWord2: `%${partKeyWord}%`,
+                partKeyWord3: `%${partKeyWord}%`,
+              },
+            ]
+          : [],
+        isSold ? ['p.soldPrice IS NOT NULL AND p.soldPrice > 0', {}] : [],
+        isPaid ? ['p.paidPrice IS NOT NULL AND p.paidPrice > 0', {}] : [],
+        isDeposit ? ['p.depositPrice IS NOT NULL AND p.depositPrice > 0', {}] : [],
+        noSold ? ['(p.soldPrice IS NULL OR p.soldPrice = 0)', {}] : [],
+        noPaid ? ['(p.paidPrice IS NULL OR p.paidPrice = 0)', {}] : [],
+        noDeposit ? ['(p.depositPrice IS NULL OR p.depositPrice = 0)', {}] : [],
+        lowestSoldPrice ? [lowestSqlSearch, {}] : [],
+        highestSoldPrice ? [hightSqlSearch, {}] : [],
+      ];
+    },
   },
 
   listQueryOp: {
@@ -210,5 +277,47 @@ export class CarPartsController extends BaseController {
       await this.carPartsService.getCarWreckedWidthTransaction(id);
     if (carWreckedInfo) return this.ok(carWreckedInfo);
     return this.fail();
+  }
+
+  /**
+   * 获得总数统计
+   */
+  @Post('/handleToGetCarWreckedTotal')
+  async handleToGetCarWreckedTotal(
+    @Body('isSold') isSold: boolean,
+    @Body('isPaid') isPaid: boolean,
+    @Body('collected') collected: boolean,
+    @Body('isDeposit') isDeposit: boolean,
+    @Body('noSold') noSold: boolean,
+    @Body('noPaid') noPaid: boolean,
+    @Body('noDeposit') noDeposit: boolean,
+    @Body('lowestSoldPrice') lowestSoldPrice: boolean,
+    @Body('containerNumber') containerNumber: any,
+    @Body('highestSoldPrice') highestSoldPrice: boolean,
+    @Body('disassmblingInformation') disassmblingInformation: string,
+    @Body('keyWord') keyWord: string
+  ) {
+    const filters = {
+      isSold,
+      isPaid,
+      collected,
+      isDeposit,
+      containerNumber,
+      noSold,
+      noPaid,
+      noDeposit,
+      lowestSoldPrice,
+      highestSoldPrice,
+      keyWord,
+      disassmblingInformation,
+    };
+    try {
+      const data = await this.carPartsService.handleToGetCarWreckedTotal(
+        filters
+      );
+      return this.ok(data);
+    } catch (e) {
+      return this.fail(e);
+    }
   }
 }

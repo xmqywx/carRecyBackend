@@ -125,6 +125,14 @@ export class ContainerService extends BaseService {
       });
     }
 
+    // 关键词
+    // containerNumber,sealNumber,dispatchLocation,finalDestination,
+    if (params.keyWord) {
+      queryBuilder.andWhere('(c.containerNumber LIKE :keyWord OR c.sealNumber LIKE :keyWord OR c.dispatchLocation LIKE :keyWord OR c.finalDestination LIKE :keyWord)', {
+        keyWord: `%${params.keyWord}%`,
+      });
+    }
+
     // 获取总记录数
     const total = await queryBuilder.getCount();
 

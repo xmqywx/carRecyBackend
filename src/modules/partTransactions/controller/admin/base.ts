@@ -15,6 +15,12 @@ import { CarPartsEntity } from '../../../car/entity/carParts';
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: PartTransactionsEntity,
   pageQueryOp: {
+    keyWordLikeFields: [
+      'b.disassemblyNumber',
+      'b.disassemblyDescription',
+      'b.disassmblingInformation',
+      'e.containerNumber',
+    ],
     select: [
       'a.*',
       'b.disassmblingInformation',

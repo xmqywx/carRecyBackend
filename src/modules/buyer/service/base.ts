@@ -149,7 +149,7 @@ export class BuyerService extends BaseService {
               pt = ptRes;
             } else {
               pt = {
-                carWreckedID: params.id,
+                carWreckedID: partID,
                 status: 0,
                 collectorID: finalID,
               };

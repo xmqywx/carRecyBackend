@@ -797,7 +797,7 @@ export class CarPartsService extends BaseService {
         deposit: partTransactionInfo?.depositPrice,
         paid: partTransactionInfo?.paidPrice,
         collected: partTransactionInfo?.collected,
-        carWreckedInfo
+        carWreckedInfo,
       };
     } catch (e) {
       return null;
@@ -806,6 +806,147 @@ export class CarPartsService extends BaseService {
 
   async getWreckedInfo(id: number) {
     return await this.carPartsEntity.findOne({ id });
+  }
+
+  /**
+   * 获取总数统计
+   */
+  async handleToGetCarWreckedTotal(filters: { [key: string]: any }) {
+    const {
+      isSold,
+      isPaid,
+      collected,
+      isDeposit,
+      containerNumber,
+      noSold,
+      noPaid,
+      noDeposit,
+      lowestSoldPrice,
+      highestSoldPrice,
+      keyWord,
+      disassmblingInformation,
+    } = filters;
+    console.log(filters);
+    let total = {
+      sold: 0,
+      collected: 0,
+      paid: 0,
+      deposit: 0,
+      priceCollected: 0,
+    };
+
+    const query = await this.carPartsEntity
+      .createQueryBuilder('a')
+      .leftJoinAndSelect(ContainerEntity, 'b', 'a.containerID = b.id')
+      .leftJoinAndSelect(CarEntity, 'c', 'a.carID = c.id')
+      .leftJoinAndSelect(
+        PartTransactionsEntity,
+        'p',
+        'a.id = p.carWreckedID and p.status = 0'
+      )
+      .select([
+        'a.*',
+        'b.containerNumber',
+        'p.soldPrice',
+        'p.depositPrice',
+        'p.paidPrice',
+        'p.collected',
+      ]);
+
+    if (containerNumber) {
+      query.andWhere('b.containerNumber IN (:containerNumber)', {
+        containerNumber: containerNumber,
+      });
+    }
+
+    if (isSold) {
+      query.andWhere('p.soldPrice IS NOT NULL AND p.soldPrice > 0');
+    }
+
+    if (collected) {
+      query.andWhere('p.collected = :collected', { collected: true });
+    }
+
+    if (isPaid) {
+      query.andWhere('p.paidPrice IS NOT NULL AND p.paidPrice > 0');
+    }
+
+    if (isDeposit) {
+      query.andWhere('p.depositPrice IS NOT NULL AND p.depositPrice > 0');
+    }
+    if (noSold) {
+      query.andWhere('(p.soldPrice IS NULL OR p.soldPrice = 0)');
+    }
+
+    if (noPaid) {
+      query.andWhere('(p.paidPrice IS NULL OR p.paidPrice = 0)');
+    }
+
+    if (noDeposit) {
+      query.andWhere('(p.depositPrice IS NULL OR p.depositPrice = 0)');
+    }
+
+    if (disassmblingInformation) {
+      query.andWhere('(a.disassmblingInformation = :disassmblingInformation)', {
+        disassmblingInformation,
+      });
+    }
+
+    const hightSql =
+      'p.soldPrice = (select MAX(soldPrice) from `cool-admin`.part_transactions';
+    const lowestSql =
+      'p.soldPrice = (select MIN(soldPrice) from `cool-admin`.part_transactions';
+    const sqlArr = [];
+    if (containerNumber) {
+      sqlArr.push('b.containerNumber = :containerNumber');
+    }
+    // if (keyWord) {
+    //   sqlArr.push(
+    //     '(a.carID LIKE :keyWord OR a.disassemblyNumber LIKE :keyWord OR a.disassmblingInformation LIKE :keyWord OR a.disassemblyDescription LIKE :keyWord)'
+    //   );
+    // }
+    let hightSqlSearch =
+      hightSql +
+      (sqlArr.length > 0 ? ' where ' : '') +
+      sqlArr.join(' and ') +
+      ')';
+    let lowestSqlSearch =
+      lowestSql +
+      (sqlArr.length > 0 ? ' where ' : '') +
+      sqlArr.join(' and ') +
+      ')';
+    if (lowestSoldPrice) {
+      query.andWhere(lowestSqlSearch);
+    }
+
+    if (highestSoldPrice) {
+      query.andWhere(hightSqlSearch);
+    }
+
+    if (keyWord) {
+      query.andWhere(
+        '(a.carID LIKE :keyWord OR a.disassemblyNumber LIKE :keyWord OR a.disassmblingInformation LIKE :keyWord OR a.disassemblyDescription LIKE :keyWord OR c.name LIKE :keyWord OR c.model LIKE :keyWord OR c.year LIKE :keyWord OR c.brand LIKE :keyWord)'
+      );
+    }
+
+    query.setParameter('containerNumber', containerNumber);
+    query.setParameter('keyWord', `%${keyWord}%`);
+
+    const results = await query.getRawMany();
+
+    results.forEach(result => {
+      total.sold += Number(result.p_soldPrice) || 0;
+      total.collected += result.p_collected ? 1 : 0;
+      total.paid += Number(result.p_paidPrice) || 0;
+      total.deposit += Number(result.p_depositPrice) || 0;
+      if (result.p_collected) {
+        total.priceCollected +=
+          (Number(result.p_paidPrice) || 0) +
+          (Number(result.p_depositPrice) || 0);
+      }
+    });
+
+    return {...total, results};
   }
 }
 /**
