@@ -407,7 +407,7 @@ export class VehicleProfileController extends BaseController {
         const vehicleJson = json.Vehicle.vehicleJson;
         return this.ok(JSON.parse(vehicleJson));
       } catch (e) {
-        return this.fail('Unable to obtain correct vehicle information' + e);
+        return this.fail('Unable to obtain correct vehicle information;' + e);
       }
     } else if (api === SEARCH_CAR_API.V1) {
       if (carRegList.length && carRegList[0].json) {

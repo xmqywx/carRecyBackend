@@ -311,11 +311,13 @@ export class OrderService extends BaseService {
 
     // 请求新的token
     const response = await axios.post(
-      'https://api.dev.infoagent.com.au/auth/v1/token/oauth',
+      'https://api.infoagent.com.au/auth/v1/token/oauth',
       {
         grant_type: 'client_credentials',
-        client_id: 'MtDpkDIrb0gej6A2mJWP',
-        client_secret: 'b23ed528-7cc1-469e-8df9-9a714e551280',
+        // client_id: 'MtDpkDIrb0gej6A2mJWP',
+        client_id: 'dvfwCPIFLmrJZKGEF6VP',
+        // client_secret: 'b23ed528-7cc1-469e-8df9-9a714e551280',
+        client_secret: '79e22f09-bf7e-46bc-ad4c-beda9185bb26',
       }
     );
 
@@ -340,6 +342,7 @@ export class OrderService extends BaseService {
             username: 'smtm2099',
           },
         })
+      console.log("========================S1", data.data);
       return data.data
     } catch (e) {
       console.log(e);
@@ -351,7 +354,7 @@ export class OrderService extends BaseService {
     const accessToken = await this.getAccessToken();
     try {
       const response = await axios.post(
-        'https://api.dev.infoagent.com.au/nevdis/v1/vehicle-report',
+        'https://api.infoagent.com.au/nevdis/v1/vehicle-report',
         {
           plate,
           state,
@@ -381,7 +384,7 @@ export class OrderService extends BaseService {
     const accessToken = await this.getAccessToken();
     try {
       const response = await axios.post(
-        'https://api.dev.infoagent.com.au/ivds/v1/au/vehicle-report/enhanced-basic',
+        'https://api.infoagent.com.au/ivds/v1/au/vehicle-report/enhanced-basic',
         {
           plate,
           state
