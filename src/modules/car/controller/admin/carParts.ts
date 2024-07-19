@@ -189,6 +189,7 @@ import { PartTransactionsEntity } from '../../../partTransactions/entity/base';
     ],
     fieldEq: [
       { column: 'a.carID', requestParam: 'carID' },
+      { column: 'a.status', requestParam: 'status' },
       { column: 'c.containerNumber', requestParam: 'containerNumber' },
     ],
     join: [
