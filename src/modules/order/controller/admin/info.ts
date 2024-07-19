@@ -227,7 +227,12 @@ import * as xml2json from 'xml2json';
           : [],
         endDate ? ['a.createTime <= :endDate', { endDate: endDate }] : [],
         isNotScheduleSearch,
-        keywordCustomer ? ['b.firstName LIKE :keywordCustomer', { keywordCustomer: `%${keywordCustomer}%` }] : [],
+        keywordCustomer
+          ? [
+              'b.firstName LIKE :keywordCustomer',
+              { keywordCustomer: `%${keywordCustomer}%` },
+            ]
+          : [],
       ];
     },
   },
@@ -479,6 +484,39 @@ export class VehicleProfileController extends BaseController {
       } catch (e) {
         return this.fail('Unable to obtain correct vehicle information' + e);
       }
+    } else if (api === SEARCH_CAR_API.V3) {
+      if (carRegList.length && carRegList[0].json_v3) {
+        return this.ok(carRegList[0].json_v3);
+      }
+      try {
+        let carRegFind;
+        if (carRegList.length) {
+          carRegFind = carRegList[0].id ?? undefined;
+        }
+        let jsonData2;
+        const promise = [];
+        promise.push(
+          this.orderService
+            .fetchDataWithV3(registrationNumber, state)
+            .then(async res => {
+              jsonData2 = res.result.vehicle ?? null;
+            })
+        );
+        await Promise.all(promise);
+        if (!jsonData2) {
+          return this.fail('Unable to find content');
+        }
+        const jsonData = { ...jsonData2 };
+        await this.carRegEntity.save({
+          id: carRegFind,
+          registrationNumber,
+          state,
+          json_v3: jsonData,
+        });
+        return this.ok(jsonData);
+      } catch (e) {
+        return this.fail('Unable to obtain correct vehicle information' + e);
+      }
     } else {
       return this.fail('API type not supported.');
     }
@@ -528,4 +566,5 @@ enum SEARCH_CAR_API {
   S1 = 0,
   V1,
   V2,
+  V3,
 }

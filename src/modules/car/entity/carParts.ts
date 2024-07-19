@@ -57,4 +57,20 @@ export class CarPartsEntity extends BaseEntity {
     nullable: true,
   })
   missingParts: boolean;
+
+    /**
+   * 0 to dismental
+   * 1 dismentaled
+   * 2 containered
+   * 3 void
+   */
+    @Column({ comment: 'status', type: 'tinyint', default: 0 })
+    status: number;
+}
+
+export enum PART_STATUS {
+  toDismental = 0,
+  dismentaled,
+  containered,
+  void,
 }
