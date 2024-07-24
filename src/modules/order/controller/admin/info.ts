@@ -401,6 +401,9 @@ export class VehicleProfileController extends BaseController {
           registrationNumber,
           state
         );
+        if(!data) {
+          return this.fail('Unable to obtain content');
+        }
         await this.carRegEntity.save({
           id: carRegFind,
           registrationNumber,
@@ -412,7 +415,12 @@ export class VehicleProfileController extends BaseController {
         const vehicleJson = json.Vehicle.vehicleJson;
         return this.ok(JSON.parse(vehicleJson));
       } catch (e) {
-        return this.fail('Unable to obtain correct vehicle information;' + e);
+        console.log(e.message);
+        if(e.message === 'timeout of 8000ms exceeded') {
+          return this.fail('This content cannot be found or does not exist.');
+        }
+
+        return this.fail('Unable to obtain correct vehicle information,please try again later.');
       }
     } else if (api === SEARCH_CAR_API.V1) {
       if (carRegList.length && carRegList[0].json) {
@@ -432,13 +440,13 @@ export class VehicleProfileController extends BaseController {
             .fetchDataWithV1(registrationNumber, state)
             .then(async res => {
               console.log();
-              jsonData1 = res.result.vehicles[0] ?? null;
+              jsonData1 = res?.result?.vehicles[0] ?? null;
             })
         );
         await Promise.all(promise);
 
         if (!jsonData1) {
-          return this.fail('Unable to find content');
+          return this.fail('This content cannot be found or does not exist.');
         }
         const jsonData = { ...jsonData1 };
         await this.carRegEntity.save({
@@ -449,7 +457,7 @@ export class VehicleProfileController extends BaseController {
         });
         return this.ok(jsonData);
       } catch (e) {
-        return this.fail('Unable to obtain correct vehicle information' + e);
+        return this.fail('Unable to obtain correct vehicle information,please try again later.');
       }
     } else if (api === SEARCH_CAR_API.V2) {
       if (carRegList.length && carRegList[0].json_v2) {
@@ -466,12 +474,12 @@ export class VehicleProfileController extends BaseController {
           this.orderService
             .fetchDataWithV2(registrationNumber, state)
             .then(async res => {
-              jsonData2 = res.result.vehicle ?? null;
+              jsonData2 = res?.result?.vehicle ?? null;
             })
         );
         await Promise.all(promise);
         if (!jsonData2) {
-          return this.fail('Unable to find content');
+          return this.fail('This content cannot be found or does not exist.');
         }
         const jsonData = { ...jsonData2 };
         await this.carRegEntity.save({
@@ -482,7 +490,7 @@ export class VehicleProfileController extends BaseController {
         });
         return this.ok(jsonData);
       } catch (e) {
-        return this.fail('Unable to obtain correct vehicle information' + e);
+        return this.fail('Unable to obtain correct vehicle information,please try again later.');
       }
     } else if (api === SEARCH_CAR_API.V3) {
       if (carRegList.length && carRegList[0].json_v3) {
@@ -499,12 +507,12 @@ export class VehicleProfileController extends BaseController {
           this.orderService
             .fetchDataWithV3(registrationNumber, state)
             .then(async res => {
-              jsonData2 = res.result.vehicle ?? null;
+              jsonData2 = res?.result?.vehicle ?? null;
             })
         );
         await Promise.all(promise);
         if (!jsonData2) {
-          return this.fail('Unable to find content');
+          return this.fail('This content cannot be found or does not exist.');
         }
         const jsonData = { ...jsonData2 };
         await this.carRegEntity.save({
@@ -515,7 +523,7 @@ export class VehicleProfileController extends BaseController {
         });
         return this.ok(jsonData);
       } catch (e) {
-        return this.fail('Unable to obtain correct vehicle information' + e);
+        return this.fail('Unable to obtain correct vehicle information,please try again later.');
       }
     } else {
       return this.fail('API type not supported.');

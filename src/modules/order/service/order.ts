@@ -1,4 +1,4 @@
-import { Provide } from '@midwayjs/decorator';
+import { Provide, Inject } from '@midwayjs/decorator';
 import { BaseService, CoolCommException } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { Repository, Between } from 'typeorm';
@@ -10,6 +10,7 @@ import { CarEntity } from '../../car/entity/base';
 import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 import { CarRegEntity } from '../../carReg/entity/info';
+import { AccessToken } from './accessToken';
 
 @Provide()
 export class OrderService extends BaseService {
@@ -25,6 +26,8 @@ export class OrderService extends BaseService {
   carEntity: Repository<CarEntity>;
   @InjectEntityModel(CarRegEntity)
   carRegEntity: Repository<CarRegEntity>;
+  @Inject()
+  accessTokenService: AccessToken;
 
   async getCountMonth(departmentId) {
     const year = new Date().getFullYear();
@@ -276,19 +279,6 @@ export class OrderService extends BaseService {
     return await Promise.all(promise)
       .then(() => true)
       .catch(() => false);
-    // if(job_status !== 0) {
-    //   //booked -> booked(completed), orderId = ?, order_status = 1, job_status = 4
-    //   //booked(completed) -> booked, orderId = ?, order_status = 1, job_status = 1
-    //   if(findJob[0]?.id) {
-    //     findJob[0].status = job_status;
-    //     this.jobEntity.save(findJob[0]);
-    //   }
-    // } else {
-    //   //booked -> lead, orderId = ?, order_status = 0, job_status = null
-    //   if(findJob[0]?.id) {
-    //     await this.jobEntity.delete(findJob[0].id);
-    //   }
-    // }
   }
 
   /**
@@ -303,125 +293,114 @@ export class OrderService extends BaseService {
     expiry: null,
   };
 
-  async getAccessToken() {
-    // 检查缓存的token是否存在且未过期
-    if (this.cachedToken.value && this.cachedToken.expiry > Date.now()) {
-      return this.cachedToken.value;
-    }
+  // async getAccessToken() {
+  //   console.log(this.cachedToken);
+  //   // 检查缓存的token是否存在且未过期
+  //   if (this.cachedToken.value && this.cachedToken.expiry > Date.now()) {
+  //     console.log("-------------------------------token not expire true");
+  //     return this.cachedToken.value;
+  //   }
 
-    // 请求新的token
-    const response = await axios.post(
-      'https://api.infoagent.com.au/auth/v1/token/oauth',
-      {
-        grant_type: 'client_credentials',
-        // client_id: 'MtDpkDIrb0gej6A2mJWP',
-        client_id: 'dvfwCPIFLmrJZKGEF6VP',
-        // client_secret: 'b23ed528-7cc1-469e-8df9-9a714e551280',
-        client_secret: '79e22f09-bf7e-46bc-ad4c-beda9185bb26',
-      }
-    );
+  //   console.log("-------------------------------token not expire false");
+  //     // 请求新的token
+  //   const response = await axios.post(
+  //     'https://api.dev.infoagent.com.au/auth/v1/token/oauth',
+  //     {
+  //       grant_type: 'client_credentials',
+  //       client_id: 'MtDpkDIrb0gej6A2mJWP',
+  //       // client_id: 'dvfwCPIFLmrJZKGEF6VP',
+  //       client_secret: 'b23ed528-7cc1-469e-8df9-9a714e551280',
+  //       // client_secret: '79e22f09-bf7e-46bc-ad4c-beda9185bb26',
+  //     }
+  //   );
 
-    const { access_token, expires_in } = response.data;
+  //   const { access_token, expires_in } = response.data;
 
-    // 更新缓存的token和过期时间
-    this.cachedToken = {
-      value: access_token,
-      expiry: Date.now() + expires_in * 1000 - 10000, // 提前10秒刷新token
-    };
+  //   // 更新缓存的token和过期时间
+  //   this.cachedToken = {
+  //     value: access_token,
+  //     expiry: Date.now() + expires_in * 1000 - 10000, // 提前10秒刷新token
+  //   };
 
-    return access_token;
-  }
+  //   console.log(this.cachedToken);
+
+  //   return access_token;
+  // }
 
   async fetchDataWithS1(registrationNumber, state) {
-    try {
-      const data = await axios
-        .get('http://www.carregistrationapi.com/api/reg.asmx/CheckAustralia', {
-          params: {
-            RegistrationNumber: registrationNumber,
-            State: state,
-            username: 'smtm2099',
-          },
-        })
-      console.log("========================S1", data.data);
-      return data.data
-    } catch (e) {
-      console.log(e);
-    }
-
+    const data = await axios
+      .get('http://www.carregistrationapi.com/api/reg.asmx/CheckAustralia', {
+        params: {
+          RegistrationNumber: registrationNumber,
+          State: state,
+          username: 'smtm2099',
+        },
+        timeout: 8000, // 设置请求超时为5秒
+      })
+    console.log("========================S1", data.data);
+    return data.data
   }
 
   async fetchDataWithV1(plate, state) {
-    const accessToken = await this.getAccessToken();
-    try {
-      const response = await axios.post(
-        'https://api.infoagent.com.au/nevdis/v1/vehicle-report',
-        {
-          plate,
-          state,
-          products: [
-            'VEHICLE_AGE',
-            'EXTENDED_DATA',
-            'HIGH_PERFORMANCE_INFO',
-            'REGISTRATION',
-            'DETAILS',
-            'STOLEN_INFO',
-            'WRITTEN_OFF_INFO',
-          ],
+    const accessToken = await this.accessTokenService.getAccessToken();
+    const response = await axios.post(
+      'https://api.infoagent.com.au/nevdis/v1/vehicle-report',
+      {
+        plate,
+        state,
+        products: [
+          'VEHICLE_AGE',
+          'EXTENDED_DATA',
+          'HIGH_PERFORMANCE_INFO',
+          'REGISTRATION',
+          'DETAILS',
+          'STOLEN_INFO',
+          'WRITTEN_OFF_INFO',
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      return response.data;
-    } catch (e) {
-      console.log(e);
-    }
+      }
+    );
+    return response.data;
   }
 
   async fetchDataWithV2(plate, state) {
-    const accessToken = await this.getAccessToken();
-    try {
-      const response = await axios.post(
-        'https://api.infoagent.com.au/ivds/v1/au/vehicle-report/enhanced-basic',
-        {
-          plate,
-          state
+    const accessToken = await this.accessTokenService.getAccessToken();
+    const response = await axios.post(
+      'https://api.infoagent.com.au/ivds/v1/au/vehicle-report/enhanced-basic',
+      {
+        plate,
+        state
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      console.log('success', response.data);
-      return response.data;
-    } catch (e) {
-      console.log(e);
-    }
+      }
+    );
+    console.log('success', response.data);
+    return response.data;
   }
 
   async fetchDataWithV3(plate, state) {
-    const accessToken = await this.getAccessToken();
-    try {
-      const response = await axios.post(
-        'https://api.infoagent.com.au/ivds/v1/au/vehicle-report/ppsr',
-        {
-          plate,
-          state
+    const accessToken = await this.accessTokenService.getAccessToken();
+    const response = await axios.post(
+      'https://api.infoagent.com.au/ivds/v1/au/vehicle-report/ppsr',
+      {
+        plate,
+        state
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      console.log('success', response.data);
-      return response.data;
-    } catch (e) {
-      console.log(e);
-    }
+      }
+    );
+    console.log('success', response.data);
+    return response.data;
   }
 }
 
@@ -434,3 +413,4 @@ export class OrderActionService extends BaseService {
     return this.orderActionEntity.save(params);
   }
 }
+
