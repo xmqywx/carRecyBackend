@@ -23,7 +23,7 @@ export class AccessToken {
     console.log("-------------------------------token not expire false");
     // 请求新的token
     const response = await axios.post(
-      'https://api.dev.infoagent.com.au/auth/v1/token/oauth',
+      'https://api.infoagent.com.au/auth/v1/token/oauth',
       {
         grant_type: 'client_credentials',
         // client_id: 'MtDpkDIrb0gej6A2mJWP',
