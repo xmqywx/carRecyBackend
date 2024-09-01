@@ -123,4 +123,17 @@ export class CarEntity extends BaseEntity {
 
   @Column({ comment: 'stolenInfo', type: 'text', nullable: true })
   stolenInfo: string
+
+  // ----2024 09 01
+  @Column({ comment: 'Fuel', nullable: true })
+  fuel: string;
+
+  @Column({ comment: 'Power', nullable: true })
+  power: string;
+
+  @Column({ comment: 'Engine Number', nullable: true })
+  engineNumber: string;
+
+  @Column({ comment: 'Transmission', nullable: true })
+  transmission: string;
 }

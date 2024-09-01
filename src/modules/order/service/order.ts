@@ -187,7 +187,7 @@ export class OrderService extends BaseService {
 
   async getCountCompleteJob(departmentId, startDate, endDate, status) {
     const filter: any = {};
-    if (status != undefined) {
+    if (status) {
       filter.status = status;
     }
     if (startDate && endDate) {

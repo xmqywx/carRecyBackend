@@ -251,6 +251,8 @@ export class VehicleProfileController extends BaseController {
   orderActionEntity: Repository<OrderActionEntity>;
   @InjectEntityModel(CarRegEntity)
   carRegEntity: Repository<CarRegEntity>;
+  @InjectEntityModel(CustomerProfileEntity)
+  customerProfileEntity: Repository<CustomerProfileEntity>;
 
   /**
    * 获取统计信息
@@ -272,9 +274,11 @@ export class VehicleProfileController extends BaseController {
       );
     }
     const searchData: { [key: string]: any } = {
-      status,
       departmentId,
     };
+    if(status >= 0) {
+      searchData. status = status;
+    }
     if (startDate && endDate) {
       searchData.createTime = Between(startDate, endDate);
     }
@@ -604,6 +608,62 @@ export class VehicleProfileController extends BaseController {
       return this.ok();
     } else {
       return this.fail();
+    }
+  }
+
+  @Post('/getOrderInfo')
+  async getOrderInfo(
+    @Body('orderId') orderId: number,
+  ) {
+    let result = {};
+    const orderInfo = await this.orderInfoEntity.findOne({id: orderId });
+    const promise = [];
+    let jobInfo;
+    promise.push(this.jobEntity.findOne({orderID: orderId}).then(res => jobInfo = res));
+    let carInfo;
+    promise.push(this.carEntity.findOne({id: orderInfo.carID}).then(res => carInfo = res));
+    let customerInfo;
+    promise.push(this.customerProfileEntity.findOne({id: Number(orderInfo.customerID)}).then(res => customerInfo = res));
+    try {
+      await Promise.all(promise);
+      result = Object.assign({
+        firstName: customerInfo?.firstName,
+        surname: customerInfo?.surname,
+        phoneNumber: customerInfo?.phoneNumber,
+        secNumber: customerInfo?.secNumber,
+        emailAddress: customerInfo?.emailAddress,
+        address: customerInfo?.address,
+        licence: customerInfo?.licence,
+        abn: customerInfo?.abn,
+        workLocation: customerInfo?.workLocation,
+        model: carInfo?.model,
+        registrationNumber: carInfo?.registrationNumber,
+        state: carInfo?.state,
+        year: carInfo?.year,
+        brand: carInfo?.brand,
+        colour: carInfo?.colour,
+        vinNumber: carInfo?.vinNumber,
+        series: carInfo?.series,
+        engine: carInfo?.engine,
+        engineCode: carInfo?.engineCode,
+        name: carInfo?.name,
+        bodyStyle: carInfo?.bodyStyle,
+        image: carInfo?.image,
+        identificationSighted: carInfo?.identificationSighted,
+        registered: carInfo?.registered,
+        platesReturned: carInfo?.platesReturned,
+        carInfo: carInfo?.carInfo,
+        car_status:carInfo?.status,
+        job_status: jobInfo?.status,
+        jobID: jobInfo?.id,
+      }, orderInfo);
+    if (result) {
+      return this.ok(result);
+    } else {
+      return this.fail();
+    }
+    } catch(e){
+      return this.fail(e);
     }
   }
 }
