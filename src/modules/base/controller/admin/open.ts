@@ -316,4 +316,26 @@ export class BaseOpenController extends BaseController {
       orderInfo
     );
   }
+
+  // service.car.carParts.list
+  // service.car.carParts.update
+  @Post('/car_parts_list')
+  async carPartsList(@Body('carID') carID: number) {
+    try {
+      const partsList = await this.carPartsService.carPartsList(carID)
+      return this.ok(partsList);
+    } catch(e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/update_parts_status')
+  async updatePartsStatus(@Body('id') id: number, @Body('status') status: number) {
+    try {
+      const result = await this.carPartsService.updatePartsStatus(id, status);
+      return this.ok(result);
+    } catch(e) {
+      return this.fail(e);
+    }
+  }
 }

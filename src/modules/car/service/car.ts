@@ -946,7 +946,15 @@ export class CarPartsService extends BaseService {
       }
     });
 
-    return {...total, results};
+    return { ...total, results };
+  }
+
+  async carPartsList(carID: number) {
+    return await this.carPartsEntity.find({ carID });
+  }
+
+  async updatePartsStatus(id: number, status: number) {
+    await this.carPartsEntity.update({ id }, { status });
   }
 }
 /**
