@@ -6,7 +6,8 @@ import { BaseSysPermsService } from '../../service/sys/perms';
 import { BaseSysUserService } from '../../service/sys/user';
 import { Context } from '@midwayjs/koa';
 import { CoolFile } from '@cool-midway/file';
-
+import { CarPartsService } from '../../../car/service/car';
+import { CarBaseService } from '../../../car/service/car';
 /**
  * Base 通用接口 一般写不需要权限过滤的接口
  */
@@ -27,6 +28,12 @@ export class BaseCommController extends BaseController {
 
   @Inject()
   coolFile: CoolFile;
+
+  @Inject()
+  carPartsService: CarPartsService;
+
+  @Inject()
+  carBaseService: CarBaseService;
 
   /**
    * 获得个人信息
@@ -78,5 +85,34 @@ export class BaseCommController extends BaseController {
   async logout() {
     await this.baseSysLoginService.logout();
     return this.ok();
+  }
+
+  @Post('/car_parts_list')
+  async carPartsList(@Body('carID') carID: number) {
+    try {
+      const partsList = await this.carPartsService.carPartsList(carID)
+      return this.ok(partsList);
+    } catch(e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/car_dismantling_status')
+  async carDismantlingStatus(@Body('carID') carID: number) {
+    try {
+      const carInfo = await this.carBaseService.getOneCarInfo(carID);
+      return this.ok(carInfo.dismantlingStatus);
+    } catch(e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/cars_parts_stats')
+  async carsPartsStats(@Body('departmentId') departmentId: number) {
+    try {
+      return this.ok(await this.carBaseService.carsPartsStats(departmentId))
+    } catch(e) {
+      return this.fail(e);
+    }
   }
 }

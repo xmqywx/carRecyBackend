@@ -322,4 +322,34 @@ export class CarPartsController extends BaseController {
       return this.fail(e);
     }
   }
+
+  /**
+   * 根据零件编号查询零件信息
+   */
+  @Post('/infoByDn')
+  async infoByDn(@Body('partId') partId: number) {
+    const infoData = await this.carPartsService.infoByDn(partId);
+    if (infoData) {
+      return this.ok(infoData);
+    } else {
+      return this.fail();
+    }
+  }
+
+    /**
+   * 将零件选入container中
+   */
+    @Post('/putToContainer')
+    async putToContainer(
+      @Body('id') id: number,
+      @Body('containerNumber') containerNumber: string
+    ) {
+      try {
+        await this.carPartsService.putToContainer(id, containerNumber);
+        return this.ok();
+      } catch (e) {
+        return this.fail(e);
+      }
+    }
+  
 }

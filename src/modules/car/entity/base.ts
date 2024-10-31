@@ -136,4 +136,11 @@ export class CarEntity extends BaseEntity {
 
   @Column({ comment: 'Transmission', nullable: true })
   transmission: string;
+
+  /**
+   * undismantled
+   * disassembled
+   */
+  @Column({ comment: 'Dismantling status?', nullable: true, default: 'undismantled' })
+  dismantlingStatus: string;
 }

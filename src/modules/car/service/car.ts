@@ -496,6 +496,9 @@ export class CarBaseService extends BaseService {
   @InjectEntityModel(OrderInfoEntity)
   orderInfoEntity: Repository<OrderInfoEntity>;
 
+  @InjectEntityModel(CarPartsEntity)
+  carPartsEntity: Repository<CarPartsEntity>;
+
   async getOneCarInfo(id: number) {
     return await this.carEntity.findOne({ id });
   }
@@ -564,6 +567,234 @@ export class CarBaseService extends BaseService {
     } catch (e) {
       return null;
     }
+  }
+
+  async updateCarDismantlingStatus(id: number, status: string) {
+    await this.carEntity.update({ id }, { dismantlingStatus: status });
+  }
+
+  async carsPartsStats(departmentId) {
+    const carCount = {
+      forRecyclingCars: {
+        total: null,
+        disassembled: null,
+        parts: {
+          total: null,
+          dismentaled: null,
+        },
+      },
+      forPartsCars: {
+        total: null,
+        disassembled: null,
+        parts: {
+          total: null,
+          dismentaled: null,
+        },
+      },
+      allCars: {
+        total: null,
+        disassembled: null,
+        parts: {
+          total: null,
+          dismentaled: null,
+        },
+      },
+    };
+    const promise = [];
+    // carCount.allCars
+    promise.push(
+      await this.carEntity
+        .createQueryBuilder('car')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('job.status = :status', { status: 4 })
+        .getCount()
+        .then(c => {
+          carCount.allCars.total = c;
+        })
+    );
+    promise.push(
+      await this.carEntity
+        .createQueryBuilder('car')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('car.dismantlingStatus = :dismantlingStatus', {
+          dismantlingStatus: 'disassembled',
+        })
+        .andWhere('job.status = :status', { status: 4 })
+        .getCount()
+        .then(c => {
+          carCount.allCars.disassembled = c;
+        })
+    );
+    promise.push(
+      await this.carPartsEntity
+        .createQueryBuilder('carParts')
+        .innerJoin('car', 'car', 'carParts.carID = car.id')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('job.status = :jobStatus', { jobStatus: 4 })
+        .getCount()
+        .then(c => {
+          carCount.allCars.parts.total = c;
+        })
+    );
+    promise.push(
+      await this.carPartsEntity
+        .createQueryBuilder('carParts')
+        .innerJoin('car', 'car', 'carParts.carID = car.id')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('carParts.status = :carPartsStatus', { carPartsStatus: 1 }) // 添加 carParts 的 status 条件
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('job.status = :jobStatus', { jobStatus: 4 })
+        .getCount()
+        .then(c => {
+          carCount.allCars.parts.dismentaled = c;
+        })
+    );
+
+    // carCount.forRecyclingCars
+    promise.push(
+      await this.carEntity
+        .createQueryBuilder('car')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('car.recyclingStatus = :recyclingStatus', {
+          recyclingStatus: 'for recycling',
+        })
+        .andWhere('job.status = :status', { status: 4 })
+        .getCount()
+        .then(c => {
+          carCount.forRecyclingCars.total = c;
+        })
+    );
+    promise.push(
+      await this.carEntity
+        .createQueryBuilder('car')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('car.recyclingStatus = :recyclingStatus', {
+          recyclingStatus: 'for recycling',
+        })
+        .andWhere('car.dismantlingStatus = :dismantlingStatus', {
+          dismantlingStatus: 'disassembled',
+        })
+        .andWhere('job.status = :status', { status: 4 })
+        .getCount()
+        .then(c => {
+          carCount.forRecyclingCars.disassembled = c;
+        })
+    );
+    promise.push(
+      await this.carPartsEntity
+        .createQueryBuilder('carParts')
+        .innerJoin('car', 'car', 'carParts.carID = car.id')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('car.recyclingStatus = :recyclingStatus', {
+          recyclingStatus: 'for recycling',
+        })
+        .andWhere('job.status = :jobStatus', { jobStatus: 4 })
+        .getCount()
+        .then(c => {
+          carCount.forRecyclingCars.parts.total = c;
+        })
+    );
+    promise.push(
+      await this.carPartsEntity
+        .createQueryBuilder('carParts')
+        .innerJoin('car', 'car', 'carParts.carID = car.id')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('carParts.status = :carPartsStatus', { carPartsStatus: 1 }) // 添加 carParts 的 status 条件
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('car.recyclingStatus = :recyclingStatus', {
+          recyclingStatus: 'for recycling',
+        })
+        .andWhere('job.status = :jobStatus', { jobStatus: 4 })
+        .getCount()
+        .then(c => {
+          carCount.forRecyclingCars.parts.dismentaled = c;
+        })
+    );
+
+    // carCount.forPartsCars
+    promise.push(
+      await this.carEntity
+        .createQueryBuilder('car')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('car.recyclingStatus = :recyclingStatus', {
+          recyclingStatus: 'for parts',
+        })
+        .andWhere('job.status = :status', { status: 4 })
+        .getCount()
+        .then(c => {
+          carCount.forPartsCars.total = c;
+        })
+    );
+    promise.push(
+      await this.carEntity
+        .createQueryBuilder('car')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('car.recyclingStatus = :recyclingStatus', {
+          recyclingStatus: 'for parts',
+        })
+        .andWhere('car.dismantlingStatus = :dismantlingStatus', {
+          dismantlingStatus: 'disassembled',
+        })
+        .andWhere('job.status = :status', { status: 4 })
+        .getCount()
+        .then(c => {
+          carCount.forPartsCars.disassembled = c;
+        })
+    );
+    promise.push(
+      await this.carPartsEntity
+        .createQueryBuilder('carParts')
+        .innerJoin('car', 'car', 'carParts.carID = car.id')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('car.recyclingStatus = :recyclingStatus', {
+          recyclingStatus: 'for parts',
+        })
+        .andWhere('job.status = :jobStatus', { jobStatus: 4 })
+        .getCount()
+        .then(c => {
+          carCount.forPartsCars.parts.total = c;
+        })
+    );
+    promise.push(
+      await this.carPartsEntity
+        .createQueryBuilder('carParts')
+        .innerJoin('car', 'car', 'carParts.carID = car.id')
+        .innerJoin('order', 'order', 'car.id = order.carID')
+        .innerJoin('job', 'job', 'job.orderID = order.id')
+        .andWhere('carParts.status = :carPartsStatus', { carPartsStatus: 1 }) // 添加 carParts 的 status 条件
+        .andWhere('car.departmentId = :departmentId', { departmentId })
+        .andWhere('car.recyclingStatus = :recyclingStatus', {
+          recyclingStatus: 'for parts',
+        })
+        .andWhere('job.status = :jobStatus', { jobStatus: 4 })
+        .getCount()
+        .then(c => {
+          carCount.forPartsCars.parts.dismentaled = c;
+        })
+    );
+
+    await Promise.all(promise);
+    return carCount;
   }
 }
 
@@ -956,6 +1187,64 @@ export class CarPartsService extends BaseService {
   async updatePartsStatus(id: number, status: number) {
     await this.carPartsEntity.update({ id }, { status });
   }
+
+  //通过id 或 partId查询
+  async infoByDn(partId: number) {
+    return await this.carPartsEntity
+      .findOne({
+        id: partId,
+      })
+      .then(async (res: any) => {
+        const promise = [];
+        if (res?.containerID !== null) {
+          promise.push(this.containerEntity.findOne({
+            id: res.containerID,
+          }).then(c => {
+            if(!c) return;
+            res.containerStatus = c?.status;
+            res.containerNumber = c?.containerNumber;
+          }));
+        }
+        if (res?.carID !== null) {
+          promise.push(this.carEntity.findOne({
+            id: res.carID,
+          }).then(c => {
+            if(!c) return;
+            res.vin = c.vinNumber;
+            res.registrationNumber = c.registrationNumber;
+            res.year = c.year;
+            res.make = c.brand;
+            res.model = c.model;
+            res.series = c.series;
+            res.fuel = c.fuel;
+            res.transmission = c.transmission;
+            res.cylinders = c.cylinders;
+            res.engineNumber = c.engineNumber;
+            res.engineCode = c.engineCode;
+          }));
+        }
+        await Promise.all(promise);
+        return res;
+      });
+  }
+
+    // 将零件添加到集装箱中
+    async putToContainer(partId: number, containerNumber: string) {
+      const containerItem = await this.containerEntity.findOne({
+        containerNumber,
+      });
+      if (!containerItem) return;
+  
+      await this.carPartsEntity.save({
+        id: partId,
+        containerID: containerItem.id,
+      });
+  
+      if (containerItem.status === 0) {
+        containerItem.status = 1;
+        this.containerEntity.save(containerItem);
+      }
+    }
 }
 /**
  * 描述

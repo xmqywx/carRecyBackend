@@ -50,7 +50,7 @@ export class BaseOpenService extends BaseService {
                 }
                 
                 .w {
-                    margin: 20px auto;
+                    // margin: 20px auto;
                     width: 100%;
                     max-width: 960px;
                     background: #fff;
@@ -297,11 +297,12 @@ export class BaseOpenService extends BaseService {
     }
     
     .w {
-        margin: 20px auto;
+        // margin: 20px auto;
         width: 100%;
         max-width: 960px; /* 适当增加最大宽度 */
         background: #fff;
         padding: 20px;
+        padding-bottom: 0px !important;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 添加阴影以增强立体感 */
         border-radius: 8px; /* 圆角边框 */
     }
@@ -320,18 +321,20 @@ export class BaseOpenService extends BaseService {
         margin-bottom: 10px; /* 增加行间距 */
         background: #f8f8f8; /* 每行使用淡色背景增强对比 */
         border-radius: 5px; /* 行元素添加圆角 */
+        gap: 10px;
     }
     
     .label {
-        flex-basis: 30%;
-        color: #555;
-        font-weight: bold; /* 加粗标签文字 */
+      color: #555;
+      font-weight: bold; /* 加粗标签文字 */
     }
-    
+        
     .value {
-        flex-basis: 70%;
-        text-align: right;
-        color: #000;
+      flex: 1;
+      text-align: right;
+      color: #000;
+      word-break: break-all ;
+      white-space: pre-wrap;
     }
     
     .imgContainer {
@@ -397,7 +400,7 @@ export class BaseOpenService extends BaseService {
                         `;
                 }
                 return `<div class='row'>
-                        <div class='label'>${v.label} :</div>
+                        <div class='label'>${v.label}:</div>
                         <div class='value'>${v.value}</div>
                     </div>`;
               })
@@ -434,7 +437,7 @@ export class BaseOpenService extends BaseService {
                         `;
                 }
                 return `<div class='row'>
-                        <div class='label'>${toTitleCase(v.label)} :</div>
+                        <div class='label'>${toTitleCase(v.label)}:</div>
                         <div class='value'>${v.value}</div>
                     </div>`;
               })
