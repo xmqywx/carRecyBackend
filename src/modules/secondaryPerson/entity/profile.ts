@@ -36,4 +36,30 @@ export class SecondaryPersonEntity extends BaseEntity {
 
   @Column({ comment: 'person secondary phone number', nullable: true })
   personSecNumber: string;
+
+  // ----------
+  @Column({ comment: 'License Class', length: 20, nullable: true })
+  licenseClass: string;
+
+  @Column({ comment: 'Card Number', length: 50, nullable: true })
+  cardNumber: string;
+
+  @Column({ comment: 'Date of Birth', nullable: true })
+  dateOfBirth: string;
+
+  @Column({ comment: 'Expiry Date', nullable: true })
+  expiryDate: string;
+
+  @Column({ comment: 'Back Card Number', length: 50, nullable: true })
+  backCardNumber: string;
+
+  // ---Private owner , Workshop
+  @Column({
+    comment: 'If the vehicle is at a workshop or private owner',
+    default: 'Private owner',
+  })
+  customerAt: string;
+
+  @Column({ comment: 'surname', nullable: true, length: 100 })
+  surname: string;
 }
