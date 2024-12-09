@@ -1,7 +1,7 @@
 import { Provide, Inject } from '@midwayjs/decorator';
 import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Not, IsNull } from 'typeorm';
 import { CarCommentEntity } from '../entity/comment';
 import { CarWreckedEntity } from '../entity/carWrecked';
 import { CarEntity } from '../entity/base';
@@ -1197,54 +1197,85 @@ export class CarPartsService extends BaseService {
       .then(async (res: any) => {
         const promise = [];
         if (res?.containerID !== null) {
-          promise.push(this.containerEntity.findOne({
-            id: res.containerID,
-          }).then(c => {
-            if(!c) return;
-            res.containerStatus = c?.status;
-            res.containerNumber = c?.containerNumber;
-          }));
+          promise.push(
+            this.containerEntity
+              .findOne({
+                id: res.containerID,
+              })
+              .then(c => {
+                if (!c) return;
+                res.containerStatus = c?.status;
+                res.containerNumber = c?.containerNumber;
+              })
+          );
         }
         if (res?.carID !== null) {
-          promise.push(this.carEntity.findOne({
-            id: res.carID,
-          }).then(c => {
-            if(!c) return;
-            res.vin = c.vinNumber;
-            res.registrationNumber = c.registrationNumber;
-            res.year = c.year;
-            res.make = c.brand;
-            res.model = c.model;
-            res.series = c.series;
-            res.fuel = c.fuel;
-            res.transmission = c.transmission;
-            res.cylinders = c.cylinders;
-            res.engineNumber = c.engineNumber;
-            res.engineCode = c.engineCode;
-          }));
+          promise.push(
+            this.carEntity
+              .findOne({
+                id: res.carID,
+              })
+              .then(c => {
+                if (!c) return;
+                res.vin = c.vinNumber;
+                res.registrationNumber = c.registrationNumber;
+                res.year = c.year;
+                res.make = c.brand;
+                res.model = c.model;
+                res.series = c.series;
+                res.fuel = c.fuel;
+                res.transmission = c.transmission;
+                res.cylinders = c.cylinders;
+                res.engineNumber = c.engineNumber;
+                res.engineCode = c.engineCode;
+              })
+          );
         }
         await Promise.all(promise);
         return res;
       });
   }
 
-    // 将零件添加到集装箱中
-    async putToContainer(partId: number, containerNumber: string) {
-      const containerItem = await this.containerEntity.findOne({
-        containerNumber,
-      });
-      if (!containerItem) return;
-  
-      await this.carPartsEntity.save({
-        id: partId,
-        containerID: containerItem.id,
-      });
-  
-      if (containerItem.status === 0) {
-        containerItem.status = 1;
-        this.containerEntity.save(containerItem);
-      }
+  // 将零件添加到集装箱中
+  async putToContainer(partId: number, containerNumber: string) {
+    const containerItem = await this.containerEntity.findOne({
+      containerNumber,
+    });
+    if (!containerItem) return;
+
+    await this.carPartsEntity.save({
+      id: partId,
+      containerID: containerItem.id,
+    });
+
+    if (containerItem.status === 0) {
+      containerItem.status = 1;
+      this.containerEntity.save(containerItem);
     }
+  }
+
+  async countPartsInContainer(departmentId: number) {
+    const carIds = await this.carEntity.find({
+      where: { departmentId: departmentId },
+      select: ['id'],
+    }).then(cars => cars.map(car => car.id));
+  
+    const [partsInContainer, totalParts] = await Promise.all([
+      this.carPartsEntity.count({
+        where: {
+          containerID: Not(IsNull()),
+          carID: In(carIds),
+        },
+      }),
+      this.carPartsEntity.count({
+        where: {
+          carID: In(carIds),
+        },
+      }),
+    ]);
+  
+    return { partsInContainer, totalParts };
+  }
 }
 /**
  * 描述

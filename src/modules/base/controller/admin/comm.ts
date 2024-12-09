@@ -115,4 +115,13 @@ export class BaseCommController extends BaseController {
       return this.fail(e);
     }
   }
+
+  @Post('/count_parts_in_container')
+  async countPartsInContainer(@Body('departmentId') departmentId: number) {
+    try {
+      return this.ok(await this.carPartsService.countPartsInContainer(departmentId))
+    } catch(e) {
+      return this.fail(e);
+    }
+  }
 }
