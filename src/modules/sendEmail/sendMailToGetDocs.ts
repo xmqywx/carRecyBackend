@@ -150,6 +150,7 @@ export default async function getDocs({
     },
     debug: true,
   });
+  console.log(process.env.NODE_MAIL_USER, process.env.NODE_MAIL_PASS);
   if (email != null) {
     toEmail = email;
   }
