@@ -141,7 +141,7 @@ export default async function getDocs({
   // 配置 Nodemailer
   const transport = nodemailer.createTransport({
     pool: true,
-    host: 'smtp.qq.com',
+    host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
