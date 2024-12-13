@@ -17,4 +17,23 @@ export class BaseSysDepartmentEntity extends BaseEntity {
   orderNum: number;
   // 父菜单名称
   parentName: string;
+  
+  @Column({ comment: 'Logo', nullable: true, type: 'text' })
+  logo: string;
+
+  @Column({ comment: 'Company name', nullable: true })
+  companyName: string;
+
+  @Column({ comment: 'Email', nullable: true })
+  email: string;
+
+  @Column({ comment: 'ABN', nullable: true })
+  abn: string;
+
+  @Column({ comment: 'Address', nullable: true, type: 'text' })
+  address: string;
+
+  @Column({ comment: 'Phone number', nullable: true })
+  phoneNumber: string;
 }
+
