@@ -122,8 +122,9 @@ export class BaseOpenController extends BaseController {
     const queryParams = querystring.parse(urlObj.query);
     const token = queryParams.token;
     console.log(token);
+    console.log(this.ctx.request.header.referer, urlObj.query);
     try {
-      await this.orderService.verifyToken(token);
+      // await this.orderService.verifyToken(token);
       return this.ok(await this.coolFile.upload(this.ctx));
     } catch (e) {
       return this.fail('The token verification has failed.', e);
