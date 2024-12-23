@@ -118,12 +118,21 @@ export class BaseOpenController extends BaseController {
    */
   @Post('/upload', { summary: '文件上传' })
   async upload() {
-    const urlObj = url.URL(this.ctx.request.header.referer);
+    const urlObj = new url.URL(this.ctx.request.header.referer);
     const queryParams = querystring.parse(urlObj.query);
     const token = queryParams.token;
     console.log(token);
     try {
       await this.orderService.verifyToken(token);
+      return this.ok(await this.coolFile.upload(this.ctx));
+    } catch (e) {
+      return this.fail('The token verification has failed.', e);
+    }
+  }
+
+  @Post('/uploadPartImg', { summary: '文件上传' })
+  async uploadPartImg() {
+    try {
       return this.ok(await this.coolFile.upload(this.ctx));
     } catch (e) {
       return this.fail('The token verification has failed.', e);

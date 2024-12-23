@@ -571,6 +571,8 @@ export class CarBaseService extends BaseService {
 
   async updateCarDismantlingStatus(id: number, status: string) {
     await this.carEntity.update({ id }, { dismantlingStatus: status });
+    if(status === 'disassembled')
+    await this.carPartsEntity.update({ carID: id }, { status: 1 });
   }
 
   async carsPartsStats(departmentId) {
