@@ -241,6 +241,16 @@ export class CarPartsController extends BaseController {
     }
   }
 
+  @Post('/get_parts_total_width_ids')
+  async gerPartsTotalWidthIds(@Body('ids') ids: number[]) {
+    try {
+      const list = await this.carPartsService.gerPartsTotalWidthIds(ids);
+      return this.ok(list);
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
   /**
    * 将零件从container中移除
    */

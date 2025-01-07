@@ -883,6 +883,19 @@ export class CarPartsService extends BaseService {
     });
   }
 
+  async gerPartsTotalWidthIds(carIds: number[]) {
+    const partsCount = await this.carPartsEntity
+      .createQueryBuilder('carParts')
+      .select('carParts.carID', 'carID')
+      .addSelect('COUNT(carParts.id)', 'partsCount')
+      .where('carParts.carID IN (:...carIds)', { carIds })
+      .andWhere('carParts.status = :status', { status: 1 })
+      .groupBy('carParts.carID')
+      .getRawMany();
+  
+    return partsCount;
+  }
+
   // 将零件从集装箱中移除
   async moveOutFromContainer(id: number, containerNumber: string) {
     await this.carPartsEntity.save({
