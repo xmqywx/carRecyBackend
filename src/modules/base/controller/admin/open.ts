@@ -15,6 +15,7 @@ import { CarWreckedService, CarBaseService } from '../../../car/service/car';
 import { BaseOpenService } from '../../service/sys/open';
 import { CarPartsService } from '../../../car/service/car';
 import { CarCatalyticConverterService } from '../../../car/service/car';
+import { JobService } from '../../../job/service/job';
 
 const url = require('url');
 const querystring = require('querystring');
@@ -57,6 +58,9 @@ export class BaseOpenController extends BaseController {
 
   @Inject()
   carPartsService: CarPartsService;
+
+  @Inject()
+  jobService: JobService;
 
   @Inject()
   carCatalyticConverterService: CarCatalyticConverterService;
@@ -170,6 +174,7 @@ export class BaseOpenController extends BaseController {
         giveUploadBtn,
         attachment,
         sendBy,
+        orderID
       });
     });
     const emailResults = await Promise.all(emailPromises);
@@ -346,6 +351,21 @@ export class BaseOpenController extends BaseController {
       const result = await this.carBaseService.updateCarDismantlingStatus(id, status);
       return this.ok(result);
     } catch(e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/open_get_job_info_all')
+  async open_get_job_info_all(
+    @Body('jobID') jobID: number,
+    @Body('orderID') orderID: number
+  ) {
+    try {
+      const searchData = await this.jobService.open_get_job_info_all({
+        orderID,
+      });
+      return this.ok(searchData);
+    } catch (e) {
       return this.fail(e);
     }
   }

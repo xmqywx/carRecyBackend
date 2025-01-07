@@ -136,6 +136,7 @@ export default async function getDocs({
   giveUploadBtn,
   attachment,
   sendBy,
+  orderID
 }) {
   let toEmail = '';
   // 配置 Nodemailer
@@ -217,7 +218,7 @@ export default async function getDocs({
         <br />
         <p>Best regards,</p>
         <p>${sendBy}</p>
-        <p>Please click <a href="https://apexpoint.com.au/customer_provide_files?token=${token}" style="font-weight: bold;">here</a> to upload the documents.</p>
+        <p>Please click <a href="https://apexpoint.com.au/customer_provide_files?token=${token}&oi=${orderID}" style="font-weight: bold;">here</a> to upload the documents.</p>
       </main>
     </body>
     </html>

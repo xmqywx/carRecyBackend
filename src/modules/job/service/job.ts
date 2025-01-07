@@ -99,6 +99,69 @@ export class JobService extends BaseService {
     }
   }
 
+  async open_get_job_info_all({ orderID }: { orderID: number }) {
+    try {
+      const promise = [];
+      let jobDetail,
+        orderDetail,
+        customerDetail,
+        carDetail,
+        secondaryPersonDetail,
+        otherJobs;
+      promise.push(
+        this.jobEntity.findOne({ orderID: orderID }).then(async res => {
+          jobDetail = res;
+        })
+      );
+      promise.push(
+        this.orderInfoEntity.findOne({ id: orderID }).then(async orderRes => {
+          if (!orderRes) return;
+          orderDetail = orderRes;
+          const promise2 = [];
+          if (orderRes.carID) {
+            promise2.push(
+              this.carEntity.findOne({ id: orderRes.carID }).then(carRes => {
+                carDetail = carRes;
+              })
+            );
+          }
+          if (orderRes.customerID) {
+            promise2.push(
+              this.customerProfileEntity
+                .findOne({ id: Number(orderRes.customerID) })
+                .then(customerRes => {
+                  customerDetail = customerRes;
+                })
+            );
+          }
+          if (orderRes.secondaryID) {
+            promise2.push(
+              this.secondaryPersonEntity
+                .findOne({ id: Number(orderRes.secondaryID) })
+                .then(secondaryPersonRes => {
+                  secondaryPersonDetail = secondaryPersonRes;
+                })
+            );
+          }
+          await Promise.all(promise2);
+        })
+      );
+      await Promise.all(promise);
+      return {
+        jobDetail,
+        orderDetail,
+        customerDetail,
+        carDetail,
+        secondaryPersonDetail,
+        otherJobs,
+      };
+    } catch (e) {
+      return {
+        error: e,
+      };
+    }
+  }
+
   async update_job_order({
     jobDetail,
     orderDetail,

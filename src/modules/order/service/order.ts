@@ -144,7 +144,7 @@ export class OrderService extends BaseService {
     }
     order.registrationDoc = updateData.registrationDoc ?? order.registrationDoc;
     order.driverLicense = updateData.driverLicense ?? order.driverLicense;
-    order.vehiclePhoto = updateData.vehiclePhoto ?? order.vehiclePhoto;
+    order.imageFileDir = updateData.vehiclePhoto ?? order.vehiclePhoto;
     order.allowUpload = false;
     return this.orderInfoEntity.save(order);
   }
