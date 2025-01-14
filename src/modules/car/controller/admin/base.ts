@@ -40,6 +40,7 @@ import { CarPartsEntity } from '../../entity/carParts';
       'b.createBy',
       'b.pickupAddress',
       'b.expectedDate',
+      'b.quoteNumber'
       // 'b.catalyticConverterPhotos'
     ],
     fieldEq: [

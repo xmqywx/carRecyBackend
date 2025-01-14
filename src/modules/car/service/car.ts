@@ -12,6 +12,7 @@ import { PartTransactionsEntity } from '../../partTransactions/entity/base';
 import { CarPartsEntity } from '../entity/carParts';
 import { CarLabelsEntity } from '../entity/carLabels';
 import { CarCatalyticConverterEntity } from '../entity/carCatalyticConverter';
+
 @Provide()
 export class CarCommentService extends BaseService {
   @InjectEntityModel(CarCommentEntity)
@@ -35,6 +36,12 @@ export class CarWreckedService extends BaseService {
 
   @InjectEntityModel(PartTransactionsEntity)
   partTransactionsEntity: Repository<PartTransactionsEntity>;
+
+  @InjectEntityModel(CarEntity)
+  carEntity: Repository<CarEntity>;
+
+  @InjectEntityModel(OrderInfoEntity)
+  orderInfoEntity: Repository<OrderInfoEntity>;
 
   @Inject()
   ctx;
@@ -67,9 +74,10 @@ export class CarWreckedService extends BaseService {
    * @param param
    */
   async add(params) {
+    const orderInfo = await this.orderInfoEntity.findOne({carID: params.carID});
     return this.carWreckedEntity.save(params).then(async wreckedInfo => {
-      const cate = disassemblyCategorys[wreckedInfo.disassemblyCategory];
-      wreckedInfo.disassemblyNumber = cate + wreckedInfo.id;
+      const cate = orderInfo.quoteNumber;
+      wreckedInfo.disassemblyNumber = cate + '-' + wreckedInfo.id;
       return await this.carWreckedEntity.save(wreckedInfo);
     });
   }
@@ -823,14 +831,18 @@ export class CarPartsService extends BaseService {
   @InjectEntityModel(PartLogEntity)
   partLogEntity: Repository<PartLogEntity>;
 
+  @InjectEntityModel(OrderInfoEntity)
+  orderInfoEntity: Repository<OrderInfoEntity>;
+
   /**
    * 新增
    * @param param
    */
   async add(params) {
+    const orderInfo = await this.orderInfoEntity.findOne({carID: params.carID});
     return this.carPartsEntity.save(params).then(async partDetail => {
-      const cate = 'EPE';
-      partDetail.disassemblyNumber = cate + partDetail.id;
+      const cate = orderInfo.quoteNumber;
+      partDetail.disassemblyNumber = cate + '-' + partDetail.id;
       // this.partTransactionsEntity.save({
       //   carWreckedID: partDetail.id,
       //   billNo: `${partDetail.disassemblyNumber}`,
