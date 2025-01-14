@@ -491,11 +491,11 @@ export class CarWreckedService extends BaseService {
   }
 }
 
-const disassemblyCategorys = {
-  'Dismantling Labels': 'DL',
-  'Extra Part Extraction': 'EPE',
-  'Catalytic Converter': 'CC',
-};
+// const disassemblyCategorys = {
+//   'Dismantling Labels': 'DL',
+//   'Extra Part Extraction': 'EPE',
+//   'Catalytic Converter': 'CC',
+// };
 @Provide()
 export class CarBaseService extends BaseService {
   @InjectEntityModel(CarEntity)
