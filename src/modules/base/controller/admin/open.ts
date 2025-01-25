@@ -16,6 +16,9 @@ import { BaseOpenService } from '../../service/sys/open';
 import { CarPartsService } from '../../../car/service/car';
 import { CarCatalyticConverterService } from '../../../car/service/car';
 import { JobService } from '../../../job/service/job';
+import { BaseSysUserService } from '../../service/sys/user';
+import { BaseSysRoleService } from '../../service/sys/role';
+import { BaseSysDepartmentService } from '../../service/sys/department';
 
 const url = require('url');
 const querystring = require('querystring');
@@ -64,6 +67,15 @@ export class BaseOpenController extends BaseController {
 
   @Inject()
   carCatalyticConverterService: CarCatalyticConverterService;
+
+  @Inject()
+  baseSysUserService: BaseSysUserService;
+
+  @Inject()
+  baseSysRoleService: BaseSysRoleService;
+
+  @Inject()
+  baseSysDepartmentService: BaseSysDepartmentService;
 
   /**
    * 实体信息与路径
@@ -367,6 +379,41 @@ export class BaseOpenController extends BaseController {
       return this.ok(searchData);
     } catch (e) {
       return this.fail(e);
+    }
+  }
+
+  @Post('/create_user')
+  async create_user(
+    @Body() userData: {
+      username: string;
+      password: string;
+      roleIdList: number[];
+      departmentId: string;
+      phone: string;
+      email: string;
+      status: number;
+    }
+  ) {
+      if(await this.baseSysUserService.checkUser(userData.username)) {
+        return this.fail('User name already exists');
+      }
+      const newUser = await this.baseSysUserService.add(userData);
+      return this.ok(newUser);
+  }
+
+  @Get('/role_department_list')
+  async role_depart_list(
+  ) {
+    let data = {
+      roleList: [],
+      departmentList: []
+    };
+    try {
+      data.departmentList = await this.baseSysDepartmentService.list();
+      data.roleList = await this.baseSysRoleService.reg_role_list();
+      return this.ok(data);
+    }catch(e) {
+      return this.fail('ERROR', e);
     }
   }
 }

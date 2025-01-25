@@ -149,13 +149,21 @@ export class BaseSysUserService extends BaseService {
         await this.baseSysUserRoleEntity.save({ userId: user.id, roleId });
       }
     }
-    await this.baseSysPermsService.refreshPerms(user.id);
+    console.log(user);
+    // if(user.username) ？？？
+    // await this.baseSysPermsService.refreshPerms(user.id);
   }
 
   /**
    * 新增
    * @param param
    */
+  async checkUser(username) {
+    const exists = await this.baseSysUserEntity.findOne({
+      username,
+    })
+    return !_.isEmpty(exists);
+  }
   async add(param) {
     const exists = await this.baseSysUserEntity.findOne({
       username: param.username,

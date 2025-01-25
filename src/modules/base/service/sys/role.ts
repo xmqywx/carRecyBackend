@@ -134,6 +134,19 @@ export class BaseSysRoleService extends BaseService {
       )
       .getMany();
   }
+
+  async reg_role_list() {
+    return this.baseSysRoleEntity
+      .createQueryBuilder()
+      .where(
+        new Brackets(qb => {
+          qb.where('(id in (:roleId))', {
+            roleId: ['12', '13', '19'],
+          });
+        })
+      )
+      .getMany();
+  }
 }
 
 const roleMap = {
