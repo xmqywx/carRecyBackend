@@ -272,4 +272,11 @@ export class BaseSysUserService extends BaseService {
   async forbidden(userId) {
     await this.cacheManager.del(`admin:token:${userId}`);
   }
+
+  /**
+   * 用户注销，更改其状态
+   */
+  async logOff(userId) {
+    await this.baseSysUserEntity.update({id: userId}, {status: 0});
+  }
 }

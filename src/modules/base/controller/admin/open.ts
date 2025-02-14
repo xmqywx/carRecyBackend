@@ -186,7 +186,7 @@ export class BaseOpenController extends BaseController {
         giveUploadBtn,
         attachment,
         sendBy,
-        orderID
+        orderID,
       });
     });
     const emailResults = await Promise.all(emailPromises);
@@ -277,13 +277,13 @@ export class BaseOpenController extends BaseController {
       if (partID) {
         promise.push(
           this.carPartsService.getWreckedInfo(partID).then(res => {
-            console.log("PART RES=============", res);
+            console.log('PART RES=============', res);
             mapData = {
               'No.': res.disassemblyNumber,
               Name: res.disassmblingInformation,
               Description: res.disassemblyDescription,
               'Part Images': res.disassemblyImages,
-              title: 'Part'
+              title: 'Part',
             };
           })
         );
@@ -297,7 +297,7 @@ export class BaseOpenController extends BaseController {
               'Part Images': res.disassemblyImages,
               'Cat Type': res.catType,
               'Location of Cat': res.locationOfCat,
-              title: 'Catalytic Converter'
+              title: 'Catalytic Converter',
             };
           })
         );
@@ -305,15 +305,15 @@ export class BaseOpenController extends BaseController {
         mapData = {
           Name: ln,
           Description: ld,
-          title: 'Label'
+          title: 'Label',
         };
       }
       try {
         await Promise.all(promise);
-        console.log("MAP DATA ===========", mapData);
+        console.log('MAP DATA ===========', mapData);
         return this.baseOpenService.returnPartsInfo(mapData, carInfo);
       } catch (e) {
-        console.log("error ===============", e);
+        console.log('error ===============', e);
         return this.fail(
           'The QR code is incorrect, please regenerate the QR code.',
           e
@@ -322,7 +322,7 @@ export class BaseOpenController extends BaseController {
     } else {
       return this.fail(
         'The QR code is incorrect, please regenerate the QR code.'
-      )
+      );
     }
   }
 
@@ -348,21 +348,30 @@ export class BaseOpenController extends BaseController {
   // service.car.carParts.update
 
   @Post('/update_parts_status')
-  async updatePartsStatus(@Body('id') id: number, @Body('status') status: number) {
+  async updatePartsStatus(
+    @Body('id') id: number,
+    @Body('status') status: number
+  ) {
     try {
       const result = await this.carPartsService.updatePartsStatus(id, status);
       return this.ok(result);
-    } catch(e) {
+    } catch (e) {
       return this.fail(e);
     }
   }
 
   @Post('/update_car_dismantling_status')
-  async updateCarDismantlingStatus(@Body('id') id: number, @Body('status') status: string) {
+  async updateCarDismantlingStatus(
+    @Body('id') id: number,
+    @Body('status') status: string
+  ) {
     try {
-      const result = await this.carBaseService.updateCarDismantlingStatus(id, status);
+      const result = await this.carBaseService.updateCarDismantlingStatus(
+        id,
+        status
+      );
       return this.ok(result);
-    } catch(e) {
+    } catch (e) {
       return this.fail(e);
     }
   }
@@ -384,7 +393,8 @@ export class BaseOpenController extends BaseController {
 
   @Post('/create_user')
   async create_user(
-    @Body() userData: {
+    @Body()
+    userData: {
       username: string;
       password: string;
       roleIdList: number[];
@@ -394,25 +404,34 @@ export class BaseOpenController extends BaseController {
       status: number;
     }
   ) {
-      if(await this.baseSysUserService.checkUser(userData.username)) {
-        return this.fail('User name already exists');
-      }
-      const newUser = await this.baseSysUserService.add(userData);
-      return this.ok(newUser);
+    if (await this.baseSysUserService.checkUser(userData.username)) {
+      return this.fail('User name already exists');
+    }
+    const newUser = await this.baseSysUserService.add(userData);
+    return this.ok(newUser);
+  }
+
+  @Post('/log_off')
+  async log_off(@Body('id') id: number) {
+    try {
+      await this.baseSysUserService.logOff(id);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
   }
 
   @Get('/role_department_list')
-  async role_depart_list(
-  ) {
+  async role_depart_list() {
     let data = {
       roleList: [],
-      departmentList: []
+      departmentList: [],
     };
     try {
       data.departmentList = await this.baseSysDepartmentService.list();
       data.roleList = await this.baseSysRoleService.reg_role_list();
       return this.ok(data);
-    }catch(e) {
+    } catch (e) {
       return this.fail('ERROR', e);
     }
   }
