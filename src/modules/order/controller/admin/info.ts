@@ -351,57 +351,17 @@ export class VehicleProfileController extends BaseController {
     return this.ok(list);
   }
 
-  // @Post('/getCarInfo')
-  // async getCarInfo(
-  //   @Body('registrationNumber') registrationNumber: string,
-  //   @Body('state') state: string
-  // ) {
-  //   const carRegList = await this.carRegEntity.find({
-  //     registrationNumber,
-  //     state,
-  //   });
-  //   if (carRegList.length && carRegList[0].xml) {
-  //     const carString = xml2json.toJson(carRegList[0].xml);
-  //     let json = JSON.parse(carString);
-  //     const vehicleJson = json.Vehicle.vehicleJson;
-  //     return this.ok(JSON.parse(vehicleJson));
-  //   }
-  //   try {
-  //     let carRegFind;
-  //     if (carRegList.length) {
-  //       carRegFind = carRegList[0].id ?? undefined;
-  //     }
-  //     const data = await axios
-  //       .get('http://www.carregistrationapi.com/api/reg.asmx/CheckAustralia', {
-  //         params: {
-  //           RegistrationNumber: registrationNumber,
-  //           State: state,
-  //           username: 'smtm2099',
-  //         },
-  //       })
-  //       .then(async res => {
-  //         await this.carRegEntity.save({
-  //           id: carRegFind,
-  //           registrationNumber,
-  //           state,
-  //           xml: res.data,
-  //         });
-  //         return xml2json.toJson(res.data);
-  //       });
-  //     let json = JSON.parse(data);
-  //     const vehicleJson = json.Vehicle.vehicleJson;
-  //     return this.ok(JSON.parse(vehicleJson));
-  //   } catch (e) {
-  //     return this.fail('Unable to obtain correct vehicle information');
-  //   }
-  // }
-
   @Post('/getCarInfo')
   async getCarInfo(
     @Body('registrationNumber') registrationNumber: string,
     @Body('state') state: string,
+    @Body('vin') vin: string,
     @Body('api') api: number
   ) {
+    if (!registrationNumber && !vin) {
+      return this.fail('Registration number or VIN is required');
+    }
+
     const carRegList = await this.carRegEntity.find({
       registrationNumber,
       state,
@@ -455,21 +415,10 @@ export class VehicleProfileController extends BaseController {
         if (carRegList.length) {
           carRegFind = carRegList[0].id ?? undefined;
         }
-        // let jsonData1;
-        // const promise = [];
-
-        // promise.push(
-        //   this.orderService
-        //     .fetchDataWithV1(registrationNumber, state)
-        //     .then(async res => {
-        //       console.log();
-        //       jsonData1 = res?.result?.vehicles[0] ?? null;
-        //     })
-        // );
-        // await Promise.all(promise);
         const res = await this.orderService.fetchDataWithV1(
           registrationNumber,
-          state
+          state,
+          vin
         );
         if(!res || !res.result) {
           return this.fail('Please try again later.');
@@ -505,19 +454,10 @@ export class VehicleProfileController extends BaseController {
         if (carRegList.length) {
           carRegFind = carRegList[0].id ?? undefined;
         }
-        // let jsonData2;
-        // const promise = [];
-        // promise.push(
-        //   this.orderService
-        //     .fetchDataWithV2(registrationNumber, state)
-        //     .then(async res => {
-        //       jsonData2 = res?.result?.vehicle ?? null;
-        //     })
-        // );
-        // await Promise.all(promise);
         const res = await this.orderService.fetchDataWithV2(
           registrationNumber,
-          state
+          state,
+          vin
         );
         if(!res || !res.result) {
           return this.fail('Please try again later.');
@@ -548,23 +488,10 @@ export class VehicleProfileController extends BaseController {
         return this.ok(carRegList[0].json_v3);
       }
       try {
-        // let carRegFind;
-        // if (carRegList.length) {
-        //   carRegFind = carRegList[0].id ?? undefined;
-        // }
-        // let jsonData2;
-        // const promise = [];
-        // promise.push(
-        //   this.orderService
-        //     .fetchDataWithV3(registrationNumber, state)
-        //     .then(async res => {
-        //       jsonData2 = res?.result?.vehicle ?? null;
-        //     })
-        // );
-        // await Promise.all(promise);
         const res = await this.orderService.fetchDataWithV3(
           registrationNumber,
-          state
+          state,
+          vin
         );
         if(!res || !res.result) {
           return this.fail('Please try again later.');

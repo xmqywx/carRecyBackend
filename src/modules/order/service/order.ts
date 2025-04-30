@@ -341,13 +341,14 @@ export class OrderService extends BaseService {
     return data.data
   }
 
-  async fetchDataWithV1(plate, state) {
+  async fetchDataWithV1(plate, state, vin) {
     const accessToken = await this.accessTokenService.getAccessToken();
     const response = await axios.post(
       'https://api.infoagent.com.au/nevdis/v1/vehicle-report',
       {
         plate,
         state,
+        vin,
         products: [
           'VEHICLE_AGE',
           'EXTENDED_DATA',
@@ -367,13 +368,14 @@ export class OrderService extends BaseService {
     return response.data;
   }
 
-  async fetchDataWithV2(plate, state) {
+  async fetchDataWithV2(plate, state, vin) {
     const accessToken = await this.accessTokenService.getAccessToken();
     const response = await axios.post(
       'https://api.infoagent.com.au/ivds/v1/au/vehicle-report/enhanced-basic',
       {
         plate,
-        state
+        state,
+        vin
       },
       {
         headers: {
@@ -385,13 +387,14 @@ export class OrderService extends BaseService {
     return response.data;
   }
 
-  async fetchDataWithV3(plate, state) {
+  async fetchDataWithV3(plate, state, vin) {
     const accessToken = await this.accessTokenService.getAccessToken();
     const response = await axios.post(
       'https://api.infoagent.com.au/ivds/v1/au/vehicle-report/ppsr',
       {
         plate,
-        state
+        state,
+        vin
       },
       {
         headers: {
