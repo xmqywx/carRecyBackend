@@ -364,7 +364,7 @@ export class VehicleProfileController extends BaseController {
 
     const carRegList = await this.carRegEntity.find({
       registrationNumber,
-      state,
+      vin
     });
     let carRegFind;
     if (carRegList.length) {
@@ -389,6 +389,7 @@ export class VehicleProfileController extends BaseController {
           id: carRegFind,
           registrationNumber,
           state,
+          vin,
           xml: data,
         });
         let handleData = xml2json.toJson(data);
@@ -437,6 +438,7 @@ export class VehicleProfileController extends BaseController {
           id: carRegFind,
           registrationNumber,
           state,
+          vin,
           json: jsonData,
         });
         return this.ok(jsonData);
@@ -475,6 +477,7 @@ export class VehicleProfileController extends BaseController {
           id: carRegFind,
           registrationNumber,
           state,
+          vin,
           json_v2: jsonData,
         });
         return this.ok(jsonData);
@@ -509,6 +512,7 @@ export class VehicleProfileController extends BaseController {
           id: carRegFind,
           registrationNumber,
           state,
+          vin,
           json_v3: jsonData,
         });
         return this.ok(jsonData);

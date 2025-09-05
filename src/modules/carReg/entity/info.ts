@@ -13,6 +13,9 @@ export class CarRegEntity extends BaseEntity {
   @Column({ comment: 'state', length: 20 })
   state: string;
 
+  @Column({ comment: 'vin', length: 20 })
+  vin: string;
+
   @Column({ comment: 'xml', type: 'text', nullable: true })
   xml: string;
 
