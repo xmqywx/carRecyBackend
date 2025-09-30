@@ -21,7 +21,7 @@ const s3 = new AWS.S3();
 // const ses = new AWS.SES();
 // 电子邮件发送者和接收者
 const fromEmail = process.env.NODE_MAIL_USER;
-const logoUrl = 'http://13.54.137.62/pickYourCar.png';
+const logoUrl = 'https://apexpoint.com.au/api//public/uploads/20241213/0d016b43-6797-471a-bafc-0d57d5d1efbc_1734063663613.jpg';
 
 export default async function main({
   name,
