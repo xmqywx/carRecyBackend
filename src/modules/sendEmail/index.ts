@@ -20,8 +20,37 @@ const s3 = new AWS.S3();
 // 创建ses 实例
 // const ses = new AWS.SES();
 // 电子邮件发送者和接收者
-const fromEmail = process.env.NODE_MAIL_USER;
+const fromEmail = process.env.EMAIL_FROM || process.env.NODE_MAIL_USER;
 const logoUrl = 'https://apexpoint.com.au/api//public/uploads/20241213/0d016b43-6797-471a-bafc-0d57d5d1efbc_1734063663613.jpg';
+
+// 邮件签名模板
+const emailSignature = `
+<div style="margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+  <table style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="vertical-align: top; padding-right: 20px;">
+        <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+          <strong style="color: #2c5aa0;">Mason</strong><br/>
+          <span style="color: #666;">General Manager</span><br/><br/>
+          
+          <img src="${logoUrl}" alt="We Pick Your Car" style="max-width: 200px; height: auto; margin: 10px 0;"/><br/>
+          
+          <strong style="color: #2c5aa0;">We Pick Your Car Pty Ltd</strong><br/><br/>
+          
+          <div style="color: #666; line-height: 1.4;">
+            16-18 Tait Street,<br/>
+            Smithfield, NSW 2164<br/><br/>
+            
+            <a href="mailto:Inquiry@wepickyourcar.com.au" style="color: #2c5aa0; text-decoration: none;">Inquiry@wepickyourcar.com.au</a><br/>
+            M: <a href="tel:0406007000" style="color: #2c5aa0; text-decoration: none;">0406 007 000</a> | 
+            P: <a href="tel:0297572321" style="color: #2c5aa0; text-decoration: none;">(02) 9757 2321</a>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+`;
 
 export default async function main({
   name,
@@ -126,11 +155,10 @@ export default async function main({
       <main>
         <p>Dear ${name},</p>
         <br />
-<pre>Please see attached invoice for your car.
-Thank you for choosing our services.
-
-Best regards,
-We Pick Your Car</pre>
+        <p>Please see attached invoice for your car.</p>
+        <p>Thank you for choosing our services.</p>
+        
+        ${emailSignature}
       </main>
     </body>
     </html>
@@ -502,9 +530,8 @@ ${email}</pre>
       <br />
       <p>Please see attached invoice for your car.</p>
       <p>Thank you for choosing our services.</p>
-      <br />
-      <p>Best regards,</p>
-      <p>We Pick Your Car</p>
+      
+      ${emailSignature}
       </main>
     </body>
     </html>
