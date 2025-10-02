@@ -20,7 +20,7 @@ const s3 = new AWS.S3();
 // 创建ses 实例
 // const ses = new AWS.SES();
 // 电子邮件发送者和接收者
-const fromEmail = process.env.EMAIL_FROM || process.env.NODE_MAIL_USER;
+const fromEmail = process.env.EMAIL_FROM || `"We Pick Your Car" <${process.env.NODE_MAIL_USER}>`;
 const logoUrl = 'https://apexpoint.com.au/api//public/uploads/20241213/0d016b43-6797-471a-bafc-0d57d5d1efbc_1734063663613.jpg';
 
 // 邮件签名模板
