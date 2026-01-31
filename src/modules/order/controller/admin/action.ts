@@ -7,6 +7,7 @@ import { OrderActionEntity } from '../../entity/action';
 import { OrderInfoEntity } from '../../entity/info';
 import main from '../../../sendEmail';
 import { OrderService, OrderActionService } from '../../service/order';
+import { EmailLogService } from '../../../emailLog/service/emailLog';
 
 /**
  * 订单
@@ -44,12 +45,16 @@ export class OrderActionController extends BaseController {
   @Inject()
   orderService: OrderService;
 
+  @Inject()
+  emailLogService: EmailLogService;
+
   @Post('/sendEmail')
   async sendEmail(
     @Body('name') name: string,
     @Body('id') id: string,
     @Body('email') email: string,
-    @Body('price') price: number
+    @Body('price') price: number,
+    @Body('operatorName') operatorName?: string
   ) {
     const orderInfo = await this.orderService.getInvoiceInfo(id);
     if (!orderInfo) return this.fail('The job cannot be found.');
@@ -61,6 +66,48 @@ export class OrderActionController extends BaseController {
       invoicePdf: orderInfo.invoice,
       info: orderInfo,
     });
+
+    // 构建邮件日志的内容数据
+    const contentData = {
+      invoiceNumber: `#${id.toString().padStart(6, '0')}`,
+      customer: {
+        name: name || '',
+        email: email || '',
+      },
+      vehicle: {
+        rego: orderInfo.registrationNumber || '',
+        state: orderInfo.state || '',
+        make: orderInfo.brand || '',
+        model: orderInfo.model || '',
+        year: orderInfo.year || '',
+      },
+      payment: {
+        totalAmount: orderInfo.totalAmount || 0,
+        priceExGST: orderInfo.priceExGST || 0,
+        gst: orderInfo.gst || 0,
+        gstAmount: orderInfo.gstAmount || 0,
+      },
+    };
+
+    // 保存邮件日志
+    try {
+      await this.emailLogService.saveLog({
+        orderId: parseInt(id),
+        emailType: 'invoice',
+        recipients: [email],
+        subject: 'Invoice from WePickYourCar',
+        contentData: contentData,
+        pdfUrl: info.invoicePdf || orderInfo.invoice || null,
+        sentBy: 'App',
+        operatorName: operatorName,
+        status: info.status === 'success' ? 'success' : 'failed',
+        errorMessage: info.status !== 'success' ? 'Failed to send email' : null,
+      });
+    } catch (logError) {
+      console.error('Failed to save email log:', logError);
+      // 日志保存失败不影响主流程
+    }
+
     if (info.status === 'success') {
       if (!orderInfo.invoice) {
         const saveInvoice = await this.orderService.saveInvoice(

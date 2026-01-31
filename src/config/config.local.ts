@@ -1,4 +1,5 @@
 import { CoolConfig } from '@cool-midway/core';
+import { MODETYPE } from '@cool-midway/file';
 import { MidwayConfig } from '@midwayjs/core';
 
 /**
@@ -28,5 +29,10 @@ export default {
   cool: {
     // 是否自动导入数据库
     initDB: true,
+    // 本地开发文件上传配置 - 覆盖 config.default.ts 中的配置
+    file: {
+      mode: MODETYPE.LOCAL,
+      domain: process.env.NODE_FILE_DOMAIN || 'http://localhost:8001',
+    },
   } as CoolConfig,
 } as MidwayConfig;

@@ -66,7 +66,33 @@ export class CustomerProfileEntity extends BaseEntity {
 
   @Column({ comment: 'Back Card Number', length: 50 , nullable: true })
   backCardNumber: string;
-  // ---Private owner , Workshop
-  @Column({ comment: 'If the vehicle is at a workshop or private owner', default: 'Private owner' })
+  // ---Private , Workshop/Dealer
+  @Column({ comment: 'If the vehicle is at a workshop or private owner', default: 'Private' })
   customerAt: string;
+
+  // --- Workshop/Dealer fields
+  @Column({ comment: 'Business Name', length: 200, nullable: true })
+  businessName: string;
+
+  @Column({ comment: 'Business Contact Number', length: 50, nullable: true })
+  businessContactNumber: string;
+
+  @Column({ comment: 'Role (Owner/Manager/Mechanic/Representative/Other)', length: 100, nullable: true })
+  role: string;
+
+  // --- Licence Details fields
+  @Column({ comment: 'Licence State (NSW/VIC/QLD/SA/WA/TAS/ACT/NT)', length: 20, nullable: true })
+  licenceState: string;
+
+  @Column({ comment: 'Licence Given Name', length: 100, nullable: true })
+  licenceGivenName: string;
+
+  @Column({ comment: 'Licence Surname', length: 100, nullable: true })
+  licenceSurname: string;
+
+  @Column({ comment: 'Licence Residential Address', length: 250, nullable: true })
+  licenceAddress: string;
+
+  @Column({ comment: 'Same as customer info', default: false, nullable: true })
+  sameAsCustomer: boolean;
 }

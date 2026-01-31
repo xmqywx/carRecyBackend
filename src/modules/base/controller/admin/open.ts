@@ -9,7 +9,7 @@ import { CoolFile } from '@cool-midway/file';
 import { OrderService } from '../../../order/service/order';
 import getDocs, {
   outPutPdf,
-  saveS3,
+  savePdf,
 } from '../../../sendEmail/sendMailToGetDocs';
 import { CarWreckedService, CarBaseService } from '../../../car/service/car';
 import { BaseOpenService } from '../../service/sys/open';
@@ -19,6 +19,7 @@ import { JobService } from '../../../job/service/job';
 import { BaseSysUserService } from '../../service/sys/user';
 import { BaseSysRoleService } from '../../service/sys/role';
 import { BaseSysDepartmentService } from '../../service/sys/department';
+import { EmailLogService } from '../../../emailLog/service/emailLog';
 
 const url = require('url');
 const querystring = require('querystring');
@@ -76,6 +77,9 @@ export class BaseOpenController extends BaseController {
 
   @Inject()
   baseSysDepartmentService: BaseSysDepartmentService;
+
+  @Inject()
+  emailLogService: EmailLogService;
 
   /**
    * 实体信息与路径
@@ -163,7 +167,9 @@ export class BaseOpenController extends BaseController {
     @Body('orderID') orderID: number,
     @Body('textToSend') textToSend: string,
     @Body('giveUploadBtn') giveUploadBtn: boolean,
-    @Body('sendBy') sendBy: string
+    @Body('sendBy') sendBy: string,
+    @Body('contentData') contentData?: object, // 邮件关键内容数据
+    @Body('operatorName') operatorName?: string // 操作者用户名
   ) {
     const token = await this.orderService.generateToken({
       orderID,
@@ -171,9 +177,12 @@ export class BaseOpenController extends BaseController {
 
     // 发送邮件
     let attachment: any = {};
+    let pdfUrl: string = null;
+
     if (!giveUploadBtn) {
       const buffer = await outPutPdf({ textToSend });
-      attachment = await saveS3(buffer);
+      attachment = await savePdf(buffer);
+      pdfUrl = attachment.url || attachment.path;
     } else {
       await this.orderService.updateOrderAllowUpload(orderID, true);
     }
@@ -190,18 +199,58 @@ export class BaseOpenController extends BaseController {
       });
     });
     const emailResults = await Promise.all(emailPromises);
+
     // 检查是否所有邮件都成功发送
     const isAllEmailSent = emailResults.every(
       result => result.status === 'success'
     );
+
+    // 确定邮件类型和主题
+    const emailType = giveUploadBtn ? 'proof_request' : 'invoice';
+    const subject = giveUploadBtn
+      ? 'Proof materials requests from WePickYourCar'
+      : 'Invoice from WePickYourCar';
+
+    // 保存邮件日志
+    try {
+      await this.emailLogService.saveLog({
+        orderId: orderID,
+        emailType: emailType as 'invoice' | 'proof_request',
+        recipients: email,
+        subject: subject,
+        contentData: contentData || { name, sendBy },
+        pdfUrl: pdfUrl,
+        sentBy: sendBy,
+        operatorName: operatorName,
+        status: isAllEmailSent ? 'success' : 'failed',
+        errorMessage: isAllEmailSent ? null : 'Failed to send some emails',
+      });
+    } catch (logError) {
+      console.error('Failed to save email log:', logError);
+      // 日志保存失败不影响主流程
+    }
+
     if (isAllEmailSent) {
-      if (attachment.path) {
-        await this.orderService.saveInvoice(orderID, attachment.path);
+      if (pdfUrl) {
+        await this.orderService.saveInvoice(orderID, pdfUrl);
       }
       await this.orderService.updateEmailStatus(orderID, giveUploadBtn);
       return this.ok({ message: 'All emails have been sent successfully.' });
     } else {
       return this.fail('Failed to send some emails.');
+    }
+  }
+
+  /**
+   * 获取订单的邮件发送历史
+   */
+  @Get('/getEmailLogs')
+  async getEmailLogs(@Query('orderID') orderID: number) {
+    try {
+      const logs = await this.emailLogService.getLogsByOrderId(orderID);
+      return this.ok(logs);
+    } catch (e) {
+      return this.fail('Failed to get email logs', e);
     }
   }
 

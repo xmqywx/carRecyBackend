@@ -92,6 +92,28 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ type: 'tinyint', nullable: true })
   gotBusy: boolean;
 
+  // 新增 Vehicle Assessment 字段
+  @Column({ type: 'tinyint', nullable: true, comment: '发动机可启动' })
+  gotEngineStarts: boolean;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '变速箱可移动' })
+  gotTransmission: boolean;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '轮子正常' })
+  gotWheels: boolean;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '有电池' })
+  gotBattery: boolean;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '有催化转化器' })
+  gotCatalytic: boolean;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '没有漏气轮胎' })
+  gotNoFlat: boolean;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '不在繁忙交通道路上' })
+  gotNotBusy: boolean;
+
   @Column({ comment: 'modelNumber', nullable: true })
   modelNumber: string;
 
@@ -113,6 +135,12 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ comment: 'aboutUs', nullable: true })
   aboutUs: string;
+
+  @Column({ comment: '主要来源: Google/Facebook/Gumtree/Referral/Dealer/Other', nullable: true })
+  leadSource: string;
+
+  @Column({ comment: '来源详情', nullable: true })
+  leadSourceDetail: string;
 
   //加小数
   @Column({

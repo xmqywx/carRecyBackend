@@ -8,8 +8,11 @@ const pdf = require('html-pdf-chrome');
 const AWS = require('aws-sdk');
 dotenv.config({ path: envFile });
 
-const fromEmail = process.env.EMAIL_FROM || `"We Pick Your Car" <${process.env.NODE_MAIL_USER}>`;
+const fromEmail = `"We Pick Your Car" <accounts@wepickyourcar.com.au>`;
 const logoUrl = 'https://apexpoint.com.au/api//public/uploads/20241213/0d016b43-6797-471a-bafc-0d57d5d1efbc_1734063663613.jpg';
+
+// 前端域名，从环境变量读取，默认为线上地址
+const frontendDomain = process.env.FRONTEND_DOMAIN || 'https://apexpoint.com.au';
 
 // 邮件签名模板
 const emailSignature = `
@@ -128,12 +131,35 @@ export async function outPutPdf({ textToSend }) {
   return await htmlPdf.toBuffer();
 }
 
+const fs = require('fs');
+const path = require('path');
+
+/**
+ * 保存PDF到本地 (dev环境)
+ */
+export async function saveLocal(buffer) {
+  const invoicesDir = path.join(process.cwd(), 'public', 'invoices');
+  // 确保目录存在
+  if (!fs.existsSync(invoicesDir)) {
+    fs.mkdirSync(invoicesDir, { recursive: true });
+  }
+  const filename = `invoice-${Date.now()}.pdf`;
+  const filePath = path.join(invoicesDir, filename);
+  fs.writeFileSync(filePath, buffer);
+  // 返回本地访问URL
+  const localUrl = `/public/invoices/${filename}`;
+  return {
+    filename: 'Invoice.pdf',
+    path: filePath,
+    url: localUrl,
+    contentType: 'application/pdf',
+  };
+}
+
+/**
+ * 保存PDF到S3 (production环境)
+ */
 export async function saveS3(buffer) {
-  // return {
-  //   filename: 'Invoice.pdf',
-  //   content: buffer, // 传入 PDF 的二进制数据
-  //   contentType: 'application/pdf'
-  // };
   let attachment;
   try {
     const s3Params = {
@@ -147,16 +173,31 @@ export async function saveS3(buffer) {
     attachment = {
       filename: 'Invoice.pdf',
       path: pdfUrl,
+      url: pdfUrl,
       contentType: 'application/pdf',
     };
   } catch (e) {
+    console.error('S3 upload failed, falling back to buffer:', e);
     attachment = {
       filename: 'Invoice.pdf',
-      content: buffer, // 传入 PDF 的二进制数据
+      content: buffer,
       contentType: 'application/pdf',
     };
   }
   return attachment;
+}
+
+/**
+ * 根据环境保存PDF
+ * dev环境保存到本地，production环境上传到S3
+ */
+export async function savePdf(buffer) {
+  const isLocal = process.env.NODE_ENV === 'local';
+  if (isLocal) {
+    return await saveLocal(buffer);
+  } else {
+    return await saveS3(buffer);
+  }
 }
 
 export default async function getDocs({
@@ -245,7 +286,7 @@ export default async function getDocs({
         <br />
         <p>Please click the link below to upload related Proof materails.</p>
         <p>Thank you for choosing our services.</p>
-        <p>Please click <a href="https://apexpoint.com.au/customer_provide_files?token=${token}&oi=${orderID}" style="font-weight: bold;">here</a> to upload the documents.</p>
+        <p>Please click <a href="${frontendDomain}/customer_provide_files?token=${token}&oi=${orderID}" style="font-weight: bold;">here</a> to upload the documents.</p>
         
         ${emailSignature}
       </main>
