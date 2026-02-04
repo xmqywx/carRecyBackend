@@ -38,7 +38,7 @@ export class SmtpConfigController extends BaseController {
 
     const success = await this.smtpConfigService.saveConfig(body);
     if (success) {
-      return this.ok(null, 'SMTP configuration saved successfully');
+      return this.ok({ message: 'SMTP configuration saved successfully' });
     } else {
       return this.fail('Failed to save SMTP configuration');
     }
@@ -57,7 +57,7 @@ export class SmtpConfigController extends BaseController {
 
     const result = await this.smtpConfigService.testConnection(body);
     if (result.success) {
-      return this.ok(null, result.message);
+      return this.ok({ message: result.message });
     } else {
       return this.fail(result.message);
     }
@@ -82,7 +82,7 @@ export class SmtpConfigController extends BaseController {
 
     const result = await this.smtpConfigService.sendTestEmail(config, toEmail);
     if (result.success) {
-      return this.ok(null, result.message);
+      return this.ok({ message: result.message });
     } else {
       return this.fail(result.message);
     }
@@ -104,7 +104,7 @@ export class SmtpConfigController extends BaseController {
   async saveTemplate(@Body() body: EmailTemplateConfig) {
     const success = await this.smtpConfigService.saveEmailTemplate(body);
     if (success) {
-      return this.ok(null, 'Email template saved successfully');
+      return this.ok({ message: 'Email template saved successfully' });
     } else {
       return this.fail('Failed to save email template');
     }

@@ -75,11 +75,11 @@ export class OrderActionController extends BaseController {
         email: email || '',
       },
       vehicle: {
-        rego: orderInfo.registrationNumber || '',
-        state: orderInfo.state || '',
-        make: orderInfo.brand || '',
-        model: orderInfo.model || '',
-        year: orderInfo.year || '',
+        rego: (orderInfo as any).registrationNumber || '',
+        state: (orderInfo as any).state || '',
+        make: (orderInfo as any).brand || '',
+        model: (orderInfo as any).model || '',
+        year: (orderInfo as any).year || '',
       },
       payment: {
         totalAmount: orderInfo.totalAmount || 0,
