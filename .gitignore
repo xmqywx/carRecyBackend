@@ -16,6 +16,7 @@ run/
 .audit
 typings/
 public/uploads/
+public/invoices/
 cache/
 .vercel
 .env*

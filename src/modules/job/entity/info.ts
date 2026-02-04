@@ -39,4 +39,16 @@ export class JobEntity extends BaseEntity {
 
   @Column({ comment: '部门ID', type: 'bigint' })
   departmentId: number;
+
+  @Column({ comment: '预选司机ID', nullable: true })
+  preselectedDriverId: number;
+
+  @Column({ comment: '预选司机名称', length: 100, nullable: true })
+  preselectedDriverName: string;
+
+  @Column({ comment: '预选时间', nullable: true })
+  preselectedTime: string;
+
+  @Column({ comment: '预选时长(小时)', nullable: true })
+  preselectedDuration: number;
 }

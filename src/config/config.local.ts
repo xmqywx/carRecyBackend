@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 import { CoolConfig } from '@cool-midway/core';
 import { MODETYPE } from '@cool-midway/file';
 import { MidwayConfig } from '@midwayjs/core';

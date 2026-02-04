@@ -155,6 +155,9 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'customerName', nullable: true })
   customerName: string;
 
+  @Column({ comment: 'bankingWith 开户行名称', nullable: true })
+  bankingWith: string;
+
   @Column({ comment: 'bankName', nullable: true })
   bankName: string;
 
@@ -275,4 +278,17 @@ export class OrderInfoEntity extends BaseEntity {
   // is floating
   @Column({ type: 'tinyint', nullable: true })
   floating: boolean;
+
+  // 暂存排班信息（lead 状态下设置，book 时使用）
+  @Column({ comment: '暂存司机ID', type: 'bigint', nullable: true })
+  tempDriverId: number;
+
+  @Column({ comment: '暂存司机名称', nullable: true })
+  tempDriverName: string;
+
+  @Column({ comment: '暂存排班时间', length: 20, nullable: true })
+  tempScheduledTime: string;
+
+  @Column({ comment: '暂存时长(小时)', type: 'decimal', precision: 4, scale: 1, nullable: true })
+  tempDuration: number;
 }

@@ -20,7 +20,7 @@ const s3 = new AWS.S3();
 // 创建ses 实例
 // const ses = new AWS.SES();
 // 电子邮件发送者和接收者
-const fromEmail = process.env.EMAIL_FROM || `"We Pick Your Car" <accounts@wepickyourcar.com.au>`;
+const fromEmail = process.env.EMAIL_FROM || `"We Pick Your Car" <noreply@wepickyourcar.com.au>`;
 const logoUrl = 'https://apexpoint.com.au/api//public/uploads/20241213/0d016b43-6797-471a-bafc-0d57d5d1efbc_1734063663613.jpg';
 
 // 邮件签名模板
@@ -62,29 +62,22 @@ export default async function main({
 }) {
   console.log(invoicePdf);
   let toEmail = '';
-  // 配置 Nodemailer
+  // 配置 Nodemailer - 使用587端口和TLS
   const transport = nodemailer.createTransport({
-    // host: "smtp.gmail.com", // 第三方邮箱的主机地址
-    // port: 465,
-    // secure: true, // true for 465, false for other ports
-    // // service: 'Gmail', // 使用 Gmail 作为示例，您可以更改为其他服务
-    // auth: {
-    //   user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
-    //   pass: "qxtevaozxibvalxj",
-    // },
-    //     auth: {
-    //         user: "laurentliu0918@gmail.com", // 发送方邮箱的账号
-    //         pass: "qxtevaozxibvalxj", // 邮箱授权密码
-    //     },
     service: 'gmail',
     pool: true,
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false, // 使用TLS
     auth: {
       user: process.env.NODE_MAIL_USER,
       pass: process.env.NODE_MAIL_PASS,
     },
+    tls: {
+      rejectUnauthorized: false
+    },
+    connectionTimeout: 30000, // 30秒连接超时
+    socketTimeout: 30000, // 30秒socket超时
     debug: true,
   });
   if (email != null) {

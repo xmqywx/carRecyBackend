@@ -544,13 +544,15 @@ export class VehicleProfileController extends BaseController {
     @Body('orderId') orderId: number,
     @Body('order_status') order_status: number,
     @Body('job_status') job_status: number,
-    @Body('job_info') job_info: JobInfo
+    @Body('job_info') job_info: JobInfo,
+    @Body('operatorInfo') operatorInfo: OperatorInfo
   ) {
     const res = await this.orderService.bookedUpdateStatus(
       orderId,
       order_status,
       job_status,
-      job_info
+      job_info,
+      operatorInfo
     );
     if (res) {
       return this.ok();
@@ -620,6 +622,16 @@ interface JobInfo {
   carID: number;
   departmentId: number;
   status: number;
+  driverID?: number;
+  driverName?: string;
+  schedulerStart?: string;
+  schedulerEnd?: string;
+}
+
+interface OperatorInfo {
+  operatorId?: number;
+  operatorName?: string;
+  operatorType?: string;
 }
 
 enum SEARCH_CAR_API {

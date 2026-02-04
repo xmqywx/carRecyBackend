@@ -9,6 +9,10 @@ export default {
   keys: 'cool-admin for node',
   koa: {
     port: 8001,
+    // HTTP 超时配置（毫秒）
+    serverTimeout: 120000, // 2 分钟
+    // Keep-Alive 超时
+    keepAliveTimeout: 30000, // 30 秒
   },
   // 文件上传
   upload: {

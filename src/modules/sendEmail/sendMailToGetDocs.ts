@@ -8,40 +8,49 @@ const pdf = require('html-pdf-chrome');
 const AWS = require('aws-sdk');
 dotenv.config({ path: envFile });
 
-const fromEmail = `"We Pick Your Car" <accounts@wepickyourcar.com.au>`;
-const logoUrl = 'https://apexpoint.com.au/api//public/uploads/20241213/0d016b43-6797-471a-bafc-0d57d5d1efbc_1734063663613.jpg';
+// SMTP配置接口
+export interface SmtpConfig {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+  fromName: string;
+  fromEmail: string;
+}
+
+// 邮件模板配置接口
+export interface EmailTemplateConfig {
+  proofRequestSubject: string;
+  invoiceSubject: string;
+  signatureHtml: string;
+}
+
+// 默认配置（用于向后兼容）
+const DEFAULT_SMTP_CONFIG: SmtpConfig = {
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  user: process.env.NODE_MAIL_USER || '',
+  pass: process.env.NODE_MAIL_PASS || '',
+  fromName: 'We Pick Your Car',
+  fromEmail: 'noreply@wepickyourcar.com.au',
+};
+
+// 默认邮件模板配置
+const DEFAULT_EMAIL_TEMPLATE: EmailTemplateConfig = {
+  proofRequestSubject: 'Proof materials request from WePickYourCar',
+  invoiceSubject: 'Invoice from WePickYourCar',
+  signatureHtml: `<p><span style="color: rgb(44, 90, 160);"><strong>Mason</strong></span><br><span style="color: rgb(102, 102, 102);">General Manager</span></p><p><img src="https://apexpoint.com.au/api/public/uploads/20241213/0d016b43-6797-471a-bafc-0d57d5d1efbc_1734063663613.jpg" alt="We Pick Your Car" data-href="" style="width: 150px;height: 78px;"/></p><p><span style="color: rgb(44, 90, 160);"><strong>We Pick Your Car Pty Ltd</strong></span><br><span style="color: rgb(102, 102, 102);">16-18 Tait Street, Smithfield, NSW 2164</span></p><p><a href="mailto:Inquiry@wepickyourcar.com.au" target="">Inquiry@wepickyourcar.com.au</a><br><span style="color: rgb(102, 102, 102);">M: </span><a href="tel:0406007000" target="">0406 007 000</a><span style="color: rgb(102, 102, 102);"> | P: </span><a href="tel:0297572321" target="">(02) 9757 2321</a></p>`,
+};
 
 // 前端域名，从环境变量读取，默认为线上地址
 const frontendDomain = process.env.FRONTEND_DOMAIN || 'https://apexpoint.com.au';
 
-// 邮件签名模板
-const emailSignature = `
-<div style="margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
-  <table style="width: 100%; border-collapse: collapse;">
-    <tr>
-      <td style="vertical-align: top; padding-right: 20px;">
-        <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
-          <strong style="color: #2c5aa0;">Mason</strong><br/>
-          <span style="color: #666;">General Manager</span><br/><br/>
-          
-          <img src="${logoUrl}" alt="We Pick Your Car" style="max-width: 200px; height: auto; margin: 10px 0;"/><br/>
-          
-          <strong style="color: #2c5aa0;">We Pick Your Car Pty Ltd</strong><br/><br/>
-          
-          <div style="color: #666; line-height: 1.4;">
-            16-18 Tait Street,<br/>
-            Smithfield, NSW 2164<br/><br/>
-            
-            <a href="mailto:Inquiry@wepickyourcar.com.au" style="color: #2c5aa0; text-decoration: none;">Inquiry@wepickyourcar.com.au</a><br/>
-            M: <a href="tel:0406007000" style="color: #2c5aa0; text-decoration: none;">0406 007 000</a> | 
-            P: <a href="tel:0297572321" style="color: #2c5aa0; text-decoration: none;">(02) 9757 2321</a>
-          </div>
-        </div>
-      </td>
-    </tr>
-  </table>
-</div>
-`;
+// 获取邮件签名HTML
+function getEmailSignature(template: EmailTemplateConfig): string {
+  return template.signatureHtml || '';
+}
 AWS.config.update({
   region: process.env.NODE_REGION,
   accessKeyId: process.env.NODE_ACCESS_KEY_ID,
@@ -207,22 +216,46 @@ export default async function getDocs({
   giveUploadBtn,
   attachment,
   sendBy,
-  orderID
+  orderID,
+  smtpConfig,
+  emailTemplate,
+}: {
+  email: string;
+  name: string;
+  token: string;
+  giveUploadBtn: boolean;
+  attachment?: any;
+  sendBy: string;
+  orderID: number;
+  smtpConfig?: SmtpConfig;
+  emailTemplate?: EmailTemplateConfig;
 }) {
+  // 使用传入的配置或默认配置
+  const config = smtpConfig || DEFAULT_SMTP_CONFIG;
+  const template = emailTemplate || DEFAULT_EMAIL_TEMPLATE;
+  // 使用登录用户名作为发件地址（大多数SMTP服务器会强制使用登录账号）
+  const fromEmail = `"${config.fromName}" <${config.user}>`;
+  const emailSignature = getEmailSignature(template);
+
   let toEmail = '';
   // 配置 Nodemailer
   const transport = nodemailer.createTransport({
     pool: true,
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
     auth: {
-      user: process.env.NODE_MAIL_USER,
-      pass: process.env.NODE_MAIL_PASS,
+      user: config.user,
+      pass: config.pass,
     },
+    tls: {
+      rejectUnauthorized: false
+    },
+    connectionTimeout: 30000,
+    socketTimeout: 30000,
     debug: true,
   });
-  console.log(process.env.NODE_MAIL_USER, process.env.NODE_MAIL_PASS);
+  console.log('SMTP Config:', config.host, config.port, config.user);
   if (email != null) {
     toEmail = email;
   }
@@ -230,7 +263,7 @@ export default async function getDocs({
     const mailOptions = {
       from: fromEmail,
       to: toEmail,
-      subject: 'Proof materails requests from WePickYourCar',
+      subject: template.proofRequestSubject,
       html: `
         <html lang="en">
     <head>
@@ -284,7 +317,7 @@ export default async function getDocs({
       <main>
         <p>Dear ${name},</p>
         <br />
-        <p>Please click the link below to upload related Proof materails.</p>
+        <p>Please click the link below to upload related Proof materials.</p>
         <p>Thank you for choosing our services.</p>
         <p>Please click <a href="${frontendDomain}/customer_provide_files?token=${token}&oi=${orderID}" style="font-weight: bold;">here</a> to upload the documents.</p>
         
@@ -301,8 +334,8 @@ export default async function getDocs({
   const mailOptions = {
     from: fromEmail,
     to: toEmail,
-    subject: 'Invoice from WePickYourCar',
-    text: `Invoice from WePickYourCar`,
+    subject: template.invoiceSubject,
+    text: template.invoiceSubject,
     attachments: [attachment],
     html: `
         <html lang="en">

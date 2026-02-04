@@ -11,6 +11,7 @@ import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 import { CarRegEntity } from '../../carReg/entity/info';
 import { AccessToken } from './accessToken';
+import { JobService } from '../../job/service/job';
 
 @Provide()
 export class OrderService extends BaseService {
@@ -28,6 +29,8 @@ export class OrderService extends BaseService {
   carRegEntity: Repository<CarRegEntity>;
   @Inject()
   accessTokenService: AccessToken;
+  @Inject()
+  jobService: JobService;
 
   async getCountMonth(departmentId) {
     const year = new Date().getFullYear();
@@ -210,7 +213,26 @@ export class OrderService extends BaseService {
     orderId: number,
     order_status: number | null,
     job_status: number | null,
-    job_info
+    job_info?: {
+      orderID?: number;
+      carID?: number;
+      departmentId?: number;
+      status?: number;
+      driverID?: number;
+      driverName?: string;
+      schedulerStart?: string;
+      schedulerEnd?: string;
+      // 预选字段
+      preselectedDriverId?: number;
+      preselectedDriverName?: string;
+      preselectedTime?: string;
+      preselectedDuration?: number;
+    },
+    operatorInfo?: {
+      operatorId?: number;
+      operatorName?: string;
+      operatorType?: string;
+    }
   ) {
     const promise = [];
     const orderDetail = await this.orderInfoEntity.findOne({ id: orderId });
@@ -249,20 +271,91 @@ export class OrderService extends BaseService {
         })
         .then(async res => {
           if (res && res.id) {
+            const oldStatus = res.status;
             if (job_status >= 0) {
+              // 如果是从软删除状态(-1)恢复，使用 reactivated action
+              const isReactivating = oldStatus === -1;
+
               res.status = job_status;
               if (job_status === 0) {
                 res.driverID = null;
                 res.schedulerEnd = null;
                 res.schedulerStart = null;
               }
+              // Handle driver assignment from job_info
+              if (job_info?.driverID !== undefined) {
+                res.driverID = job_info.driverID;
+              }
+              if (job_info?.schedulerStart !== undefined) {
+                res.schedulerStart = job_info.schedulerStart;
+              }
+              if (job_info?.schedulerEnd !== undefined) {
+                res.schedulerEnd = job_info.schedulerEnd;
+              }
+              // Handle preselection fields
+              if (job_info?.preselectedDriverId !== undefined) {
+                res.preselectedDriverId = job_info.preselectedDriverId;
+              }
+              if (job_info?.preselectedDriverName !== undefined) {
+                res.preselectedDriverName = job_info.preselectedDriverName;
+              }
+              if (job_info?.preselectedTime !== undefined) {
+                res.preselectedTime = job_info.preselectedTime;
+              }
+              if (job_info?.preselectedDuration !== undefined) {
+                res.preselectedDuration = job_info.preselectedDuration;
+              }
               await this.jobEntity.save(res);
+
+              // Log status change
+              const action = isReactivating
+                ? 'reactivated'
+                : this.jobService.determineAction(oldStatus, job_status, job_info);
+              await this.jobService.logStatusChange({
+                jobId: res.id,
+                orderId: orderId,
+                fromStatus: oldStatus,
+                toStatus: job_status,
+                action: action,
+                operatorId: operatorInfo?.operatorId,
+                operatorName: operatorInfo?.operatorName,
+                operatorType: operatorInfo?.operatorType || 'admin',
+                driverId: job_info?.driverID,
+                driverName: job_info?.driverName,
+              });
             } else {
-              await this.jobEntity.delete(res.id);
+              // 软删除：设置 status = -1，不物理删除
+              res.status = -1;
+              await this.jobEntity.save(res);
+
+              // Log soft deletion
+              await this.jobService.logStatusChange({
+                jobId: res.id,
+                orderId: orderId,
+                fromStatus: oldStatus,
+                toStatus: -1,
+                action: 'returned',
+                operatorId: operatorInfo?.operatorId,
+                operatorName: operatorInfo?.operatorName,
+                operatorType: operatorInfo?.operatorType || 'admin',
+              });
             }
           } else {
             if (job_info) {
-              await this.jobEntity.save(job_info);
+              const savedJob = await this.jobEntity.save(job_info);
+              // Log job creation
+              await this.jobService.logStatusChange({
+                jobId: savedJob.id,
+                orderId: orderId,
+                fromStatus: null,
+                toStatus: job_info.status || 0,
+                action: 'created',
+                operatorId: operatorInfo?.operatorId,
+                operatorName: operatorInfo?.operatorName,
+                operatorType: operatorInfo?.operatorType || 'admin',
+                driverId: job_info?.driverID,
+                driverName: job_info?.driverName,
+              });
             }
           }
           return res;

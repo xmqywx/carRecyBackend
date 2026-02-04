@@ -20,6 +20,7 @@ import { BaseSysUserService } from '../../service/sys/user';
 import { BaseSysRoleService } from '../../service/sys/role';
 import { BaseSysDepartmentService } from '../../service/sys/department';
 import { EmailLogService } from '../../../emailLog/service/emailLog';
+import { SmtpConfigService } from '../../../sendEmail/service/smtpConfig';
 
 const url = require('url');
 const querystring = require('querystring');
@@ -80,6 +81,9 @@ export class BaseOpenController extends BaseController {
 
   @Inject()
   emailLogService: EmailLogService;
+
+  @Inject()
+  smtpConfigService: SmtpConfigService;
 
   /**
    * 实体信息与路径
@@ -187,6 +191,10 @@ export class BaseOpenController extends BaseController {
       await this.orderService.updateOrderAllowUpload(orderID, true);
     }
 
+    // 获取SMTP配置和邮件模板配置
+    const smtpConfig = await this.smtpConfigService.getConfig();
+    const emailTemplate = await this.smtpConfigService.getEmailTemplate();
+
     const emailPromises = email.map((v: string) => {
       return getDocs({
         email: v,
@@ -196,6 +204,8 @@ export class BaseOpenController extends BaseController {
         attachment,
         sendBy,
         orderID,
+        smtpConfig,
+        emailTemplate,
       });
     });
     const emailResults = await Promise.all(emailPromises);
@@ -208,8 +218,8 @@ export class BaseOpenController extends BaseController {
     // 确定邮件类型和主题
     const emailType = giveUploadBtn ? 'proof_request' : 'invoice';
     const subject = giveUploadBtn
-      ? 'Proof materials requests from WePickYourCar'
-      : 'Invoice from WePickYourCar';
+      ? emailTemplate.proofRequestSubject
+      : emailTemplate.invoiceSubject;
 
     // 保存邮件日志
     try {
