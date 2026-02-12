@@ -260,6 +260,7 @@ export class JobService extends BaseService {
     }
 
     await Promise.all(promise);
+    return { success: true };
   }
 
   /**
