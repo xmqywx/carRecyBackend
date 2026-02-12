@@ -8,6 +8,7 @@ import { OrderInfoEntity } from '../../order/entity/info';
 import { CarEntity } from '../../car/entity/base';
 import { CustomerProfileEntity } from '../../customer/entity/profile';
 import { SecondaryPersonEntity } from '../../secondaryPerson/entity/profile';
+import { BaseSysUserEntity } from '../../base/entity/sys/user';
 
 export interface StatusLogParams {
   jobId: number;
@@ -45,6 +46,9 @@ export class JobService extends BaseService {
   @InjectEntityModel(SecondaryPersonEntity)
   secondaryPersonEntity: Repository<SecondaryPersonEntity>;
 
+  @InjectEntityModel(BaseSysUserEntity)
+  userEntity: Repository<BaseSysUserEntity>;
+
   async add(params) {
     return this.jobEntity.save(params);
   }
@@ -57,11 +61,20 @@ export class JobService extends BaseService {
         customerDetail,
         carDetail,
         secondaryPersonDetail,
+        driverDetail,
         otherJobs;
       promise.push(
         this.jobEntity.findOne({ id: jobID }).then(async res => {
           jobDetail = res;
           if (res.driverID != null) {
+            // Get driver info
+            const driver = await this.userEntity.findOne({ id: res.driverID });
+            if (driver) {
+              driverDetail = {
+                id: driver.id,
+                name: driver.name || driver.username,
+              };
+            }
             otherJobs = await this.jobEntity
               .find({
                 driverID: res.driverID,
@@ -111,6 +124,7 @@ export class JobService extends BaseService {
         customerDetail,
         carDetail,
         secondaryPersonDetail,
+        driverDetail,
         otherJobs,
       };
     } catch (e) {
@@ -208,27 +222,19 @@ export class JobService extends BaseService {
       } else {
         if (secondaryPersonDetail.clear) {
           promise.push(
-            this.secondaryPersonEntity
-              .save(secondaryPersonDetail)
-              .then(
-                async res =>
-                  await this.orderInfoEntity.update(
-                    { id: orderDetail.id },
-                    { secondaryID: null }
-                  )
-              )
+            this.orderInfoEntity.update(
+              { id: orderDetail.id },
+              { secondaryID: null }
+            )
           );
         } else {
           promise.push(
-            this.secondaryPersonEntity
-              .save(secondaryPersonDetail)
-              .then(
-                async res =>
-                  await this.orderInfoEntity.update(
-                    { id: orderDetail.id },
-                    { secondaryID: res.id }
-                  )
-              )
+            this.secondaryPersonEntity.save(secondaryPersonDetail).then(res => {
+              return this.orderInfoEntity.update(
+                { id: orderDetail.id },
+                { secondaryID: res.id }
+              );
+            })
           );
         }
       }
@@ -253,7 +259,7 @@ export class JobService extends BaseService {
       promise.push(this.carEntity.update({ id: carDetail.id }, carDetail));
     }
 
-    return await Promise.all(promise);
+    await Promise.all(promise);
   }
 
   /**
