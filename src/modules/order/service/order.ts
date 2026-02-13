@@ -12,6 +12,7 @@ import axios from 'axios';
 import { CarRegEntity } from '../../carReg/entity/info';
 import { AccessToken } from './accessToken';
 import { JobService } from '../../job/service/job';
+import { SocketNotificationService } from '../../socket/notification.service';
 
 @Provide()
 export class OrderService extends BaseService {
@@ -31,6 +32,8 @@ export class OrderService extends BaseService {
   accessTokenService: AccessToken;
   @Inject()
   jobService: JobService;
+  @Inject()
+  notificationService: SocketNotificationService;
 
   async getCountMonth(departmentId) {
     const year = new Date().getFullYear();
@@ -272,6 +275,7 @@ export class OrderService extends BaseService {
         .then(async res => {
           if (res && res.id) {
             const oldStatus = res.status;
+            const oldDriverId = res.driverID;
             if (job_status >= 0) {
               // 如果是从软删除状态(-1)恢复，使用 reactivated action
               const isReactivating = oldStatus === -1;
@@ -323,6 +327,29 @@ export class OrderService extends BaseService {
                 driverId: job_info?.driverID,
                 driverName: job_info?.driverName,
               });
+
+              // Notify driver via Socket.IO
+              if (res.driverID && job_status !== oldStatus) {
+                await this.notificationService.notifyDriver(res.driverID, {
+                  jobId: res.id,
+                  orderId: orderId,
+                  action,
+                  fromStatus: oldStatus,
+                  toStatus: job_status,
+                  schedulerStart: res.schedulerStart,
+                  schedulerEnd: res.schedulerEnd,
+                });
+              }
+              // If driver was removed (job_status === 0 clears driverID), notify old driver
+              if (job_status === 0 && oldDriverId) {
+                await this.notificationService.notifyDriver(oldDriverId, {
+                  jobId: res.id,
+                  orderId: orderId,
+                  action: 'unassigned',
+                  fromStatus: oldStatus,
+                  toStatus: 0,
+                });
+              }
             } else {
               // 软删除：设置 status = -1，不物理删除
               res.status = -1;
@@ -339,6 +366,17 @@ export class OrderService extends BaseService {
                 operatorName: operatorInfo?.operatorName,
                 operatorType: operatorInfo?.operatorType || 'admin',
               });
+
+              // Notify driver if they were assigned
+              if (oldDriverId) {
+                await this.notificationService.notifyDriver(oldDriverId, {
+                  jobId: res.id,
+                  orderId: orderId,
+                  action: 'returned',
+                  fromStatus: oldStatus,
+                  toStatus: -1,
+                });
+              }
             }
           } else {
             if (job_info) {

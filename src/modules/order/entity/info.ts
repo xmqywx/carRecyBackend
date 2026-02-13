@@ -49,6 +49,15 @@ export class OrderInfoEntity extends BaseEntity {
   })
   recommendedPrice: number;
 
+  @Column({ comment: 'Quote type: Fixed or Negotiable', nullable: true, default: 'Fixed' })
+  quoteType: string;
+
+  @Column({ type: 'decimal', comment: 'Quote range from', nullable: true, precision: 12, scale: 2 })
+  quoteFrom: number;
+
+  @Column({ type: 'decimal', comment: 'Quote range to', nullable: true, precision: 12, scale: 2 })
+  quoteTo: number;
+
   // 加小数
   @Column({
     type: 'decimal',
@@ -113,6 +122,25 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ type: 'tinyint', nullable: true, comment: '不在繁忙交通道路上' })
   gotNotBusy: boolean;
+
+  // Vehicle Assessment v2 字段
+  @Column({ type: 'tinyint', nullable: true, comment: '车辆可驾驶' })
+  isDrivable: boolean;
+
+  @Column({ nullable: true, comment: '不可驾驶原因: engine/transmission/damage/unknown' })
+  notDrivableReason: string;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '车辆完整' })
+  gotVehicleComplete: boolean;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '事故损伤' })
+  gotAccidentDamage: boolean;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '火灾或水灾损伤' })
+  gotFireFloodDamage: boolean;
+
+  @Column({ type: 'tinyint', nullable: true, comment: '缺少主要部件' })
+  gotMissingComponents: boolean;
 
   @Column({ comment: 'modelNumber', nullable: true })
   modelNumber: string;
@@ -228,6 +256,9 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ comment: 'paymentRemittance', nullable: true, type: 'text' })
   paymentRemittance: string;
+
+  @Column({ comment: 'PayID detail (phone or email)', nullable: true })
+  payIdDetail: string;
 
   @Column({ comment: 'quoteNumber', nullable: true })
   quoteNumber: string;

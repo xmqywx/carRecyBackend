@@ -14,6 +14,13 @@ export default {
     // Keep-Alive 超时
     keepAliveTimeout: 30000, // 30 秒
   },
+  // Socket.IO 配置（不指定port，自动共享Koa的HTTP服务器）
+  socketIO: {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST'],
+    },
+  },
   // 文件上传
   upload: {
     fileSize: '200mb',

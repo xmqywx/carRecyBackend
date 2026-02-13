@@ -35,5 +35,8 @@ export class BaseSysDepartmentEntity extends BaseEntity {
 
   @Column({ comment: 'Phone number', nullable: true })
   phoneNumber: string;
+
+  @Column({ comment: 'Default state', nullable: true })
+  state: string;
 }
 

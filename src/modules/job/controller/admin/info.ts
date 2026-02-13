@@ -8,13 +8,14 @@ import { BaseSysUserEntity } from '../../../base/entity/sys/user';
 import { OrderInfoEntity } from '../../../order/entity/info';
 import { CustomerProfileEntity } from '../../../customer/entity/profile';
 import { JobService } from '../../service/job';
+import { SocketNotificationService } from '../../../socket/notification.service';
 
 /**
  * 司机任务
  */
 @Provide()
 @CoolController({
-  api: ['add', 'delete', 'update', 'info', 'list', 'page'],
+  api: ['add', 'delete', 'info', 'list', 'page'],
   entity: JobEntity,
 
   listQueryOp: {
@@ -214,6 +215,9 @@ export class VehicleProfileController extends BaseController {
   @Inject()
   jobService: JobService;
 
+  @Inject()
+  notificationService: SocketNotificationService;
+
   @Post('/updateJob')
   async updateJob(
     @Body('orderID') orderID: number,
@@ -250,7 +254,146 @@ export class VehicleProfileController extends BaseController {
         driverId: driverId,
         driverName: driverName,
       });
+
+      // Notify driver via Socket.IO
+      const targetDriverId = driverId || job.driverID;
+      if (targetDriverId) {
+        await this.notificationService.notifyDriver(targetDriverId, {
+          jobId: job.id,
+          orderId: orderID,
+          action,
+          fromStatus: oldStatus,
+          toStatus: status,
+        });
+      }
     }
+    return this.ok();
+  }
+
+  /**
+   * Custom update with Socket.IO notifications
+   */
+  @Post('/update')
+  async updateWithNotification(@Body() body: any) {
+    const id = body.id;
+    if (!id) {
+      return this.fail('Missing id');
+    }
+
+    // Get old job state before update
+    const oldJob = await this.jobEntity.findOne({ id });
+    if (!oldJob) {
+      return this.fail('Job not found');
+    }
+
+    const oldDriverId = oldJob.driverID;
+    const oldStatus = oldJob.status;
+    const oldSchedulerStart = oldJob.schedulerStart;
+    const orderID = oldJob.orderID;
+
+    // Capture body values BEFORE save (TypeORM save mutates the body object)
+    const bodyDriverId = body.driverID;
+    const bodyStatus = body.status;
+    const bodySchedulerStart = body.schedulerStart;
+    const bodySchedulerEnd = body.schedulerEnd;
+    const hasDriverId = 'driverID' in body;
+    const hasStatus = 'status' in body;
+    const hasSchedulerStart = 'schedulerStart' in body;
+
+    // Compute all notification flags BEFORE save
+    const newDriverId = hasDriverId ? Number(bodyDriverId) : oldDriverId;
+    const newStatus = hasStatus ? Number(bodyStatus) : oldStatus;
+    const driverChanged = hasDriverId
+      && oldDriverId
+      && bodyDriverId !== null
+      && Number(bodyDriverId) !== Number(oldDriverId);
+    const driverRemoved = hasDriverId && bodyDriverId === null && oldDriverId;
+    const driverAdded = hasDriverId && bodyDriverId && !oldDriverId;
+    const statusChanged = hasStatus && Number(bodyStatus) !== Number(oldStatus);
+    const timeChanged = hasSchedulerStart
+      && Number(bodySchedulerStart) !== Number(oldSchedulerStart);
+
+    console.log('[UpdateNotification] body keys:', Object.keys(body));
+    console.log('[UpdateNotification] oldDriverId:', oldDriverId, 'bodyDriverId:', bodyDriverId, 'hasDriverId:', hasDriverId);
+    console.log('[UpdateNotification] oldStatus:', oldStatus, 'bodyStatus:', bodyStatus, 'hasStatus:', hasStatus);
+    console.log('[UpdateNotification] flags:', { driverChanged, driverRemoved, driverAdded, statusChanged, timeChanged });
+
+    // Perform the update
+    await this.jobEntity.save(body);
+
+    // Driver changed (reassignment)
+    if (driverChanged) {
+      // Notify old driver: removed from task list
+      await this.notificationService.notifyDriverRemoved(Number(oldDriverId), {
+        jobId: id,
+        orderId: orderID,
+        action: 'reassigned',
+        fromStatus: oldStatus,
+        toStatus: newStatus,
+      });
+      // Notify new driver: assigned
+      if (bodyDriverId) {
+        await this.notificationService.notifyDriver(Number(bodyDriverId), {
+          jobId: id,
+          orderId: orderID,
+          action: 'assigned',
+          fromStatus: oldStatus,
+          toStatus: newStatus,
+          schedulerStart: String(bodySchedulerStart ?? oldSchedulerStart ?? ''),
+          schedulerEnd: bodySchedulerEnd !== undefined ? String(bodySchedulerEnd) : undefined,
+        });
+      }
+    }
+    // New driver assigned (was null before)
+    else if (driverAdded) {
+      await this.notificationService.notifyDriver(Number(bodyDriverId), {
+        jobId: id,
+        orderId: orderID,
+        action: 'assigned',
+        fromStatus: oldStatus,
+        toStatus: newStatus,
+        schedulerStart: String(bodySchedulerStart ?? oldSchedulerStart ?? ''),
+        schedulerEnd: bodySchedulerEnd !== undefined ? String(bodySchedulerEnd) : undefined,
+      });
+    }
+    // Driver removed
+    else if (driverRemoved) {
+      await this.notificationService.notifyDriver(Number(oldDriverId), {
+        jobId: id,
+        orderId: orderID,
+        action: 'unassigned',
+        fromStatus: oldStatus,
+        toStatus: newStatus,
+      });
+    }
+    // Same driver — check status change first, then time change
+    else if (newDriverId) {
+      if (statusChanged) {
+        let action = 'status_changed';
+        if (Number(bodyStatus) === 6) action = 'cancelled';
+        if (Number(bodyStatus) === 0) action = 'unassigned';
+        await this.notificationService.notifyDriver(Number(newDriverId), {
+          jobId: id,
+          orderId: orderID,
+          action,
+          fromStatus: oldStatus,
+          toStatus: Number(bodyStatus),
+          schedulerStart: timeChanged ? String(bodySchedulerStart) : undefined,
+          schedulerEnd: bodySchedulerEnd !== undefined ? String(bodySchedulerEnd) : undefined,
+        });
+      } else if (timeChanged) {
+        await this.notificationService.notifyDriver(Number(newDriverId), {
+          jobId: id,
+          orderId: orderID,
+          action: 'time_changed',
+          fromStatus: oldStatus,
+          toStatus: newStatus,
+          schedulerStart: String(body.schedulerStart),
+          schedulerEnd: body.schedulerEnd !== undefined ? String(body.schedulerEnd) : undefined,
+        });
+      }
+    }
+
     return this.ok();
   }
 
@@ -468,5 +611,57 @@ export class VehicleProfileController extends BaseController {
     } catch (e) {
       return this.fail(e);
     }
+  }
+
+  /**
+   * Get driver's schedule for a given date
+   * Used by booking form to show existing assignments and detect conflicts
+   */
+  @Post('/getDriverSchedule')
+  async getDriverSchedule(@Body() body) {
+    const { driverID, date, excludeOrderID } = body;
+    if (!driverID || !date) {
+      return this.fail('driverID and date are required');
+    }
+
+    // Calculate day start/end from the given date timestamp
+    const dayDate = new Date(Number(date));
+    dayDate.setHours(0, 0, 0, 0);
+    const dayStart = dayDate.getTime();
+    const dayEnd = dayStart + 24 * 60 * 60 * 1000 - 1;
+
+    const qb = this.jobEntity
+      .createQueryBuilder('a')
+      .leftJoin(OrderInfoEntity, 'b', 'a.orderID = b.id')
+      .leftJoin(CarEntity, 'c', 'b.carID = c.id')
+      .leftJoin(CustomerProfileEntity, 'e', 'b.customerID = e.id')
+      .select([
+        'a.id as id',
+        'a.orderID as orderID',
+        'a.status as status',
+        'a.schedulerStart as schedulerStart',
+        'a.schedulerEnd as schedulerEnd',
+        'b.pickupAddress as pickupAddress',
+        'b.pickupAddressState as pickupAddressState',
+        'b.quoteNumber as quoteNumber',
+        'c.name as name',
+        'c.model as model',
+        'c.year as year',
+        'c.brand as brand',
+        'e.firstName as firstName',
+        'e.phoneNumber as phoneNumber',
+      ])
+      .where('a.driverID = :driverID', { driverID })
+      .andWhere('a.status NOT IN (:...excludeStatus)', { excludeStatus: [4, 5, -1] })
+      .andWhere('a.schedulerStart >= :dayStart', { dayStart })
+      .andWhere('a.schedulerStart <= :dayEnd', { dayEnd })
+      .orderBy('a.schedulerStart', 'ASC');
+
+    if (excludeOrderID) {
+      qb.andWhere('a.orderID != :excludeOrderID', { excludeOrderID });
+    }
+
+    const jobs = await qb.getRawMany();
+    return this.ok(jobs);
   }
 }
