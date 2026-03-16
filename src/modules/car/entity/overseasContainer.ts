@@ -17,7 +17,7 @@ export class OverseasContainerEntity extends BaseEntity {
   sealNumber: string;
 
   @Column({
-    comment: 'Status: ready | assigned | loaded | closed | delivered',
+    comment: 'Status: ready | loading | sealed | sold | deposit | paid | collected',
     length: 20,
     default: 'ready',
   })
@@ -61,6 +61,9 @@ export class OverseasContainerEntity extends BaseEntity {
 
   @Column({ type: 'decimal', precision: 10, scale: 2, comment: 'Total value of contents', nullable: true })
   totalValue: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, comment: 'Total weight of parts (kg)', nullable: true })
+  totalWeight: number;
 
   @Column({ type: 'text', comment: 'Photo URL', nullable: true })
   photo: string;

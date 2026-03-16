@@ -118,4 +118,83 @@ export class SoldCompleteService extends BaseService {
     delete (data as any).carID;
     await this.soldCompleteRepo.update(record.id, data);
   }
+
+  // Status flow: pending → buyer_entered → invoiced → paid → completed
+  private static readonly STATUS_ORDER = ['pending', 'buyer_entered', 'invoiced', 'paid', 'completed'];
+
+  /**
+   * Advance to next status.
+   */
+  async advanceStatus(carID: number): Promise<string> {
+    const record = await this.soldCompleteRepo.findOne({ where: { carID } });
+    if (!record) throw new Error(`No sold-complete record for car ${carID}`);
+
+    const idx = SoldCompleteService.STATUS_ORDER.indexOf(record.status);
+    if (idx < 0 || idx >= SoldCompleteService.STATUS_ORDER.length - 1) {
+      throw new Error(`Cannot advance from status "${record.status}"`);
+    }
+    const next = SoldCompleteService.STATUS_ORDER[idx + 1];
+    const extra: any = { status: next };
+    if (next === 'paid') extra.paymentStatus = 'paid';
+    await this.soldCompleteRepo.update(record.id, extra);
+    return next;
+  }
+
+  /**
+   * Batch set status for multiple cars.
+   */
+  async batchSetStatus(carIDs: number[], status: string): Promise<void> {
+    if (!carIDs.length) return;
+    if (!SoldCompleteService.STATUS_ORDER.includes(status) && status !== 'archived' && status !== 'closed') {
+      throw new Error(`Invalid status "${status}"`);
+    }
+    const extra: any = { status };
+    if (status === 'paid') extra.paymentStatus = 'paid';
+    await this.soldCompleteRepo
+      .createQueryBuilder()
+      .update()
+      .set(extra)
+      .where('carID IN (:...carIDs)', { carIDs })
+      .execute();
+  }
+
+  /**
+   * Archive a record.
+   */
+  async archive(carID: number): Promise<void> {
+    const record = await this.soldCompleteRepo.findOne({ where: { carID } });
+    if (!record) throw new Error(`No sold-complete record for car ${carID}`);
+    await this.soldCompleteRepo.update(record.id, { status: 'archived' });
+  }
+
+  /**
+   * Batch archive.
+   */
+  async batchArchive(carIDs: number[]): Promise<void> {
+    if (!carIDs.length) return;
+    await this.soldCompleteRepo
+      .createQueryBuilder()
+      .update()
+      .set({ status: 'archived' })
+      .where('carID IN (:...carIDs)', { carIDs })
+      .execute();
+  }
+
+  /**
+   * Get stats.
+   */
+  async getStats(): Promise<any> {
+    const records = await this.soldCompleteRepo.find();
+    const active = records.filter(r => !['completed', 'closed', 'archived'].includes(r.status));
+    return {
+      totalVehicles: active.length,
+      totalSaleValue: active.reduce((s, r) => s + (Number(r.totalAmount) || 0), 0),
+      totalCollected: records
+        .filter(r => r.paymentStatus === 'paid')
+        .reduce((s, r) => s + (Number(r.totalAmount) || 0), 0),
+      outstandingBalance: active
+        .filter(r => r.paymentStatus !== 'paid')
+        .reduce((s, r) => s + (Number(r.totalAmount) || 0), 0),
+    };
+  }
 }

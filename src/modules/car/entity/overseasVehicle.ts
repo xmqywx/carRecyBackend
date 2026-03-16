@@ -3,12 +3,9 @@ import { BaseEntity } from '@cool-midway/core';
 import { Column, Index } from 'typeorm';
 
 /**
- * Overseas Vehicle — tracks vehicles/parts destined for export.
+ * Overseas Vehicle — tracks vehicles destined for export dismantling.
  *
- * Stages: ready → assigned → loaded → closed
- *
- * Created when Decision confirms destination = "Overseas".
- * Links to overseas_container for container assignment.
+ * Stages: ready → dismantling → dismantled
  */
 @EntityModel('overseas_vehicle')
 export class OverseasVehicleEntity extends BaseEntity {
@@ -17,14 +14,11 @@ export class OverseasVehicleEntity extends BaseEntity {
   carID: number;
 
   @Column({
-    comment: 'Stage: ready | assigned | loaded | closed',
+    comment: 'Stage: ready | dismantling | dismantled',
     length: 20,
     default: 'ready',
   })
   stage: string;
-
-  @Column({ type: 'int', comment: 'Container ID (overseas_container)', nullable: true })
-  containerID: number;
 
   @Column({ comment: 'Destination country', nullable: true })
   destinationCountry: string;
@@ -32,33 +26,21 @@ export class OverseasVehicleEntity extends BaseEntity {
   @Column({ comment: 'Destination city', nullable: true })
   destinationCity: string;
 
-  @Column({ type: 'int', comment: 'Consignee / Buyer ID', nullable: true })
-  consigneeID: number;
-
-  @Column({ comment: 'Consignee name (denormalized)', nullable: true })
-  consigneeName: string;
-
   @Column({ type: 'decimal', precision: 10, scale: 2, comment: 'Estimated value', nullable: true })
   estValue: number;
 
-  @Column({ comment: 'Vehicle weight', nullable: true })
-  weight: string;
+  @Column({ type: 'decimal', precision: 10, scale: 2, comment: 'Vehicle weight (kg)', nullable: true })
+  weight: number;
 
-  @Column({ type: 'int', comment: 'Number of parts included', default: 0 })
+  @Column({ type: 'int', comment: 'Denormalized parts count', default: 0 })
   partsCount: number;
+
+  @Column({ type: 'text', comment: 'Notes', nullable: true })
+  notes: string;
 
   @Column({ comment: 'When marked ready for export', nullable: true })
   readyAt: Date;
 
-  @Column({ comment: 'When assigned to container', nullable: true })
-  assignedAt: Date;
-
-  @Column({ comment: 'When loaded into container', nullable: true })
-  loadedAt: Date;
-
-  @Column({ comment: 'When closed/shipped', nullable: true })
-  closedAt: Date;
-
-  @Column({ type: 'text', comment: 'Notes', nullable: true })
-  notes: string;
+  @Column({ comment: 'When dismantling completed', nullable: true })
+  dismantledAt: Date;
 }

@@ -16,7 +16,7 @@ export class SoldCompleteEntity extends BaseEntity {
   carID: number;
 
   @Column({
-    comment: 'Status: pending | buyer_entered | invoiced | paid | closed',
+    comment: 'Status: pending | buyer_entered | invoiced | paid | completed | archived',
     length: 20,
     default: 'pending',
   })

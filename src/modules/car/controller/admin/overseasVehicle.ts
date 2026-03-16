@@ -3,19 +3,15 @@ import { CoolController, BaseController } from '@cool-midway/core';
 import { OverseasVehicleEntity } from '../../entity/overseasVehicle';
 import { OverseasVehicleService } from '../../service/overseasVehicle';
 import { CarEntity } from '../../entity/base';
+import { OrderInfoEntity } from '../../../order/entity/info';
 
-/**
- * Overseas Vehicle Controller
- *
- * Manages vehicles in the 4-stage export pipeline.
- */
 @Provide()
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: OverseasVehicleEntity,
 
   pageQueryOp: {
-    keyWordLikeFields: ['b.brand', 'b.model', 'b.registrationNumber'],
+    keyWordLikeFields: ['b.brand', 'b.model', 'b.registrationNumber', 'c.quoteNumber'],
     select: [
       'a.*',
       'b.brand',
@@ -25,11 +21,11 @@ import { CarEntity } from '../../entity/base';
       'b.registrationNumber',
       'b.vinNumber',
       'b.image',
+      'c.quoteNumber AS stockNumber',
     ],
     fieldEq: [
       { column: 'a.stage', requestParam: 'stage' },
       { column: 'a.carID', requestParam: 'carID' },
-      { column: 'a.containerID', requestParam: 'containerID' },
       { column: 'a.destinationCountry', requestParam: 'destinationCountry' },
     ],
     join: [
@@ -37,6 +33,12 @@ import { CarEntity } from '../../entity/base';
         entity: CarEntity,
         alias: 'b',
         condition: 'a.carID = b.id',
+        type: 'leftJoin',
+      },
+      {
+        entity: OrderInfoEntity,
+        alias: 'c',
+        condition: 'a.carID = c.carID',
         type: 'leftJoin',
       },
     ],
@@ -57,46 +59,23 @@ export class OverseasVehicleController extends BaseController {
     }
   }
 
-  @Post('/assignToContainer')
-  async assignToContainer(
-    @Body('carID') carID: number,
-    @Body('containerID') containerID: number
-  ) {
+  @Post('/startDismantling')
+  async startDismantling(@Body('carID') carID: number) {
     try {
-      await this.overseasVehicleService.assignToContainer(carID, containerID);
+      await this.overseasVehicleService.startDismantling(carID);
       return this.ok();
     } catch (e) {
       return this.fail(e);
     }
   }
 
-  @Post('/markLoaded')
-  async markLoaded(@Body('carID') carID: number) {
+  @Post('/completeDismantling')
+  async completeDismantling(@Body('id') id: number) {
     try {
-      await this.overseasVehicleService.markLoaded(carID);
+      await this.overseasVehicleService.completeDismantling(id);
       return this.ok();
     } catch (e) {
       return this.fail(e);
-    }
-  }
-
-  @Post('/close')
-  async close(@Body('carID') carID: number) {
-    try {
-      await this.overseasVehicleService.close(carID);
-      return this.ok();
-    } catch (e) {
-      return this.fail(e);
-    }
-  }
-
-  @Post('/moveBack')
-  async moveBack(@Body('carID') carID: number) {
-    try {
-      const newStage = await this.overseasVehicleService.moveBack(carID);
-      return this.ok(newStage);
-    } catch (e) {
-      return this.fail(e.message || e);
     }
   }
 }

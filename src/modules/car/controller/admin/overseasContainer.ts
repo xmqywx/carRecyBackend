@@ -2,12 +2,8 @@ import { Provide, Post, Body, Inject, Get, Query } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import { OverseasContainerEntity } from '../../entity/overseasContainer';
 import { OverseasVehicleService } from '../../service/overseasVehicle';
+import { OverseasPartsService } from '../../service/overseasParts';
 
-/**
- * Overseas Container Controller
- *
- * Auto-CRUD for container management + custom operations.
- */
 @Provide()
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
@@ -27,6 +23,9 @@ export class OverseasContainerController extends BaseController {
   @Inject()
   overseasVehicleService: OverseasVehicleService;
 
+  @Inject()
+  overseasPartsService: OverseasPartsService;
+
   @Post('/changeStatus')
   async changeStatus(
     @Body('id') id: number,
@@ -40,11 +39,21 @@ export class OverseasContainerController extends BaseController {
     }
   }
 
-  @Get('/vehicles')
-  async getVehicles(@Query('containerID') containerID: number) {
+  @Get('/parts')
+  async getParts(@Query('containerID') containerID: number) {
     try {
-      const vehicles = await this.overseasVehicleService.getVehiclesByContainer(containerID);
-      return this.ok(vehicles);
+      const parts = await this.overseasPartsService.getPartsByContainer(containerID);
+      return this.ok(parts);
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/refreshStats')
+  async refreshStats(@Body('id') id: number) {
+    try {
+      await this.overseasPartsService.refreshContainerStats(id);
+      return this.ok();
     } catch (e) {
       return this.fail(e);
     }

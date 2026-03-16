@@ -493,7 +493,8 @@ export class VehicleProcessingService extends BaseService {
   async calcInspectProgress(carID: number): Promise<number> {
     const checks = await this.inspectRepo.find({ where: { carID } });
     if (checks.length === 0) return 0;
-    const done = checks.filter(c => c.checked === 1 || (c.condition && c.condition !== '')).length;
+    const done = checks.filter(c => Number(c.checked) === 1 || (c.condition && c.condition !== '')).length;
+    console.log(`[inspectProgress] carID=${carID} total=${checks.length} done=${done} items:`, checks.map(c => ({ id: c.id, item: c.itemName, checked: c.checked, condition: c.condition })));
     return Math.round((done / checks.length) * 100);
   }
 

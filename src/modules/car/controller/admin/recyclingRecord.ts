@@ -4,12 +4,13 @@ import { RecyclingRecordEntity } from '../../entity/recyclingRecord';
 import { RecyclingRecordService } from '../../service/recyclingRecord';
 import { CarEntity } from '../../entity/base';
 import { OrderInfoEntity } from '../../../order/entity/info';
+import { VehicleProcessingEntity } from '../../entity/vehicleProcessing';
 
 /**
  * Recycling Record Controller
  *
- * Vehicle shell processing after Parts dismantling.
- * Supports batch operations for In Progress / Completed views.
+ * 6-stage vehicle shell processing pipeline:
+ * received → weighed → scheduled → collected → certified → completed
  */
 @Provide()
 @CoolController({
@@ -33,10 +34,21 @@ import { OrderInfoEntity } from '../../../order/entity/info';
       'b.tareWeight',
       'c.quoteNumber AS stockNumber',
       'c.leadSource AS source',
+      // Vehicle processing assessment data (read-only)
+      'vp.weight AS vpWeight',
+      'vp.estScrap',
+      'vp.catValue',
+      'vp.catPresent',
+      'vp.catType',
+      'vp.catCount',
+      'vp.catSerial',
+      'vp.catStatus',
     ],
     fieldEq: [
-      { column: 'a.status', requestParam: 'status' },
+      { column: 'a.stage', requestParam: 'stage' },
+      { column: 'a.archived', requestParam: 'archived' },
       { column: 'a.carID', requestParam: 'carID' },
+      { column: 'a.finalDestination', requestParam: 'finalDestination' },
     ],
     join: [
       {
@@ -49,6 +61,12 @@ import { OrderInfoEntity } from '../../../order/entity/info';
         entity: OrderInfoEntity,
         alias: 'c',
         condition: 'b.id = c.carID',
+        type: 'leftJoin',
+      },
+      {
+        entity: VehicleProcessingEntity,
+        alias: 'vp',
+        condition: 'a.carID = vp.carID',
         type: 'leftJoin',
       },
     ],
@@ -72,27 +90,77 @@ export class RecyclingRecordController extends BaseController {
     }
   }
 
-  @Post('/complete')
-  async complete(
+  @Post('/advanceStage')
+  async advanceStage(@Body('carID') carID: number) {
+    try {
+      const newStage = await this.recyclingRecordService.advanceStage(carID);
+      return this.ok({ stage: newStage });
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/setStage')
+  async setStage(
     @Body('carID') carID: number,
-    @Body('finalDestination') finalDestination?: string
+    @Body('stage') stage: string
   ) {
     try {
-      await this.recyclingRecordService.complete(carID, finalDestination);
+      await this.recyclingRecordService.setStage(carID, stage);
       return this.ok();
     } catch (e) {
       return this.fail(e);
     }
   }
 
-  @Post('/batchUpdateStatus')
-  async batchUpdateStatus(
+  @Post('/batchSetStage')
+  async batchSetStage(
     @Body('carIDs') carIDs: number[],
-    @Body('status') status: string
+    @Body('stage') stage: string
   ) {
     try {
-      await this.recyclingRecordService.batchUpdateStatus(carIDs, status);
+      await this.recyclingRecordService.batchSetStage(carIDs, stage);
       return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/archive')
+  async archive(@Body('carID') carID: number) {
+    try {
+      await this.recyclingRecordService.archive(carID);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/batchArchive')
+  async batchArchive(@Body('carIDs') carIDs: number[]) {
+    try {
+      await this.recyclingRecordService.batchArchive(carIDs);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/archiveCompleted')
+  async archiveCompleted() {
+    try {
+      const count = await this.recyclingRecordService.archiveCompleted();
+      return this.ok({ count });
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  @Post('/stats')
+  async stats() {
+    try {
+      const data = await this.recyclingRecordService.getStats();
+      return this.ok(data);
     } catch (e) {
       return this.fail(e);
     }

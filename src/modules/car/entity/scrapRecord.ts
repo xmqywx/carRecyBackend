@@ -46,6 +46,30 @@ export class ScrapRecordEntity extends BaseEntity {
   @Column({ comment: 'Certificate of destruction number', nullable: true })
   codNumber: string;
 
+  // Dealer info
+  @Column({ comment: 'Scrap dealer name', nullable: true })
+  dealerName: string;
+
+  @Column({ comment: 'Dealer phone', nullable: true })
+  dealerPhone: string;
+
+  @Column({ comment: 'Pickup date', nullable: true })
+  pickupDate: Date;
+
+  @Column({ type: 'text', comment: 'Dealer notes', nullable: true })
+  dealerNotes: string;
+
+  // Actual payment
+  @Column({ type: 'decimal', precision: 10, scale: 2, comment: 'Actual weight in kg', nullable: true })
+  actualWeight: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, comment: 'Price per kg', nullable: true })
+  pricePerKg: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, comment: 'Cat converter sold amount', nullable: true })
+  catConverterSold: number;
+
+  // Timestamps
   @Column({ comment: 'Date processed', nullable: true })
   processedAt: Date;
 

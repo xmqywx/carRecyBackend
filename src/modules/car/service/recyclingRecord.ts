@@ -5,6 +5,8 @@ import { Repository, In } from 'typeorm';
 import { RecyclingRecordEntity } from '../entity/recyclingRecord';
 import { ScrapRecordService } from './scrapRecord';
 
+const STAGES = ['received', 'weighed', 'scheduled', 'collected', 'certified', 'completed'];
+
 @Provide()
 export class RecyclingRecordService extends BaseService {
   @InjectEntityModel(RecyclingRecordEntity)
@@ -22,7 +24,8 @@ export class RecyclingRecordService extends BaseService {
 
     record = await this.recyclingRepo.save({
       carID,
-      status: 'in_progress',
+      stage: 'received',
+      archived: 0,
       partsVehicleID,
       startedAt: new Date(),
     });
@@ -30,36 +33,55 @@ export class RecyclingRecordService extends BaseService {
   }
 
   /**
-   * Mark as completed.
-   * Auto-creates scrapRecord if finalDestination is 'Scrap'.
+   * Advance to next stage in the pipeline.
    */
-  async complete(carID: number, finalDestination?: string): Promise<void> {
+  async advanceStage(carID: number): Promise<string> {
     const record = await this.recyclingRepo.findOne({ where: { carID } });
     if (!record) throw new Error(`No recycling record for car ${carID}`);
 
-    await this.recyclingRepo.update(record.id, {
-      status: 'completed',
-      completedAt: new Date(),
-      finalDestination,
-    });
-
-    // Auto-create scrap record if final destination is Scrap
-    if (finalDestination === 'Scrap') {
-      await this.scrapRecordService.create(carID, 'Recycling');
+    const idx = STAGES.indexOf(record.stage);
+    if (idx < 0 || idx >= STAGES.length - 1) {
+      throw new Error(`Cannot advance from stage: ${record.stage}`);
     }
+
+    const nextStage = STAGES[idx + 1];
+    const update: any = { stage: nextStage };
+    if (nextStage === 'completed') {
+      update.completedAt = new Date();
+    }
+
+    await this.recyclingRepo.update(record.id, update);
+    return nextStage;
   }
 
   /**
-   * Batch update status (for bulk operations).
+   * Set stage directly (for bulk status change).
    */
-  async batchUpdateStatus(carIDs: number[], status: string): Promise<void> {
+  async setStage(carID: number, stage: string): Promise<void> {
+    if (!STAGES.includes(stage)) throw new Error(`Invalid stage: ${stage}`);
+
+    const record = await this.recyclingRepo.findOne({ where: { carID } });
+    if (!record) throw new Error(`No recycling record for car ${carID}`);
+
+    const update: any = { stage };
+    if (stage === 'completed') update.completedAt = new Date();
+
+    await this.recyclingRepo.update(record.id, update);
+  }
+
+  /**
+   * Batch set stage for multiple vehicles.
+   */
+  async batchSetStage(carIDs: number[], stage: string): Promise<void> {
+    if (!STAGES.includes(stage)) throw new Error(`Invalid stage: ${stage}`);
     if (carIDs.length === 0) return;
+
     const records = await this.recyclingRepo.find({ where: { carID: In(carIDs) } });
     const ids = records.map(r => r.id);
     if (ids.length === 0) return;
 
-    const update: any = { status };
-    if (status === 'completed') update.completedAt = new Date();
+    const update: any = { stage };
+    if (stage === 'completed') update.completedAt = new Date();
 
     await this.recyclingRepo
       .createQueryBuilder()
@@ -67,6 +89,103 @@ export class RecyclingRecordService extends BaseService {
       .set(update)
       .whereInIds(ids)
       .execute();
+  }
+
+  /**
+   * Archive a single record.
+   */
+  async archive(carID: number): Promise<void> {
+    const record = await this.recyclingRepo.findOne({ where: { carID } });
+    if (!record) throw new Error(`No recycling record for car ${carID}`);
+
+    await this.recyclingRepo.update(record.id, {
+      archived: 1,
+      archivedAt: new Date(),
+    });
+  }
+
+  /**
+   * Batch archive by carIDs.
+   */
+  async batchArchive(carIDs: number[]): Promise<void> {
+    if (carIDs.length === 0) return;
+    const records = await this.recyclingRepo.find({ where: { carID: In(carIDs) } });
+    const ids = records.map(r => r.id);
+    if (ids.length === 0) return;
+
+    await this.recyclingRepo
+      .createQueryBuilder()
+      .update()
+      .set({ archived: 1, archivedAt: new Date() })
+      .whereInIds(ids)
+      .execute();
+  }
+
+  /**
+   * Archive all completed records in one go.
+   */
+  async archiveCompleted(): Promise<number> {
+    const result = await this.recyclingRepo
+      .createQueryBuilder()
+      .update()
+      .set({ archived: 1, archivedAt: new Date() })
+      .where('stage = :stage', { stage: 'completed' })
+      .andWhere('archived = 0')
+      .execute();
+    return result.affected || 0;
+  }
+
+  /**
+   * Get summary stats for the footer bar.
+   */
+  async getStats(): Promise<{
+    todayCount: number;
+    inProgress: number;
+    completed: number;
+    totalWeight: number;
+    totalValue: number;
+  }> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Count non-archived by stage
+    const qb = this.recyclingRepo.createQueryBuilder('r');
+    const stageCounts = await qb
+      .select('r.stage', 'stage')
+      .addSelect('COUNT(*)', 'cnt')
+      .where('r.archived = 0')
+      .groupBy('r.stage')
+      .getRawMany();
+
+    let inProgress = 0;
+    let completed = 0;
+    for (const row of stageCounts) {
+      if (row.stage === 'completed') completed = Number(row.cnt);
+      else inProgress += Number(row.cnt);
+    }
+
+    // Today's count (created today, non-archived)
+    const todayCount = await this.recyclingRepo
+      .createQueryBuilder('r')
+      .where('r.archived = 0')
+      .andWhere('r.createTime >= :today', { today })
+      .getCount();
+
+    // Total weight and value (non-archived)
+    const totals = await this.recyclingRepo
+      .createQueryBuilder('r')
+      .select('SUM(CAST(REPLACE(r.weight, " kg", "") AS DECIMAL(10,2)))', 'totalWeight')
+      .addSelect('SUM(IFNULL(r.recyclingValue, 0))', 'totalValue')
+      .where('r.archived = 0')
+      .getRawOne();
+
+    return {
+      todayCount,
+      inProgress,
+      completed,
+      totalWeight: Number(totals?.totalWeight) || 0,
+      totalValue: Number(totals?.totalValue) || 0,
+    };
   }
 
   /**

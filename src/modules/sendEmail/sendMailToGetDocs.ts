@@ -1,10 +1,10 @@
 const nodemailer = require('nodemailer');
-// const puppeteer = require('puppeteer-core');
-// const fs = require('fs');
+const fs = require('fs');
 const dotenv = require('dotenv');
 const envFile =
   process.env.NODE_ENV === 'local' ? '.env.local' : '.env.production';
-const pdf = require('html-pdf-chrome');
+// const pdf = require('html-pdf-chrome');
+const puppeteerCore = require('puppeteer-core');
 const AWS = require('aws-sdk');
 dotenv.config({ path: envFile });
 
@@ -132,15 +132,27 @@ export async function outPutPdf({ textToSend }) {
       </main>
     </body>
     </html>`;
-  const options = {
-    landscape: true,
-    format: 'A4',
-  };
-  const htmlPdf = await pdf.create(html, options);
-  return await htmlPdf.toBuffer();
+  const chromePaths = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+  ];
+  const executablePath = chromePaths.find(p => fs.existsSync(p));
+  const browser = await puppeteerCore.launch({
+    headless: 'new',
+    executablePath,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
+  });
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: 'networkidle0' });
+  const pdfBuffer = await page.pdf({ format: 'A4', landscape: true });
+  await browser.close();
+  return pdfBuffer;
 }
 
-const fs = require('fs');
 const path = require('path');
 
 /**
