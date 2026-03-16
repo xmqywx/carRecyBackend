@@ -40,7 +40,7 @@ export class ScrapRecordService extends BaseService {
     scrapValue?: number;
     processorName?: string;
     codNumber?: string;
-    weight?: string;
+    weight?: number;
   }): Promise<void> {
     const record = await this.scrapRecordRepo.findOne({ where: { carID } });
     if (!record) throw new Error(`No scrap record for car ${carID}`);

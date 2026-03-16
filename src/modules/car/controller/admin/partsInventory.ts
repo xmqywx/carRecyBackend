@@ -1,4 +1,4 @@
-import { Provide, Get, Inject } from '@midwayjs/decorator';
+import { Provide, Get } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { Repository } from 'typeorm';

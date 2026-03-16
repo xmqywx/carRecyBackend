@@ -338,7 +338,7 @@ export class SoldCompleteEmailService extends BaseService {
     }
 
     // Send
-    let emailStatus = 'success';
+    let emailStatus: 'success' | 'failed' = 'success';
     let errorMessage = '';
     try {
       await transporter.sendMail(mailOptions);
