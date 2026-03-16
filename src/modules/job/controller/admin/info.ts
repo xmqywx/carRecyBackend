@@ -9,6 +9,7 @@ import { OrderInfoEntity } from '../../../order/entity/info';
 import { CustomerProfileEntity } from '../../../customer/entity/profile';
 import { JobService } from '../../service/job';
 import { SocketNotificationService } from '../../../socket/notification.service';
+import { VehicleProcessingService } from '../../../car/service/vehicleProcessing';
 
 /**
  * 司机任务
@@ -217,6 +218,9 @@ export class VehicleProfileController extends BaseController {
 
   @Inject()
   notificationService: SocketNotificationService;
+
+  @Inject()
+  vehicleProcessingService: VehicleProcessingService;
 
   @Post('/updateJob')
   async updateJob(
@@ -532,6 +536,21 @@ export class VehicleProfileController extends BaseController {
         driverId: driverId,
         driverName: driverName,
       });
+
+      // Auto-create vehicle_processing record for New Arrivals
+      try {
+        const order = await this.nativeQuery(
+          'SELECT carID FROM `order` WHERE id = ?', [orderId]
+        );
+        if (order && order.length > 0 && order[0].carID) {
+          const car = await this.carEntity.findOne({ where: { id: order[0].carID } });
+          if (car && car.recyclingStatus === 'new') {
+            await this.vehicleProcessingService.ensureRecord(order[0].carID);
+          }
+        }
+      } catch (e) {
+        console.log('Auto-create vehicle_processing failed (non-blocking):', e.message);
+      }
 
       // Get remaining uncompleted jobs for today for this driver
       // Use job.schedulerStart (not order.expectedDate) as the actual scheduled time
