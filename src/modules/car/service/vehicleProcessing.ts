@@ -113,6 +113,18 @@ export class VehicleProcessingService extends BaseService {
   }
 
   /**
+   * Remove processing record if still in 'arrived' stage (not yet processed).
+   * Returns true if deleted, false if not found or already in later stage.
+   */
+  async removeIfArrived(carID: number): Promise<boolean> {
+    const record = await this.processingRepo.findOne({ where: { carID } });
+    if (!record) return false;
+    if (record.stage !== 'arrived') return false;
+    await this.processingRepo.delete(record.id);
+    return true;
+  }
+
+  /**
    * Ensure a processing record exists for a car. Creates one if missing.
    */
   async ensureRecord(carID: number): Promise<VehicleProcessingEntity> {

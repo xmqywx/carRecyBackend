@@ -270,6 +270,21 @@ export class VehicleProfileController extends BaseController {
           toStatus: status,
         });
       }
+
+      // Sync vehicle_processing based on job status
+      try {
+        const orderInfo = await getRepository(OrderInfoEntity).findOne({ where: { id: orderID } });
+        if (orderInfo && orderInfo.carID) {
+          if (status === 4) {
+            await this.vehicleProcessingService.ensureRecord(orderInfo.carID);
+          } else if (oldStatus === 4 && status !== 4) {
+            // Reverted from complete → remove if still in arrived stage
+            await this.vehicleProcessingService.removeIfArrived(orderInfo.carID);
+          }
+        }
+      } catch (e) {
+        console.log('Sync vehicle_processing failed (non-blocking):', e.message);
+      }
     }
     return this.ok();
   }
@@ -395,6 +410,23 @@ export class VehicleProfileController extends BaseController {
           schedulerStart: String(body.schedulerStart),
           schedulerEnd: body.schedulerEnd !== undefined ? String(body.schedulerEnd) : undefined,
         });
+      }
+    }
+
+    // Sync vehicle_processing based on job status change via /update
+    if (hasStatus && statusChanged) {
+      try {
+        const orderInfo = await getRepository(OrderInfoEntity).findOne({ where: { id: orderID } });
+        if (orderInfo && orderInfo.carID) {
+          if (Number(bodyStatus) === 4) {
+            await this.vehicleProcessingService.ensureRecord(orderInfo.carID);
+          } else if (Number(oldStatus) === 4) {
+            // Reverted from complete → remove if still in arrived stage
+            await this.vehicleProcessingService.removeIfArrived(orderInfo.carID);
+          }
+        }
+      } catch (e) {
+        console.log('Sync vehicle_processing failed (non-blocking):', e.message);
       }
     }
 
@@ -541,10 +573,7 @@ export class VehicleProfileController extends BaseController {
       try {
         const orderEntity = await getRepository(OrderInfoEntity).findOne({ where: { id: orderId } });
         if (orderEntity && orderEntity.carID) {
-          const car = await this.carEntity.findOne({ where: { id: orderEntity.carID } });
-          if (car && car.recyclingStatus === 'new') {
-            await this.vehicleProcessingService.ensureRecord(orderEntity.carID);
-          }
+          await this.vehicleProcessingService.ensureRecord(orderEntity.carID);
         }
       } catch (e) {
         console.log('Auto-create vehicle_processing failed (non-blocking):', e.message);
