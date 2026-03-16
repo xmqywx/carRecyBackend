@@ -1,6 +1,6 @@
 import { Body, Post, Provide, Inject } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
-import { Repository } from 'typeorm';
+import { Repository, getRepository } from 'typeorm';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { JobEntity } from '../../entity/info';
 import { CarEntity } from '../../../car/entity/base';
@@ -539,13 +539,11 @@ export class VehicleProfileController extends BaseController {
 
       // Auto-create vehicle_processing record for New Arrivals
       try {
-        const order = await this.nativeQuery(
-          'SELECT carID FROM `order` WHERE id = ?', [orderId]
-        );
-        if (order && order.length > 0 && order[0].carID) {
-          const car = await this.carEntity.findOne({ where: { id: order[0].carID } });
+        const orderEntity = await getRepository(OrderInfoEntity).findOne({ where: { id: orderId } });
+        if (orderEntity && orderEntity.carID) {
+          const car = await this.carEntity.findOne({ where: { id: orderEntity.carID } });
           if (car && car.recyclingStatus === 'new') {
-            await this.vehicleProcessingService.ensureRecord(order[0].carID);
+            await this.vehicleProcessingService.ensureRecord(orderEntity.carID);
           }
         }
       } catch (e) {
