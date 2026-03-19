@@ -5,7 +5,7 @@ import { Column } from 'typeorm';
 /**
  * Vehicle Processing — tracks each vehicle through the 4-stage yard pipeline.
  *
- * Stages: arrived → inspect → depollute → label → completed
+ * Stages: arrived → processing → decision → completed
  *
  * One record per car (carID is unique). Created automatically when a
  * completed car first appears in the New Arrivals board.
@@ -16,7 +16,7 @@ export class VehicleProcessingEntity extends BaseEntity {
   carID: number;
 
   @Column({
-    comment: 'Current stage: arrived | inspect | depollute | decision | completed',
+    comment: 'Current stage: arrived | processing | decision | completed',
     length: 20,
     default: 'arrived',
   })
@@ -82,8 +82,14 @@ export class VehicleProcessingEntity extends BaseEntity {
   @Column({ comment: 'Cat status: In Situ | Removed', nullable: true })
   catStatus: string;
 
-  @Column({ type: 'text', comment: 'Cat photos JSON array of URLs', nullable: true })
+  @Column({ type: 'text', comment: 'Cat photos JSON array of URLs (legacy single)', nullable: true })
   catPhotos: string;
+
+  @Column({ type: 'text', comment: 'Cat serials JSON array, one per converter unit', nullable: true })
+  catSerialsJson: string;
+
+  @Column({ type: 'text', comment: 'Cat photos JSON array of arrays, one per converter unit', nullable: true })
+  catPhotosJson: string;
 
   @Column({ type: 'int', comment: 'Inspect progress 0-100', default: 0 })
   inspectProgress: number;

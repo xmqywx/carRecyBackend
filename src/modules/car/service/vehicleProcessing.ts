@@ -100,12 +100,25 @@ export class VehicleProcessingService extends BaseService {
   async getStageCounts(): Promise<Record<string, number>> {
     const rows = await this.processingRepo
       .createQueryBuilder('vp')
-      .select('vp.stage', 'stage')
+      .select(`
+        CASE
+          WHEN vp.stage IN ('inspect', 'depollute') THEN 'processing'
+          ELSE vp.stage
+        END`, 'stage')
       .addSelect('COUNT(*)', 'count')
       .where("vp.stage != 'completed'")
-      .groupBy('vp.stage')
+      .groupBy(`
+        CASE
+          WHEN vp.stage IN ('inspect', 'depollute') THEN 'processing'
+          ELSE vp.stage
+        END`)
       .getRawMany();
-    const result: Record<string, number> = {};
+    const result: Record<string, number> = {
+      arrived: 0,
+      processing: 0,
+      decision: 0,
+      completed: 0,
+    };
     for (const row of rows) {
       result[row.stage] = parseInt(row.count, 10);
     }
@@ -265,6 +278,66 @@ export class VehicleProcessingService extends BaseService {
   }
 
   /**
+   * Generic stage progression: arrived → processing → decision
+   * For decision → completed, use complete() which requires a destination.
+   */
+  async moveNext(carID: number, assignedTo?: string) {
+    const record = await this.ensureRecord(carID);
+
+    if (record.stage === 'arrived') {
+      // → processing: create all check items + set timestamps
+      const update: any = {
+        stage: 'processing',
+        inspectStartedAt: new Date(),
+        depolluteStartedAt: new Date(),
+      };
+      if (assignedTo) update.assignedTo = assignedTo;
+      await this.processingRepo.update(record.id, update);
+      await this.logAction(carID, 'stage_change', 'arrived', 'processing', assignedTo || record.assignedTo);
+
+      // Create inspect checks (17 items) if not already present
+      const existingInspect = await this.inspectRepo.count({ where: { carID } });
+      if (existingInspect === 0) {
+        const checks: Partial<InspectCheckEntity>[] = [];
+        for (const name of INSPECT_PHOTOS) {
+          checks.push({ carID, category: 'photo', itemName: name, checked: 0 });
+        }
+        for (const name of INSPECT_COMPONENTS) {
+          checks.push({ carID, category: 'component', itemName: name, checked: 0 });
+        }
+        for (const name of INSPECT_CONDITIONS) {
+          checks.push({ carID, category: 'condition', itemName: name, checked: 0 });
+        }
+        await this.inspectRepo.save(checks);
+      }
+
+      // Create depollute checks (14 items) if not already present
+      const existingDepollute = await this.depolluteRepo.count({ where: { carID } });
+      if (existingDepollute === 0) {
+        const checks: Partial<DepolluteCheckEntity>[] = [];
+        for (const name of DEPOLLUTE_FLUIDS) {
+          checks.push({ carID, category: 'fluid', itemName: name, checked: 0 });
+        }
+        for (const name of DEPOLLUTE_COMPONENTS) {
+          checks.push({ carID, category: 'component', itemName: name, checked: 0 });
+        }
+        await this.depolluteRepo.save(checks);
+      }
+
+    } else if (record.stage === 'processing') {
+      // → decision
+      await this.processingRepo.update(record.id, {
+        stage: 'decision',
+        labelStartedAt: new Date(),
+      });
+      await this.logAction(carID, 'stage_change', 'processing', 'decision', record.assignedTo);
+
+    } else {
+      throw new Error(`Cannot moveNext from stage "${record.stage}". Use complete() for decision → completed.`);
+    }
+  }
+
+  /**
    * Complete processing — set destination, mark completed, and auto-create
    * the initial record in the destination module's table.
    */
@@ -296,17 +369,14 @@ export class VehicleProcessingService extends BaseService {
 
   /**
    * Move vehicle back to the previous stage.
-   * label → depollute, depollute → inspect, inspect → arrived
+   * decision → processing, processing → arrived
    * Does NOT delete check items — they are preserved for re-entry.
    */
   async moveBack(carID: number): Promise<string> {
     const record = await this.ensureRecord(carID);
     const PREV_STAGE: Record<string, string> = {
-      inspect: 'arrived',
-      depollute: 'inspect',
-      decision: 'depollute',
-      label: 'depollute', // backward compat
-      completed: 'decision',
+      processing: 'arrived',
+      decision: 'processing',
     };
     const prevStage = PREV_STAGE[record.stage];
     if (!prevStage) {

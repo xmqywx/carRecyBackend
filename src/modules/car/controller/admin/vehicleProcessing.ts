@@ -71,6 +71,7 @@ import { OrderInfoEntity } from '../../../order/entity/info';
       'c.driverLicense',
       'c.registrationDoc',
       'c.leadSourceDetail',
+      'c.createBy',
     ],
     fieldEq: [
       { column: 'a.stage', requestParam: 'stage' },
@@ -133,20 +134,6 @@ export class VehicleProcessingController extends BaseController {
   }
 
   /**
-   * Ensure processing records exist for a list of car IDs.
-   * Called by frontend on page load to auto-create missing records.
-   */
-  @Post('/ensureRecords')
-  async ensureRecords(@Body('carIDs') carIDs: number[]) {
-    try {
-      const records = await this.vehicleProcessingService.ensureRecords(carIDs);
-      return this.ok(records);
-    } catch (e) {
-      return this.fail(e);
-    }
-  }
-
-  /**
    * Get processing records for multiple cars (batch).
    */
   @Post('/getByCarIDs')
@@ -161,6 +148,20 @@ export class VehicleProcessingController extends BaseController {
 
   // ===== Stage transitions =====
 
+  @Post('/moveNext', { summary: 'Move vehicle to next stage' })
+  async moveNext(
+    @Body('carID') carID: number,
+    @Body('assignedTo') assignedTo?: string
+  ) {
+    try {
+      await this.vehicleProcessingService.moveNext(carID, assignedTo);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e.message || e);
+    }
+  }
+
+  // DEPRECATED — use moveNext instead
   @Post('/moveToInspect')
   async moveToInspect(
     @Body('carID') carID: number,
@@ -174,6 +175,7 @@ export class VehicleProcessingController extends BaseController {
     }
   }
 
+  // DEPRECATED — use moveNext instead
   @Post('/moveToDepollute')
   async moveToDepollute(
     @Body('carID') carID: number,
@@ -187,6 +189,7 @@ export class VehicleProcessingController extends BaseController {
     }
   }
 
+  // DEPRECATED — use moveNext instead
   @Post('/moveToDecision')
   async moveToDecision(@Body('carID') carID: number) {
     try {
@@ -197,7 +200,7 @@ export class VehicleProcessingController extends BaseController {
     }
   }
 
-  /** @deprecated Use moveToDecision */
+  // DEPRECATED — use moveNext instead
   @Post('/moveToLabel')
   async moveToLabel(@Body('carID') carID: number) {
     try {
