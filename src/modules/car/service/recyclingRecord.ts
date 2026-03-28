@@ -16,6 +16,22 @@ export class RecyclingRecordService extends BaseService {
   scrapRecordService: ScrapRecordService;
 
   /**
+   * Create recycling record (from Decision stage — direct recycling destination).
+   */
+  async createFromDecision(carID: number): Promise<RecyclingRecordEntity> {
+    let record = await this.recyclingRepo.findOne({ where: { carID } });
+    if (record) return record;
+
+    record = await this.recyclingRepo.save({
+      carID,
+      stage: 'received',
+      archived: 0,
+      startedAt: new Date(),
+    });
+    return record;
+  }
+
+  /**
    * Create recycling record (from Parts vehicle shell).
    */
   async createFromParts(carID: number, partsVehicleID?: number): Promise<RecyclingRecordEntity> {

@@ -1,7 +1,7 @@
 import { Provide, Inject } from '@midwayjs/decorator';
 import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, getConnection } from 'typeorm';
 import { VehicleProcessingEntity } from '../entity/vehicleProcessing';
 import { InspectCheckEntity } from '../entity/inspectCheck';
 import { DepolluteCheckEntity } from '../entity/depolluteCheck';
@@ -12,6 +12,7 @@ import { PartsVehicleService } from './partsVehicle';
 import { OverseasVehicleService } from './overseasVehicle';
 import { SoldCompleteService } from './soldComplete';
 import { ScrapRecordService } from './scrapRecord';
+import { RecyclingRecordService } from './recyclingRecord';
 
 // Standard checklist items — must match frontend constants
 const INSPECT_PHOTOS = ['front', 'rear', 'left', 'right', 'engine', 'interior', 'odometer', 'vin'];
@@ -79,6 +80,9 @@ export class VehicleProcessingService extends BaseService {
 
   @Inject()
   scrapRecordService: ScrapRecordService;
+
+  @Inject()
+  recyclingRecordService: RecyclingRecordService;
 
   /**
    * Get vehicle counts grouped by stage (excludes 'completed').
@@ -343,28 +347,43 @@ export class VehicleProcessingService extends BaseService {
    */
   async complete(carID: number, destination: string): Promise<void> {
     const record = await this.ensureRecord(carID);
-    await this.processingRepo.update(record.id, {
-      stage: 'completed',
-      destination,
-      completedAt: new Date(),
-    });
-    await this.logAction(carID, 'complete', 'decision', 'completed', record.assignedTo, { destination });
 
-    // Auto-create record in destination module
-    switch (destination) {
-      case 'Parts':
-        await this.partsVehicleService.createFromDecision(carID);
-        break;
-      case 'Overseas':
-        await this.overseasVehicleService.createFromDecision(carID);
-        break;
-      case 'Sold Complete':
-        await this.soldCompleteService.createFromDecision(carID);
-        break;
-      case 'Scrap':
-        await this.scrapRecordService.create(carID, 'Decision', record.estScrap);
-        break;
+    // Validate destination before making any changes
+    const validDestinations = ['Parts', 'Overseas', 'Sold Complete', 'Scrap', 'Recycling'];
+    if (!validDestinations.includes(destination)) {
+      throw new Error(`Invalid destination: "${destination}". Must be one of: ${validDestinations.join(', ')}`);
     }
+
+    // Use transaction to ensure atomicity — either both the stage update
+    // and destination record creation succeed, or neither does.
+    const conn = getConnection();
+    await conn.transaction(async () => {
+      await this.processingRepo.update(record.id, {
+        stage: 'completed',
+        destination,
+        completedAt: new Date(),
+      });
+      await this.logAction(carID, 'complete', 'decision', 'completed', record.assignedTo, { destination });
+
+      // Auto-create record in destination module
+      switch (destination) {
+        case 'Parts':
+          await this.partsVehicleService.createFromDecision(carID);
+          break;
+        case 'Overseas':
+          await this.overseasVehicleService.createFromDecision(carID);
+          break;
+        case 'Sold Complete':
+          await this.soldCompleteService.createFromDecision(carID);
+          break;
+        case 'Scrap':
+          await this.scrapRecordService.create(carID, 'Decision', record.estScrap);
+          break;
+        case 'Recycling':
+          await this.recyclingRecordService.createFromDecision(carID);
+          break;
+      }
+    });
   }
 
   /**
