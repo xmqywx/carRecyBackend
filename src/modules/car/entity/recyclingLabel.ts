@@ -13,6 +13,9 @@ export class RecyclingLabelEntity extends BaseEntity {
   @Column({ type: 'text', comment: 'Label description', nullable: true })
   description: string;
 
+  @Column({ comment: 'Display color hex', length: 20, nullable: true })
+  color: string;
+
   @Column({ type: 'int', comment: 'Sort order', default: 0 })
   sortOrder: number;
 
