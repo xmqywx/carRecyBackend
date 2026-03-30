@@ -396,6 +396,7 @@ export class VehicleProcessingController extends BaseController {
       return this.fail(e);
     }
   }
+
 }
 
 // InspectCheck and DepolluteCheck don't need separate controllers —

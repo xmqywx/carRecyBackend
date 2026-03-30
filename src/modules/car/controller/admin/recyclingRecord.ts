@@ -1,6 +1,9 @@
-import { Provide, Post, Body, Inject } from '@midwayjs/decorator';
+import { Provide, Post, Body, Inject, Get, Query } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
+import { InjectEntityModel } from '@midwayjs/orm';
+import { Repository } from 'typeorm';
 import { RecyclingRecordEntity } from '../../entity/recyclingRecord';
+import { RecyclingInventoryEntity } from '../../entity/recyclingInventory';
 import { RecyclingRecordService } from '../../service/recyclingRecord';
 import { CarEntity } from '../../entity/base';
 import { OrderInfoEntity } from '../../../order/entity/info';
@@ -49,6 +52,8 @@ import { VehicleProcessingEntity } from '../../entity/vehicleProcessing';
       { column: 'a.archived', requestParam: 'archived' },
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.finalDestination', requestParam: 'finalDestination' },
+      { column: 'a.partsStage', requestParam: 'partsStage' },
+      { column: 'a.shellDestination', requestParam: 'shellDestination' },
     ],
     join: [
       {
@@ -76,6 +81,9 @@ import { VehicleProcessingEntity } from '../../entity/vehicleProcessing';
 export class RecyclingRecordController extends BaseController {
   @Inject()
   recyclingRecordService: RecyclingRecordService;
+
+  @InjectEntityModel(RecyclingRecordEntity)
+  recyclingRecordRepo: Repository<RecyclingRecordEntity>;
 
   @Post('/createFromParts')
   async createFromParts(
@@ -161,6 +169,169 @@ export class RecyclingRecordController extends BaseController {
     try {
       const data = await this.recyclingRecordService.getStats();
       return this.ok(data);
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  // ===== Parts Pipeline =====
+
+  /**
+   * Move vehicle to a parts pipeline stage.
+   */
+  @Post('/moveToPartsStage')
+  async moveToPartsStage(
+    @Body('carID') carID: number,
+    @Body('partsStage') partsStage: string
+  ) {
+    try {
+      await this.recyclingRecordService.moveToPartsStage(carID, partsStage);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  /**
+   * Alias: moveToStage → moveToPartsStage (for generic module compatibility)
+   */
+  @Post('/moveToStage')
+  async moveToStage(
+    @Body('carID') carID: number,
+    @Body('stage') stage: string
+  ) {
+    try {
+      await this.recyclingRecordService.moveToPartsStage(carID, stage);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  /**
+   * Move back one parts pipeline stage.
+   */
+  @Post('/moveBack')
+  async moveBack(@Body('carID') carID: number) {
+    try {
+      const record = await this.recyclingRecordRepo.findOne({ where: { carID } });
+      if (!record) return this.fail('Record not found');
+      const stages = ['inventory', 'marketing', 'dismantling', 'shelving', 'sold', 'closed'];
+      const idx = stages.indexOf(record.partsStage || 'inventory');
+      if (idx <= 0) return this.fail('Already at first stage');
+      await this.recyclingRecordService.moveToPartsStage(carID, stages[idx - 1]);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  /**
+   * Close vehicle (set partsStage to closed).
+   */
+  @Post('/close')
+  async closeVehicle(
+    @Body('carID') carID: number,
+    @Body('shellDestination') shellDestination?: string
+  ) {
+    try {
+      const record = await this.recyclingRecordRepo.findOne({ where: { carID } });
+      if (!record) return this.fail('Record not found');
+      const updates: any = { partsStage: 'closed' };
+      if (shellDestination) updates.shellDestination = shellDestination;
+      await this.recyclingRecordRepo.update(record.id, updates);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  // ===== Parts Inventory =====
+
+  /**
+   * Add a part.
+   */
+  @Post('/addPart')
+  async addPart(@Body() data: Partial<RecyclingInventoryEntity>) {
+    try {
+      const part = await this.recyclingRecordService.addPart(data);
+      return this.ok(part);
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  /**
+   * Add multiple parts in batch.
+   */
+  @Post('/addPartsBatch')
+  async addPartsBatch(
+    @Body('carID') carID: number,
+    @Body('parts') parts: any[]
+  ) {
+    try {
+      if (!carID) return this.fail('carID is required');
+      if (!parts || !Array.isArray(parts) || parts.length === 0) return this.fail('parts array is required');
+      const result = await this.recyclingRecordService.addPartsBatch(carID, parts);
+      return this.ok(result);
+    } catch (e) {
+      return this.fail(e.message || e);
+    }
+  }
+
+  /**
+   * Void a part (soft-delete).
+   */
+  @Post('/voidPart')
+  async voidPart(@Body('id') id: number) {
+    try {
+      await this.recyclingRecordService.voidPart(id);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  /**
+   * Get parts for a car.
+   */
+  @Post('/partsByCarID')
+  async partsByCarID(@Body('carID') carID: number) {
+    try {
+      const parts = await this.recyclingRecordService.getPartsByCarID(carID);
+      return this.ok(parts);
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  /**
+   * Change part status.
+   */
+  @Post('/changePartStatus')
+  async changePartStatus(
+    @Body('id') id: number,
+    @Body('status') status: string
+  ) {
+    try {
+      await this.recyclingRecordService.changePartStatus(id, status);
+      return this.ok();
+    } catch (e) {
+      return this.fail(e);
+    }
+  }
+
+  /**
+   * Update a part.
+   */
+  @Post('/updatePart')
+  async updatePart(
+    @Body('id') id: number,
+    @Body('data') data: Partial<RecyclingInventoryEntity>
+  ) {
+    try {
+      await this.recyclingRecordService.updatePart(id, data);
+      return this.ok();
     } catch (e) {
       return this.fail(e);
     }

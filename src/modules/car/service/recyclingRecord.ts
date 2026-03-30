@@ -3,6 +3,8 @@ import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { Repository, In } from 'typeorm';
 import { RecyclingRecordEntity } from '../entity/recyclingRecord';
+import { RecyclingInventoryEntity } from '../entity/recyclingInventory';
+import { OrderInfoEntity } from '../../order/entity/info';
 import { ScrapRecordService } from './scrapRecord';
 
 const STAGES = ['received', 'weighed', 'scheduled', 'collected', 'certified', 'completed'];
@@ -11,6 +13,12 @@ const STAGES = ['received', 'weighed', 'scheduled', 'collected', 'certified', 'c
 export class RecyclingRecordService extends BaseService {
   @InjectEntityModel(RecyclingRecordEntity)
   recyclingRepo: Repository<RecyclingRecordEntity>;
+
+  @InjectEntityModel(RecyclingInventoryEntity)
+  recyclingInventoryRepo: Repository<RecyclingInventoryEntity>;
+
+  @InjectEntityModel(OrderInfoEntity)
+  orderRepo: Repository<OrderInfoEntity>;
 
   @Inject()
   scrapRecordService: ScrapRecordService;
@@ -214,5 +222,122 @@ export class RecyclingRecordService extends BaseService {
     delete (data as any).id;
     delete (data as any).carID;
     await this.recyclingRepo.update(record.id, data);
+  }
+
+  // ===== Parts Pipeline =====
+
+  private static PARTS_STAGES = ['inventory', 'marketing', 'dismantling', 'shelving', 'sold', 'closed'];
+
+  /**
+   * Move vehicle to a parts pipeline stage.
+   */
+  async moveToPartsStage(carID: number, targetStage: string): Promise<void> {
+    if (!RecyclingRecordService.PARTS_STAGES.includes(targetStage)) {
+      throw new Error(`Invalid parts stage: ${targetStage}`);
+    }
+    const record = await this.recyclingRepo.findOne({ where: { carID } });
+    if (!record) throw new Error(`No recycling record for car ${carID}`);
+
+    await this.recyclingRepo.update(record.id, { partsStage: targetStage });
+  }
+
+  /**
+   * Refresh parts counts from recycling_inventory table.
+   */
+  async refreshCounts(carID: number): Promise<void> {
+    const record = await this.recyclingRepo.findOne({ where: { carID } });
+    if (!record) return;
+
+    const allParts = await this.recyclingInventoryRepo.find({ where: { carID } });
+    const partsCount = allParts.filter(p => p.status !== 'void').length;
+    const partsSold = allParts.filter(p => p.status === 'sold' || p.status === 'closed').length;
+    const partsListed = allParts.filter(p => p.status === 'marketing').length;
+
+    await this.recyclingRepo.update(record.id, { partsCount, partsSold, partsListed });
+  }
+
+  // ===== Parts Inventory CRUD =====
+
+  /**
+   * Add a part to recycling inventory for a car.
+   * Auto-generates SKU from stock number (order.quoteNumber) + part ID.
+   */
+  async addPart(data: Partial<RecyclingInventoryEntity>): Promise<RecyclingInventoryEntity> {
+    const part = await this.recyclingInventoryRepo.save({
+      ...data,
+      status: data.status || 'inventory',
+    });
+
+    // Auto-generate SKU: stockNumber-partId
+    try {
+      const order = await this.orderRepo.findOne({ where: { carID: part.carID } });
+      const stockNum = order?.quoteNumber || `CAR${part.carID}`;
+      part.sku = `R-${stockNum}-${part.id}`;
+      await this.recyclingInventoryRepo.update(part.id, { sku: part.sku });
+    } catch (e) {
+      part.sku = `R${part.carID}-${part.id}`;
+      await this.recyclingInventoryRepo.update(part.id, { sku: part.sku });
+    }
+
+    await this.refreshCounts(part.carID);
+    return part;
+  }
+
+  /**
+   * Add multiple parts in batch for a car.
+   */
+  async addPartsBatch(carID: number, parts: Partial<RecyclingInventoryEntity>[]): Promise<RecyclingInventoryEntity[]> {
+    const results: RecyclingInventoryEntity[] = [];
+    for (const data of parts) {
+      const part = await this.addPart({ ...data, carID });
+      results.push(part);
+    }
+    return results;
+  }
+
+  /**
+   * Update a part.
+   */
+  async updatePart(id: number, data: Partial<RecyclingInventoryEntity>): Promise<void> {
+    const part = await this.recyclingInventoryRepo.findOne({ where: { id } });
+    if (!part) throw new Error(`Part ${id} not found`);
+
+    delete (data as any).id;
+    await this.recyclingInventoryRepo.update(id, data);
+    await this.refreshCounts(part.carID);
+  }
+
+  /**
+   * Change part status.
+   */
+  async changePartStatus(id: number, status: string): Promise<void> {
+    const part = await this.recyclingInventoryRepo.findOne({ where: { id } });
+    if (!part) throw new Error(`Part ${id} not found`);
+
+    const update: any = { status };
+    if (status === 'dismantling') update.dismantledAt = new Date();
+    if (status === 'shelving') update.shelvedAt = new Date();
+    if (status === 'sold') update.soldAt = new Date();
+
+    await this.recyclingInventoryRepo.update(id, update);
+    await this.refreshCounts(part.carID);
+  }
+
+  /**
+   * Get all parts for a car.
+   */
+  async getPartsByCarID(carID: number): Promise<RecyclingInventoryEntity[]> {
+    return this.recyclingInventoryRepo.find({ where: { carID }, order: { id: 'ASC' } });
+  }
+
+  /**
+   * Void (soft-delete) a part.
+   */
+  async voidPart(id: number): Promise<void> {
+    const part = await this.recyclingInventoryRepo.findOne({ where: { id } });
+    if (!part) throw new Error(`Part ${id} not found`);
+
+    await this.recyclingInventoryRepo.update(id, { status: 'void' });
+    await this.refreshCounts(part.carID);
   }
 }

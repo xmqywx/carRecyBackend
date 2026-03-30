@@ -52,4 +52,32 @@ export class RecyclingRecordEntity extends BaseEntity {
 
   @Column({ type: 'text', comment: 'Notes', nullable: true })
   notes: string;
+
+  // ===== Parts Pipeline Columns =====
+
+  @Column({
+    comment: 'Parts stage: inventory | marketing | dismantling | shelving | sold | closed',
+    length: 20,
+    default: 'inventory',
+  })
+  partsStage: string;
+
+  @Column({ type: 'int', comment: 'Total parts count', default: 0 })
+  partsCount: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, comment: 'Total estimated parts value', nullable: true })
+  totalValue: number;
+
+  @Column({ type: 'int', comment: 'Parts sold count', default: 0 })
+  partsSold: number;
+
+  @Column({ type: 'int', comment: 'Parts listed for sale count', default: 0 })
+  partsListed: number;
+
+  @Column({
+    comment: 'Shell destination after parts close: Scrap | other',
+    length: 20,
+    nullable: true,
+  })
+  shellDestination: string;
 }

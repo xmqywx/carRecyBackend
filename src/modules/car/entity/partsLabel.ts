@@ -2,14 +2,13 @@ import { EntityModel } from '@midwayjs/orm';
 import { BaseEntity } from '@cool-midway/core';
 import { Column } from 'typeorm';
 
-/**
- * Part Category — master list of common part names.
- * Used to quickly select part names without typing each time.
- */
-@EntityModel('part_category')
-export class PartCategoryEntity extends BaseEntity {
-  @Column({ comment: 'Part name (e.g. Front Bumper, Door LF, Engine)' })
+@EntityModel('parts_label')
+export class PartsLabelEntity extends BaseEntity {
+  @Column({ comment: 'Label name' })
   name: string;
+
+  @Column({ type: 'text', comment: 'Label description', nullable: true })
+  description: string;
 
   @Column({ comment: 'Display color hex', length: 20, nullable: true })
   color: string;
