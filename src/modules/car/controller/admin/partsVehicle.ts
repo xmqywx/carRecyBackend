@@ -1,8 +1,9 @@
 import { Provide, Post, Body, Inject, Get, Query } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import { PartsVehicleEntity } from '../../entity/partsVehicle';
-import { PartsInventoryEntity } from '../../entity/partsInventory';
+import { InventoryEntity } from '../../entity/inventory';
 import { PartsVehicleService } from '../../service/partsVehicle';
+import { TransferService } from '../../service/transfer';
 import { CarEntity } from '../../entity/base';
 import { OrderInfoEntity } from '../../../order/entity/info';
 
@@ -65,6 +66,10 @@ import { OrderInfoEntity } from '../../../order/entity/info';
       { column: 'a.carID', requestParam: 'carID' },
       { column: 'a.shellDestination', requestParam: 'shellDestination' },
     ],
+    where: async () => {
+      // Parts shows: cars currently in 'parts', OR cars in terminal modules (sold_complete/scrap) that came FROM parts
+      return [["(b.currentModule = 'parts' OR (b.currentModule IN ('sold_complete','scrap') AND b.sourceModule = 'parts'))", {}]];
+    },
     join: [
       {
         entity: CarEntity,
@@ -85,6 +90,9 @@ import { OrderInfoEntity } from '../../../order/entity/info';
 export class PartsVehicleController extends BaseController {
   @Inject()
   partsVehicleService: PartsVehicleService;
+
+  @Inject()
+  transferService: TransferService;
 
   /**
    * Create from Decision (when destination = Parts).
@@ -138,7 +146,9 @@ export class PartsVehicleController extends BaseController {
     @Body('shellDestination') shellDestination: string
   ) {
     try {
-      await this.partsVehicleService.close(carID, shellDestination);
+      const moduleMap: Record<string, string> = { 'Recycling': 'recycling', 'Scrap': 'scrap', 'Sold Complete': 'sold_complete', 'Overseas': 'overseas' };
+      const targetModule = moduleMap[shellDestination] || shellDestination;
+      await this.transferService.transfer(carID, targetModule);
       return this.ok();
     } catch (e) {
       return this.fail(e);
@@ -151,7 +161,7 @@ export class PartsVehicleController extends BaseController {
    * Add a part.
    */
   @Post('/addPart')
-  async addPart(@Body() data: Partial<PartsInventoryEntity>) {
+  async addPart(@Body() data: Partial<InventoryEntity>) {
     try {
       const part = await this.partsVehicleService.addPart(data);
       return this.ok(part);
@@ -184,7 +194,7 @@ export class PartsVehicleController extends BaseController {
   @Post('/updatePart')
   async updatePart(
     @Body('id') id: number,
-    @Body('data') data: Partial<PartsInventoryEntity>
+    @Body('data') data: Partial<InventoryEntity>
   ) {
     try {
       await this.partsVehicleService.updatePart(id, data);

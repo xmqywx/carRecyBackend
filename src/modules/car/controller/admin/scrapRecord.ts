@@ -33,6 +33,7 @@ import { OrderInfoEntity } from '../../../order/entity/info';
       { column: 'a.status', requestParam: 'status' },
       { column: 'a.source', requestParam: 'source' },
       { column: 'a.carID', requestParam: 'carID' },
+      { column: 'b.currentModule', requestParam: 'currentModule' },
     ],
     join: [
       {

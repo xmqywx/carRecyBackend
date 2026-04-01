@@ -143,4 +143,10 @@ export class CarEntity extends BaseEntity {
    */
   @Column({ comment: 'Dismantling status?', nullable: true, default: 'undismantled' })
   dismantlingStatus: string;
+
+  @Column({ comment: 'Current module: arrivals|parts|recycling|sold_complete|scrap|overseas', nullable: true, type: 'varchar', length: 20 })
+  currentModule: string;
+
+  @Column({ comment: 'Source work module before going to terminal (sold_complete/scrap)', nullable: true, type: 'varchar', length: 20 })
+  sourceModule: string;
 }

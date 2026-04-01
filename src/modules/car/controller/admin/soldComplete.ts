@@ -36,6 +36,7 @@ import { OrderInfoEntity } from '../../../order/entity/info';
     fieldEq: [
       { column: 'a.status', requestParam: 'status' },
       { column: 'a.carID', requestParam: 'carID' },
+      { column: 'b.currentModule', requestParam: 'currentModule' },
     ],
     join: [
       {

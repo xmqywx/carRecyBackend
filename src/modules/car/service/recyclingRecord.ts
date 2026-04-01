@@ -1,11 +1,10 @@
-import { Provide, Inject } from '@midwayjs/decorator';
+import { Provide } from '@midwayjs/decorator';
 import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { Repository, In } from 'typeorm';
 import { RecyclingRecordEntity } from '../entity/recyclingRecord';
-import { RecyclingInventoryEntity } from '../entity/recyclingInventory';
+import { InventoryEntity } from '../entity/inventory';
 import { OrderInfoEntity } from '../../order/entity/info';
-import { ScrapRecordService } from './scrapRecord';
 
 const STAGES = ['received', 'weighed', 'scheduled', 'collected', 'certified', 'completed'];
 
@@ -14,21 +13,30 @@ export class RecyclingRecordService extends BaseService {
   @InjectEntityModel(RecyclingRecordEntity)
   recyclingRepo: Repository<RecyclingRecordEntity>;
 
-  @InjectEntityModel(RecyclingInventoryEntity)
-  recyclingInventoryRepo: Repository<RecyclingInventoryEntity>;
+  @InjectEntityModel(InventoryEntity)
+  inventoryRepo: Repository<InventoryEntity>;
 
   @InjectEntityModel(OrderInfoEntity)
   orderRepo: Repository<OrderInfoEntity>;
 
-  @Inject()
-  scrapRecordService: ScrapRecordService;
-
   /**
    * Create recycling record (from Decision stage — direct recycling destination).
+   * If record already exists, reopen it.
    */
   async createFromDecision(carID: number): Promise<RecyclingRecordEntity> {
     let record = await this.recyclingRepo.findOne({ where: { carID } });
-    if (record) return record;
+    if (record) {
+      await this.recyclingRepo.update(record.id, {
+        stage: 'received',
+        archived: 0,
+        archivedAt: null,
+        partsStage: 'inventory',
+        shellDestination: null,
+        startedAt: new Date(),
+        completedAt: null,
+      });
+      return this.recyclingRepo.findOne({ where: { carID } });
+    }
 
     record = await this.recyclingRepo.save({
       carID,
@@ -41,10 +49,24 @@ export class RecyclingRecordService extends BaseService {
 
   /**
    * Create recycling record (from Parts vehicle shell).
+   * If record already exists, reopen it (reset archived/stage).
    */
   async createFromParts(carID: number, partsVehicleID?: number): Promise<RecyclingRecordEntity> {
     let record = await this.recyclingRepo.findOne({ where: { carID } });
-    if (record) return record;
+    if (record) {
+      // Reopen if archived or closed
+      await this.recyclingRepo.update(record.id, {
+        stage: 'received',
+        archived: 0,
+        archivedAt: null,
+        partsStage: 'inventory',
+        shellDestination: null,
+        partsVehicleID: partsVehicleID || record.partsVehicleID,
+        startedAt: new Date(),
+        completedAt: null,
+      });
+      return this.recyclingRepo.findOne({ where: { carID } });
+    }
 
     record = await this.recyclingRepo.save({
       carID,
@@ -248,7 +270,7 @@ export class RecyclingRecordService extends BaseService {
     const record = await this.recyclingRepo.findOne({ where: { carID } });
     if (!record) return;
 
-    const allParts = await this.recyclingInventoryRepo.find({ where: { carID } });
+    const allParts = await this.inventoryRepo.find({ where: { carID } });
     const partsCount = allParts.filter(p => p.status !== 'void').length;
     const partsSold = allParts.filter(p => p.status === 'sold' || p.status === 'closed').length;
     const partsListed = allParts.filter(p => p.status === 'marketing').length;
@@ -262,8 +284,8 @@ export class RecyclingRecordService extends BaseService {
    * Add a part to recycling inventory for a car.
    * Auto-generates SKU from stock number (order.quoteNumber) + part ID.
    */
-  async addPart(data: Partial<RecyclingInventoryEntity>): Promise<RecyclingInventoryEntity> {
-    const part = await this.recyclingInventoryRepo.save({
+  async addPart(data: Partial<InventoryEntity>): Promise<InventoryEntity> {
+    const part = await this.inventoryRepo.save({
       ...data,
       status: data.status || 'inventory',
     });
@@ -273,10 +295,10 @@ export class RecyclingRecordService extends BaseService {
       const order = await this.orderRepo.findOne({ where: { carID: part.carID } });
       const stockNum = order?.quoteNumber || `CAR${part.carID}`;
       part.sku = `R-${stockNum}-${part.id}`;
-      await this.recyclingInventoryRepo.update(part.id, { sku: part.sku });
+      await this.inventoryRepo.update(part.id, { sku: part.sku });
     } catch (e) {
       part.sku = `R${part.carID}-${part.id}`;
-      await this.recyclingInventoryRepo.update(part.id, { sku: part.sku });
+      await this.inventoryRepo.update(part.id, { sku: part.sku });
     }
 
     await this.refreshCounts(part.carID);
@@ -286,8 +308,8 @@ export class RecyclingRecordService extends BaseService {
   /**
    * Add multiple parts in batch for a car.
    */
-  async addPartsBatch(carID: number, parts: Partial<RecyclingInventoryEntity>[]): Promise<RecyclingInventoryEntity[]> {
-    const results: RecyclingInventoryEntity[] = [];
+  async addPartsBatch(carID: number, parts: Partial<InventoryEntity>[]): Promise<InventoryEntity[]> {
+    const results: InventoryEntity[] = [];
     for (const data of parts) {
       const part = await this.addPart({ ...data, carID });
       results.push(part);
@@ -298,12 +320,12 @@ export class RecyclingRecordService extends BaseService {
   /**
    * Update a part.
    */
-  async updatePart(id: number, data: Partial<RecyclingInventoryEntity>): Promise<void> {
-    const part = await this.recyclingInventoryRepo.findOne({ where: { id } });
+  async updatePart(id: number, data: Partial<InventoryEntity>): Promise<void> {
+    const part = await this.inventoryRepo.findOne({ where: { id } });
     if (!part) throw new Error(`Part ${id} not found`);
 
     delete (data as any).id;
-    await this.recyclingInventoryRepo.update(id, data);
+    await this.inventoryRepo.update(id, data);
     await this.refreshCounts(part.carID);
   }
 
@@ -311,7 +333,7 @@ export class RecyclingRecordService extends BaseService {
    * Change part status.
    */
   async changePartStatus(id: number, status: string): Promise<void> {
-    const part = await this.recyclingInventoryRepo.findOne({ where: { id } });
+    const part = await this.inventoryRepo.findOne({ where: { id } });
     if (!part) throw new Error(`Part ${id} not found`);
 
     const update: any = { status };
@@ -319,25 +341,25 @@ export class RecyclingRecordService extends BaseService {
     if (status === 'shelving') update.shelvedAt = new Date();
     if (status === 'sold') update.soldAt = new Date();
 
-    await this.recyclingInventoryRepo.update(id, update);
+    await this.inventoryRepo.update(id, update);
     await this.refreshCounts(part.carID);
   }
 
   /**
    * Get all parts for a car.
    */
-  async getPartsByCarID(carID: number): Promise<RecyclingInventoryEntity[]> {
-    return this.recyclingInventoryRepo.find({ where: { carID }, order: { id: 'ASC' } });
+  async getPartsByCarID(carID: number): Promise<InventoryEntity[]> {
+    return this.inventoryRepo.find({ where: { carID }, order: { id: 'ASC' } });
   }
 
   /**
    * Void (soft-delete) a part.
    */
   async voidPart(id: number): Promise<void> {
-    const part = await this.recyclingInventoryRepo.findOne({ where: { id } });
+    const part = await this.inventoryRepo.findOne({ where: { id } });
     if (!part) throw new Error(`Part ${id} not found`);
 
-    await this.recyclingInventoryRepo.update(id, { status: 'void' });
+    await this.inventoryRepo.update(id, { status: 'void' });
     await this.refreshCounts(part.carID);
   }
 }

@@ -3,8 +3,9 @@ import { CoolController, BaseController } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { Repository } from 'typeorm';
 import { RecyclingRecordEntity } from '../../entity/recyclingRecord';
-import { RecyclingInventoryEntity } from '../../entity/recyclingInventory';
+import { InventoryEntity } from '../../entity/inventory';
 import { RecyclingRecordService } from '../../service/recyclingRecord';
+import { TransferService } from '../../service/transfer';
 import { CarEntity } from '../../entity/base';
 import { OrderInfoEntity } from '../../../order/entity/info';
 import { VehicleProcessingEntity } from '../../entity/vehicleProcessing';
@@ -55,6 +56,10 @@ import { VehicleProcessingEntity } from '../../entity/vehicleProcessing';
       { column: 'a.partsStage', requestParam: 'partsStage' },
       { column: 'a.shellDestination', requestParam: 'shellDestination' },
     ],
+    where: async () => {
+      // Recycling shows: cars currently in 'recycling', OR cars in terminal modules (sold_complete/scrap) that came FROM recycling
+      return [["(b.currentModule = 'recycling' OR (b.currentModule IN ('sold_complete','scrap') AND b.sourceModule = 'recycling'))", {}]];
+    },
     join: [
       {
         entity: CarEntity,
@@ -81,6 +86,9 @@ import { VehicleProcessingEntity } from '../../entity/vehicleProcessing';
 export class RecyclingRecordController extends BaseController {
   @Inject()
   recyclingRecordService: RecyclingRecordService;
+
+  @Inject()
+  transferService: TransferService;
 
   @InjectEntityModel(RecyclingRecordEntity)
   recyclingRecordRepo: Repository<RecyclingRecordEntity>;
@@ -227,7 +235,7 @@ export class RecyclingRecordController extends BaseController {
   }
 
   /**
-   * Close vehicle (set partsStage to closed).
+   * Close vehicle — set shell destination and auto-create downstream record.
    */
   @Post('/close')
   async closeVehicle(
@@ -235,11 +243,10 @@ export class RecyclingRecordController extends BaseController {
     @Body('shellDestination') shellDestination?: string
   ) {
     try {
-      const record = await this.recyclingRecordRepo.findOne({ where: { carID } });
-      if (!record) return this.fail('Record not found');
-      const updates: any = { partsStage: 'closed' };
-      if (shellDestination) updates.shellDestination = shellDestination;
-      await this.recyclingRecordRepo.update(record.id, updates);
+      if (!shellDestination) return this.fail('shellDestination is required');
+      const moduleMap: Record<string, string> = { 'Parts': 'parts', 'Scrap': 'scrap', 'Sold Complete': 'sold_complete', 'Overseas': 'overseas' };
+      const targetModule = moduleMap[shellDestination] || shellDestination;
+      await this.transferService.transfer(carID, targetModule);
       return this.ok();
     } catch (e) {
       return this.fail(e);
@@ -252,7 +259,7 @@ export class RecyclingRecordController extends BaseController {
    * Add a part.
    */
   @Post('/addPart')
-  async addPart(@Body() data: Partial<RecyclingInventoryEntity>) {
+  async addPart(@Body() data: Partial<InventoryEntity>) {
     try {
       const part = await this.recyclingRecordService.addPart(data);
       return this.ok(part);
@@ -327,7 +334,7 @@ export class RecyclingRecordController extends BaseController {
   @Post('/updatePart')
   async updatePart(
     @Body('id') id: number,
-    @Body('data') data: Partial<RecyclingInventoryEntity>
+    @Body('data') data: Partial<InventoryEntity>
   ) {
     try {
       await this.recyclingRecordService.updatePart(id, data);

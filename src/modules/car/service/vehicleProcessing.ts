@@ -383,6 +383,13 @@ export class VehicleProcessingService extends BaseService {
           await this.recyclingRecordService.createFromDecision(carID);
           break;
       }
+
+      // Set car.currentModule for unified module visibility
+      const moduleMap: Record<string, string> = {
+        'Parts': 'parts', 'Recycling': 'recycling', 'Sold Complete': 'sold_complete',
+        'Scrap': 'scrap', 'Overseas': 'overseas',
+      };
+      await this.carRepo.update(carID, { currentModule: moduleMap[destination] });
     });
   }
 
