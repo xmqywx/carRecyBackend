@@ -1,6 +1,6 @@
 import { Body, Post, Provide, Inject } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { InjectEntityModel } from '@midwayjs/orm';
 import { OrderInfoEntity } from '../../entity/info';
 import { CustomerProfileEntity } from '../../../customer/entity/profile';
@@ -14,6 +14,8 @@ import { Between } from 'typeorm';
 import { OrderService } from '../../service/order';
 import { BaseSysUserEntity } from '../../../base/entity/sys/user';
 import * as xml2json from 'xml2json';
+import { parseExpectedDateRange } from '../../utils/expectedDateRange';
+import { buildBookingCountQueryParts } from '../../utils/bookingCountQuery';
 
 /**
  * 订单信息
@@ -103,10 +105,16 @@ import * as xml2json from 'xml2json';
       const {
         startDate,
         endDate,
+        expectedDateStart,
+        expectedDateEnd,
         isPaid,
         notSchedule,
         searchRegistrationNumber,
       } = ctx.request.body;
+      const expectedRange = parseExpectedDateRange(
+        expectedDateStart ?? startDate,
+        expectedDateEnd ?? endDate
+      );
       return [
         isPaid
           ? [
@@ -114,10 +122,18 @@ import * as xml2json from 'xml2json';
               { actualPaymentPrice: 0 },
             ]
           : [],
-        startDate
-          ? ['a.createTime >= :startDate', { startDate: startDate }]
+        expectedRange.expectedDateStart != null
+          ? [
+              'CAST(a.expectedDate AS UNSIGNED) >= :expectedDateStart',
+              { expectedDateStart: expectedRange.expectedDateStart },
+            ]
           : [],
-        endDate ? ['a.createTime <= :endDate', { endDate: endDate }] : [],
+        expectedRange.expectedDateEnd != null
+          ? [
+              'CAST(a.expectedDate AS UNSIGNED) <= :expectedDateEnd',
+              { expectedDateEnd: expectedRange.expectedDateEnd },
+            ]
+          : [],
         notSchedule ? ['e.driverID IS NULL', {}] : [],
         searchRegistrationNumber
           ? [
@@ -217,8 +233,12 @@ import * as xml2json from 'xml2json';
       },
     ],
     where: async ctx => {
-      const { startDate, endDate, isPaid, notSchedule, keywordCustomer } =
+      const { startDate, endDate, expectedDateStart, expectedDateEnd, isPaid, notSchedule, keywordCustomer } =
         ctx.request.body;
+      const expectedRange = parseExpectedDateRange(
+        expectedDateStart ?? startDate,
+        expectedDateEnd ?? endDate
+      );
       let isNotScheduleSearch = [];
       if (notSchedule !== undefined) {
         if (notSchedule === 0) {
@@ -239,10 +259,18 @@ import * as xml2json from 'xml2json';
 
       return [
         isPaid ? ['e.status = 4', {}] : [],
-        startDate
-          ? ['a.createTime >= :startDate', { startDate: startDate }]
+        expectedRange.expectedDateStart != null
+          ? [
+              'CAST(a.expectedDate AS UNSIGNED) >= :expectedDateStart',
+              { expectedDateStart: expectedRange.expectedDateStart },
+            ]
           : [],
-        endDate ? ['a.createTime <= :endDate', { endDate: endDate }] : [],
+        expectedRange.expectedDateEnd != null
+          ? [
+              'CAST(a.expectedDate AS UNSIGNED) <= :expectedDateEnd',
+              { expectedDateEnd: expectedRange.expectedDateEnd },
+            ]
+          : [],
         isNotScheduleSearch,
         keywordCustomer
           ? [
@@ -280,28 +308,51 @@ export class VehicleProfileController extends BaseController {
     @Body('departmentId') departmentId: number,
     @Body('startDate') startDate: Date,
     @Body('endDate') endDate: Date,
+    @Body('expectedDateStart') expectedDateStart: string | number,
+    @Body('expectedDateEnd') expectedDateEnd: string | number,
+    @Body('keyWord') keyWord: string,
     @Body('jobComplete') jobComplete = false
   ) {
-    if (jobComplete) {
-      return this.orderService.getCountCompleteJob(
-        departmentId,
-        startDate,
-        endDate,
-        status
+    const expectedRange = parseExpectedDateRange(
+      expectedDateStart ?? startDate,
+      expectedDateEnd ?? endDate
+    );
+    const queryParts = buildBookingCountQueryParts({
+      departmentId,
+      status,
+      expectedDateStart: expectedRange.expectedDateStart,
+      expectedDateEnd: expectedRange.expectedDateEnd,
+      keyWord,
+      jobComplete,
+    });
+
+    const countQuery = this.orderInfoEntity
+      .createQueryBuilder('a')
+      .leftJoin(CustomerProfileEntity, 'b', 'a.customerID = b.id')
+      .leftJoin(CarEntity, 'c', 'a.carID = c.id')
+      .leftJoin(JobEntity, 'e', 'a.id = e.orderID')
+      .select('COUNT(DISTINCT a.id)', 'count');
+
+    for (const clause of queryParts.clauses) {
+      countQuery.andWhere(clause, queryParts.params);
+    }
+
+    if (queryParts.keywordFields.length > 0) {
+      countQuery.andWhere(
+        new Brackets(qb => {
+          queryParts.keywordFields.forEach((field, index) => {
+            if (index === 0) {
+              qb.where(`${field} LIKE :bookingKeyword`, queryParts.params);
+            } else {
+              qb.orWhere(`${field} LIKE :bookingKeyword`, queryParts.params);
+            }
+          });
+        })
       );
     }
-    const searchData: { [key: string]: any } = {
-      departmentId,
-    };
-    if(status >= 0) {
-      searchData. status = status;
-    }
-    if (startDate && endDate) {
-      searchData.createTime = Between(startDate, endDate);
-    }
-    const count = await this.orderInfoEntity.count({
-      where: searchData,
-    });
+
+    const countResult = await countQuery.getRawOne();
+    const count = Number(countResult?.count ?? 0);
     const countDay = await this.orderInfoEntity.count({
       where: {
         status,

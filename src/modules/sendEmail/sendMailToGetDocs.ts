@@ -7,6 +7,7 @@ const envFile =
 const puppeteerCore = require('puppeteer-core');
 const AWS = require('aws-sdk');
 dotenv.config({ path: envFile });
+import { normalizeSignatureImagesLeftAligned } from './utils/emailSignature';
 
 // SMTP配置接口
 export interface SmtpConfig {
@@ -49,7 +50,7 @@ const frontendDomain = process.env.FRONTEND_DOMAIN || 'https://apexpoint.com.au'
 
 // 获取邮件签名HTML
 function getEmailSignature(template: EmailTemplateConfig): string {
-  return template.signatureHtml || '';
+  return normalizeSignatureImagesLeftAligned(template.signatureHtml || '');
 }
 AWS.config.update({
   region: process.env.NODE_REGION,
