@@ -1,4 +1,13 @@
+# AI Copilot for New Booking — Backend Notes
+
+Operator and developer notes for the 2026-04-16 AI Copilot feature. See `apexpoint-front/docs/superpowers/plans/2026-04-16-plan-ai-copilot-booking.md` for the full plan.
+
 ## V1 driver-query pattern (harvested from LeadAssistantDriverStep.vue before deletion on 2026-04-16)
+
+> Source file: `src/modules/lead-assistant/components/steps/LeadAssistantDriverStep.vue`,
+> deleted in commit `ab618cf` on branch `feat/ai-copilot-2026-04-16`. Recoverable via
+> `git show ab618cf:src/modules/lead-assistant/components/steps/LeadAssistantDriverStep.vue`
+> or from the `wip: snapshot 2026-04-16 pre-ai-copilot` commit on main.
 
 The V1 wizard loaded drivers via the generic sys-user API — there is no dedicated lead-assistant driver endpoint.
 
@@ -15,3 +24,10 @@ The V1 wizard loaded drivers via the generic sys-user API — there is no dedica
 3. Optionally enriches with availability/schedule data (the V1 step only showed name + a manually-entered time slot — no real availability data was fetched)
 
 The V1 frontend component (`src/modules/lead-assistant/components/steps/LeadAssistantDriverStep.vue`) called the generic user list and showed a dropdown — driver "availability" was entered manually by the user, not fetched from any backend availability service.
+
+### Reuse verdict
+
+**Not reusable as-is.** The V1 wizard used a generic `sysUserApi.list({ label: 'driver' })` call;
+no dedicated driver-availability endpoint exists. M4.1 DriverAvailabilityService must be built
+from scratch, though it may reuse the `label: 'driver'` + `departmentId` filter shape when
+querying `base_sys_user`.
