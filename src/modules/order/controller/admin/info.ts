@@ -413,10 +413,19 @@ export class VehicleProfileController extends BaseController {
       return this.fail('Registration number or VIN is required');
     }
 
-    const carRegList = await this.carRegEntity.find({
-      registrationNumber,
-      vin
-    });
+    // Cache lookup: use OR logic so VIN-only or rego-only queries still hit
+    // previously-cached rows. The old AND query missed cache when either field
+    // was empty, causing every call to hit the third-party API.
+    const whereConditions = [];
+    if (registrationNumber) {
+      whereConditions.push({ registrationNumber });
+    }
+    if (vin) {
+      whereConditions.push({ vin });
+    }
+    const carRegList = whereConditions.length
+      ? await this.carRegEntity.find({ where: whereConditions } as any)
+      : [];
     let carRegFind;
     if (carRegList.length) {
       carRegFind = carRegList[0].id ?? undefined;
