@@ -13,6 +13,14 @@ export default {
     serverTimeout: 120000, // 2 分钟
     // Keep-Alive 超时
     keepAliveTimeout: 30000, // 30 秒
+    // 2026-04-16 AI Copilot: raised body limits for base64 image uploads.
+    // Key path verified against Midway @midwayjs/koa 3.x at implementation
+    // time. If this key doesn't take effect (smoke test still 413s on a 3MB
+    // request), try moving bodyParser to top-level MidwayConfig key instead.
+    bodyParser: {
+      jsonLimit: '10mb',
+      textLimit: '10mb',
+    },
   },
   // Socket.IO 配置（不指定port，自动共享Koa的HTTP服务器）
   socketIO: {
