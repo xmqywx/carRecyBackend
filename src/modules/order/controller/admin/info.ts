@@ -468,13 +468,20 @@ export class VehicleProfileController extends BaseController {
       }
     } else if (api === SEARCH_CAR_API.V1) {
       if (carRegList.length && carRegList[0].json) {
-        return this.ok(carRegList[0].json);
+        if (carRegList[0].json?._notFound) {
+          const cachedAt = new Date(carRegList[0].json.cachedAt).getTime();
+          if ((Date.now() - cachedAt) / 86400000 < 7) {
+            return this.fail('Vehicle not found');
+          }
+        } else {
+          return this.ok(carRegList[0].json);
+        }
       }
 
       try {
-        let carRegFind;
-        if (carRegList.length) {
-          carRegFind = carRegList[0].id ?? undefined;
+        const savePayload: any = { registrationNumber, state, vin };
+        if (carRegList.length && carRegList[0].id) {
+          savePayload.id = carRegList[0].id;
         }
         const res = await this.orderService.fetchDataWithV1(
           registrationNumber,
@@ -483,24 +490,22 @@ export class VehicleProfileController extends BaseController {
         );
         if(!res || !res.result) {
           return this.fail('Please try again later.');
-        } else {
-          if(res.result.responseCode !== 'SUCCESS') {
-            return this.fail(res.result.description);
-          }
+        }
+        if(res.result.responseCode !== 'SUCCESS') {
+          savePayload.json = { _notFound: true, responseCode: res.result.responseCode, description: res.result.description, cachedAt: new Date().toISOString() };
+          try { await this.carRegEntity.save(savePayload); } catch (e) { console.error('[getCarInfo V1] cache save failed:', e?.message); }
+          return this.fail(res.result.description);
         }
         let jsonData1 = res.result.vehicles[0] ?? null;
 
         if (!jsonData1) {
+          savePayload.json = { _notFound: true, reason: 'no vehicle data', cachedAt: new Date().toISOString() };
+          try { await this.carRegEntity.save(savePayload); } catch {}
           return this.fail('This content cannot be found or does not exist.');
         }
         const jsonData = { ...jsonData1 };
-        await this.carRegEntity.save({
-          id: carRegFind,
-          registrationNumber,
-          state,
-          vin,
-          json: jsonData,
-        });
+        savePayload.json = jsonData;
+        try { await this.carRegEntity.save(savePayload); } catch (e) { console.error('[getCarInfo V1] cache save failed:', e?.message); }
         return this.ok(jsonData);
       } catch (e) {
         return this.fail(
@@ -511,9 +516,16 @@ export class VehicleProfileController extends BaseController {
       if (carRegList.length && carRegList[0].json_v2) {
         // Cache HIT — check if it's a cached "not found" sentinel
         if (carRegList[0].json_v2?._notFound) {
-          return this.fail('Vehicle not found');
+          // TTL: "not found" cache expires after 7 days — vehicle might get registered later
+          const cachedAt = new Date(carRegList[0].json_v2.cachedAt).getTime();
+          const daysSince = (Date.now() - cachedAt) / 86400000;
+          if (daysSince < 7) {
+            return this.fail('Vehicle not found');
+          }
+          // Expired → fall through to re-check third-party
+        } else {
+          return this.ok(carRegList[0].json_v2);
         }
-        return this.ok(carRegList[0].json_v2);
       }
       try {
         // Build save payload WITHOUT id:undefined (which can cause TypeORM
@@ -567,9 +579,20 @@ export class VehicleProfileController extends BaseController {
       }
     } else if (api === SEARCH_CAR_API.V3) {
       if (carRegList.length && carRegList[0].json_v3) {
-        return this.ok(carRegList[0].json_v3);
+        if (carRegList[0].json_v3?._notFound) {
+          const cachedAt = new Date(carRegList[0].json_v3.cachedAt).getTime();
+          if ((Date.now() - cachedAt) / 86400000 < 7) {
+            return this.fail('Vehicle not found');
+          }
+        } else {
+          return this.ok(carRegList[0].json_v3);
+        }
       }
       try {
+        const savePayload: any = { registrationNumber, state, vin };
+        if (carRegList.length && carRegList[0].id) {
+          savePayload.id = carRegList[0].id;
+        }
         const res = await this.orderService.fetchDataWithV3(
           registrationNumber,
           state,
@@ -577,23 +600,21 @@ export class VehicleProfileController extends BaseController {
         );
         if(!res || !res.result) {
           return this.fail('Please try again later.');
-        } else {
-          if(res.result.responseCode !== 'SUCCESS') {
-            return this.fail(res.result.description);
-          }
+        }
+        if(res.result.responseCode !== 'SUCCESS') {
+          savePayload.json_v3 = { _notFound: true, responseCode: res.result.responseCode, description: res.result.description, cachedAt: new Date().toISOString() };
+          try { await this.carRegEntity.save(savePayload); } catch (e) { console.error('[getCarInfo V3] cache save failed:', e?.message); }
+          return this.fail(res.result.description);
         }
         let jsonData2 = res?.result?.vehicle ?? null;
         if (!jsonData2) {
+          savePayload.json_v3 = { _notFound: true, reason: 'no vehicle data', cachedAt: new Date().toISOString() };
+          try { await this.carRegEntity.save(savePayload); } catch {}
           return this.fail('This content cannot be found or does not exist.');
         }
         const jsonData = { ...jsonData2 };
-        await this.carRegEntity.save({
-          id: carRegFind,
-          registrationNumber,
-          state,
-          vin,
-          json_v3: jsonData,
-        });
+        savePayload.json_v3 = jsonData;
+        try { await this.carRegEntity.save(savePayload); } catch (e) { console.error('[getCarInfo V3] cache save failed:', e?.message); }
         return this.ok(jsonData);
       } catch (e) {
         return this.fail(
