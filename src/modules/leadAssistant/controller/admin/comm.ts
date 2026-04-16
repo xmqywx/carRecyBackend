@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Post, Provide } from '@midwayjs/decorator';
+import { Body, Controller, Inject, Param, Post, Provide } from '@midwayjs/decorator';
 import { BaseController } from '@cool-midway/core';
 import { LeadAssistantCustomerResolveService } from '../../service/customerResolve';
 import { LeadAssistantDuplicateCheckService } from '../../service/duplicateCheck';
@@ -177,6 +177,23 @@ export class LeadAssistantCommController extends BaseController {
       Number(departmentId),
       { continueAsNew: Boolean(continueAsNew) }
     );
+    return this.ok(result);
+  }
+
+  @Post('/session/:id/intake-image')
+  async intakeImage(
+    @Param('id') id: string,
+    @Body('imageBase64') imageBase64: string,
+    @Body('departmentId') departmentId: number,
+  ) {
+    if (!imageBase64?.startsWith('data:image/')) {
+      return this.fail('imageBase64 must be a data: URI');
+    }
+    const approxSize = (imageBase64.length * 3) / 4;
+    if (approxSize > 5 * 1024 * 1024) {
+      return this.fail('Image too large (max 5MB)');
+    }
+    const result = await this.leadAssistantIntakeService.runImage(id, departmentId, imageBase64);
     return this.ok(result);
   }
 }
