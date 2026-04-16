@@ -7,7 +7,11 @@ import { CarEntity } from '../../car/entity/base';
 import { CustomerProfileEntity } from '../../customer/entity/profile';
 import { OrderActionEntity } from '../../order/entity/action';
 import { OrderInfoEntity } from '../../order/entity/info';
+import { JobEntity } from '../../job/entity/info';
 import { LeadAssistantSessionService } from './session';
+
+// order_action.type constant for AI Copilot Dispatch
+export const ORDER_ACTION_AI_COPILOT_DISPATCH = 100;
 
 function cleanText(value: unknown) {
   if (value === undefined || value === null) return '';
@@ -69,6 +73,9 @@ export class LeadAssistantCommitService extends BaseService {
 
   @InjectEntityModel(OrderActionEntity)
   orderActionEntity: Repository<OrderActionEntity>;
+
+  @InjectEntityModel(JobEntity)
+  jobEntity: Repository<JobEntity>;
 
   @Inject()
   leadAssistantSessionService: LeadAssistantSessionService;
@@ -374,5 +381,130 @@ export class LeadAssistantCommitService extends BaseService {
       commitPreview: created,
       status: 'lead_committed',
     });
+  }
+
+  /**
+   * Commit a Booked order + job row in a single DB transaction, then write
+   * an audit action row (type=100) with the chat transcript and driver pick.
+   *
+   * Flow:
+   *  1. Run existing commitLead steps → creates order with status=0 (Lead)
+   *  2. Elevate order.status to 1 (Booked)
+   *  3. Create a job row linked to the order (driverID may be null)
+   *  4. Write a type=100 order_action audit row
+   *
+   * Rollback: any failure inside the transaction prevents the order/job from
+   * being persisted — no orphan Booked orders.
+   */
+  async commitBooked(
+    sessionId: string,
+    departmentId: number,
+    driverId: number | null,
+  ) {
+    const session = await this.leadAssistantSessionService.getSession(
+      sessionId,
+      departmentId,
+    );
+
+    if (!session?.extractedDraft) {
+      throw new CoolCommException('Lead draft is missing.');
+    }
+
+    const pickupAddress = cleanText(session.scheduleResolution?.pickupAddress);
+    if (!pickupAddress) {
+      throw new CoolCommException('Pickup address must be confirmed before committing a booking.');
+    }
+
+    const conn = getConnection();
+    const created = await conn.transaction(async manager => {
+      // Step 1 — create customer + car (reuse private helpers)
+      const customer = await this.resolveCustomer(manager, session, departmentId);
+      const car = await this.resolveVehicle(manager, session, departmentId, customer.id);
+
+      const orderRepo = manager.getRepository(OrderInfoEntity);
+      const orderActionRepo = manager.getRepository(OrderActionEntity);
+      const jobRepo = manager.getRepository(JobEntity);
+
+      const notes = session.extractedDraft.notes || {};
+      const money = session.extractedDraft.money || {};
+      const schedule = session.scheduleResolution || {};
+
+      // Step 2 — create the order at status=1 (Booked)
+      const order = await orderRepo.save({
+        customerID: String(customer.id),
+        carID: car.id,
+        departmentId,
+        status: 1, // Booked
+        pickupAddress,
+        pickupAddressState: cleanUpper(schedule.pickupAddressState),
+        pickupAddressLat:
+          schedule.pickupAddressLat == null ? null : String(schedule.pickupAddressLat),
+        pickupAddressLng:
+          schedule.pickupAddressLng == null ? null : String(schedule.pickupAddressLng),
+        expectedDate:
+          cleanText(schedule.expectedDate) ||
+          cleanText(session.extractedDraft.schedule?.preferredTimeText),
+        askingPrice: toNumber(money.askingPrice),
+        quoteType: cleanText(money.quoteType) || 'Fixed',
+        customerName: [customer.firstName, customer.surname].filter(Boolean).join(' '),
+        carColor: cleanText(car.colour),
+        commentText: cleanText(notes.freeform || notes.vehicleCondition),
+        note: cleanText(notes.rawIntake || session.intakeText),
+        source: 'lead-assistant',
+        leadSource: 'AI',
+        leadSourceDetail: 'AI Copilot Dispatch',
+      });
+
+      // Generate quote number (same pattern as commitLead)
+      const departmentRows = await manager.query(
+        'SELECT name FROM `base_sys_department` WHERE id = ? LIMIT 1',
+        [departmentId],
+      );
+      const quotePrefix = buildQuotePrefix(departmentRows?.[0]?.name || 'AP');
+      order.quoteNumber = `${quotePrefix}${order.id.toString().padStart(7, '0')}`;
+      await orderRepo.save(order);
+
+      // Step 3 — create the job row
+      const schedulerStart = cleanText(schedule.expectedDate || schedule.schedulerStart);
+      const schedulerEnd = cleanText(schedule.schedulerEnd);
+
+      const job = await jobRepo.save({
+        orderID: order.id,
+        driverID: driverId ?? null,
+        status: driverId ? 1 : 0,
+        schedulerStart: schedulerStart || null,
+        schedulerEnd: schedulerEnd || null,
+        departmentId,
+        color: '#3b5bc2',
+        isAccept: false,
+      });
+
+      // Step 4 — audit action (type=100 AI Copilot Dispatch)
+      await orderActionRepo.save({
+        timestamp: String(Date.now()),
+        name: 'AI Copilot Dispatch',
+        description: JSON.stringify({
+          sessionId,
+          driverId,
+          messages: (session as any).messages ?? [],
+        }),
+        authorID: this.ctx.admin?.userId || 0,
+        orderID: order.id,
+        type: ORDER_ACTION_AI_COPILOT_DISPATCH,
+      });
+
+      return {
+        orderId: order.id,
+        jobId: job.id,
+        quoteNumber: order.quoteNumber,
+      };
+    });
+
+    await this.leadAssistantSessionService.patchSession(sessionId, departmentId, {
+      commitPreview: created,
+      status: 'committed_booked',
+    });
+
+    return created;
   }
 }
