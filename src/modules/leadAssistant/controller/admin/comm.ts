@@ -7,6 +7,7 @@ import { LeadAssistantCommitService } from '../../service/commit';
 import { LeadAssistantSessionService } from '../../service/session';
 import { LeadAssistantScheduleResolveService } from '../../service/scheduleResolve';
 import { LeadAssistantVehicleResolveService } from '../../service/vehicleResolve';
+import { DriverAvailabilityService } from '../../service/driverRecommend';
 
 @Provide()
 @Controller('/admin/base/comm/lead-assistant')
@@ -31,6 +32,9 @@ export class LeadAssistantCommController extends BaseController {
 
   @Inject()
   leadAssistantCommitService: LeadAssistantCommitService;
+
+  @Inject()
+  driverAvailabilityService: DriverAvailabilityService;
 
   @Post('/session/start')
   async start(@Body('departmentId') departmentId: number) {
@@ -176,6 +180,29 @@ export class LeadAssistantCommController extends BaseController {
       id,
       Number(departmentId),
       { continueAsNew: Boolean(continueAsNew) }
+    );
+    return this.ok(result);
+  }
+
+  @Post('/session/:id/recommend-drivers')
+  async recommendDrivers(
+    @Param('id') id: string,
+    @Body('departmentId') departmentId: number,
+  ) {
+    const result = await this.driverAvailabilityService.recommendDrivers(id, Number(departmentId));
+    return this.ok(result);
+  }
+
+  @Post('/session/:id/commit-booked')
+  async commitBooked(
+    @Param('id') id: string,
+    @Body('departmentId') departmentId: number,
+    @Body('driverId') driverId: number | null,
+  ) {
+    const result = await this.leadAssistantCommitService.commitBooked(
+      id,
+      Number(departmentId),
+      driverId ?? null,
     );
     return this.ok(result);
   }
