@@ -21,11 +21,11 @@ export class VolcArkService {
   }
 
   /**
-   * Send a multimodal chat request with a base64 image and return the parsed JSON response.
+   * Send a multimodal request with a base64 image via the Volcengine Ark
+   * Responses API (/api/v3/responses) and return the parsed JSON response.
    *
    * SECURITY: This method implements a sanitized error boundary (spec §14 mitigation #1).
    * The base64 image payload must never appear in error logs or exception objects.
-   * All caught errors are re-thrown as fresh CoolCommException with only status + message.
    */
   async chatJsonWithImage(
     systemPrompt: string,
@@ -39,19 +39,20 @@ export class VolcArkService {
     let content: string;
     try {
       const response = await axios.post(
-        `${this.baseUrl}/api/v3/chat/completions`,
+        `${this.baseUrl}/api/v3/responses`,
         {
           model: this.model,
           temperature: 0.1,
-          max_tokens: 1500,
-          response_format: { type: 'json_object' },
-          messages: [
-            { role: 'system', content: systemPrompt },
+          max_output_tokens: 1500,
+          // Merge system prompt into the user message because the Volcengine
+          // Ark Responses API may not support role:'system' in the input array.
+          // The system prompt + user text are sent together as input_text.
+          input: [
             {
               role: 'user',
               content: [
-                { type: 'text', text: userText },
-                { type: 'image_url', image_url: { url: imageBase64DataUri } },
+                { type: 'input_text', text: `${systemPrompt}\n\n---\n\n${userText}` },
+                { type: 'input_image', image_url: imageBase64DataUri },
               ],
             },
           ],
@@ -67,26 +68,40 @@ export class VolcArkService {
         },
       );
 
-      content = response?.data?.choices?.[0]?.message?.content;
+      // Responses API returns:
+      // { output: [
+      //   { type: "reasoning", summary: [...] },          ← thinking/reasoning (skip)
+      //   { type: "message", content: [{ type: "output_text", text: "..." }] }  ← actual output
+      // ] }
+      const data = response?.data;
+      const outputItems: any[] = data?.output ?? [];
+      // Find the "message" type output (skip "reasoning")
+      const messageOutput = outputItems.find((item: any) => item.type === 'message');
+      const outputContent = messageOutput?.content ?? [];
+      // Find the "output_text" content item
+      const textItem = outputContent.find((c: any) => c.type === 'output_text');
+      content = textItem?.text ?? '';
+
       if (!content || typeof content !== 'string') {
-        throw new CoolCommException('VolcArk returned an empty response');
+        console.warn('[VolcArk] Could not extract text from response. Keys:', Object.keys(data || {}));
+        console.warn('[VolcArk] Full response shape:', JSON.stringify(data).slice(0, 500));
+        throw new CoolCommException('VolcArk returned an unrecognized response shape');
       }
     } catch (err: any) {
-      // SANITIZED ERROR BOUNDARY: construct a fresh exception with ONLY the status code
-      // and a safe message. Never attach err.config, err.request, or err.response.config
-      // (all of which may contain the full base64 payload in the request body).
+      // SANITIZED ERROR BOUNDARY
       if (err instanceof CoolCommException) {
         throw err;
       }
       const status = err?.response?.status;
-      const serverMsg = err?.response?.data?.error?.message;
+      const serverMsg = err?.response?.data?.error?.message
+        ?? (typeof err?.response?.data === 'string' ? err.response.data.slice(0, 200) : undefined);
       const safeMsg = serverMsg
         ? `VolcArk API error (${status}): ${String(serverMsg).slice(0, 200)}`
         : `VolcArk API request failed (${status ?? 'network error'})`;
       throw new CoolCommException(safeMsg);
     }
 
-    // REFUSAL SENTINEL: non-JSON content becomes a friendly signal instead of an error.
+    // REFUSAL SENTINEL
     const trimmed = content.trim();
     if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
       return { __refusal: true, message: trimmed.slice(0, 500) };
@@ -95,14 +110,13 @@ export class VolcArkService {
     try {
       return JSON.parse(trimmed);
     } catch {
-      // Attempt to extract a JSON object if wrapped in extra text
       const start = trimmed.indexOf('{');
       const end = trimmed.lastIndexOf('}');
       if (start >= 0 && end > start) {
         try {
           return JSON.parse(trimmed.slice(start, end + 1));
         } catch {
-          // Fall through to refusal
+          // Fall through
         }
       }
       return { __refusal: true, message: trimmed.slice(0, 500) };

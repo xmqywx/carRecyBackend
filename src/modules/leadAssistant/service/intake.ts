@@ -32,6 +32,8 @@ export class LeadAssistantIntakeService extends BaseService {
       'Return only valid JSON.',
       'Do not invent customer, vehicle, address, or timing facts.',
       'Use null or empty strings for missing fields.',
+      'For isDrivable: set to 0 if vehicle is described as not drivable/broken/damaged/non-running, otherwise 1.',
+      'For notDrivableReason: must be exactly one of: "engine", "transmission", "damage", "unknown". Pick the best match from the description. Only set this if isDrivable is 0.',
       'Use this schema:',
       JSON.stringify({
         customer: {
@@ -49,6 +51,8 @@ export class LeadAssistantIntakeService extends BaseService {
           model: '',
           year: null,
           colour: '',
+          isDrivable: 1,
+          notDrivableReason: '',
         },
         schedule: {
           pickupAddressText: '',
@@ -91,6 +95,8 @@ export class LeadAssistantIntakeService extends BaseService {
         model: cleanText(vehicle.model),
         year: toNumber(vehicle.year),
         colour: cleanText(vehicle.colour),
+        isDrivable: vehicle.isDrivable === 0 || vehicle.isDrivable === '0' ? 0 : 1,
+        notDrivableReason: cleanText(vehicle.notDrivableReason),
       },
       schedule: {
         pickupAddressText: cleanText(schedule.pickupAddressText),
