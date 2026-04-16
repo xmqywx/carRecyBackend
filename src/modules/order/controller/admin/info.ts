@@ -509,13 +509,20 @@ export class VehicleProfileController extends BaseController {
       }
     } else if (api === SEARCH_CAR_API.V2) {
       if (carRegList.length && carRegList[0].json_v2) {
+        // Cache HIT — check if it's a cached "not found" sentinel
+        if (carRegList[0].json_v2?._notFound) {
+          return this.fail('Vehicle not found');
+        }
         return this.ok(carRegList[0].json_v2);
       }
       try {
-        let carRegFind;
-        if (carRegList.length) {
-          carRegFind = carRegList[0].id ?? undefined;
+        // Build save payload WITHOUT id:undefined (which can cause TypeORM
+        // to do a broken UPDATE instead of INSERT on some versions)
+        const savePayload: any = { registrationNumber, state, vin };
+        if (carRegList.length && carRegList[0].id) {
+          savePayload.id = carRegList[0].id;
         }
+
         const res = await this.orderService.fetchDataWithV2(
           registrationNumber,
           state,
@@ -523,23 +530,35 @@ export class VehicleProfileController extends BaseController {
         );
         if(!res || !res.result) {
           return this.fail('Please try again later.');
-        } else {
-          if(res.result.responseCode !== 'SUCCESS') {
-            return this.fail(res.result.description);
-          }
         }
+        if(res.result.responseCode !== 'SUCCESS') {
+          // CACHE the "not found" result so we don't keep hitting the
+          // third-party API for the same invalid VIN/rego.
+          // This was the root cause of 421 calls × $0.06 each.
+          savePayload.json_v2 = { _notFound: true, responseCode: res.result.responseCode, description: res.result.description, cachedAt: new Date().toISOString() };
+          try {
+            await this.carRegEntity.save(savePayload);
+          } catch (saveErr) {
+            console.error('[getCarInfo V2] Failed to cache not-found result:', saveErr?.message);
+          }
+          return this.fail(res.result.description);
+        }
+
         let jsonData2 = res.result.vehicle ?? null;
         if (!jsonData2) {
+          // Also cache this "no vehicle data" case
+          savePayload.json_v2 = { _notFound: true, reason: 'no vehicle data in response', cachedAt: new Date().toISOString() };
+          try { await this.carRegEntity.save(savePayload); } catch {}
           return this.fail('This content cannot be found or does not exist.');
         }
         const jsonData = { ...jsonData2 };
-        await this.carRegEntity.save({
-          id: carRegFind,
-          registrationNumber,
-          state,
-          vin,
-          json_v2: jsonData,
-        });
+        savePayload.json_v2 = jsonData;
+        try {
+          await this.carRegEntity.save(savePayload);
+        } catch (saveErr) {
+          // Log but don't fail the request — the data was fetched successfully
+          console.error('[getCarInfo V2] Failed to cache result:', saveErr?.message);
+        }
         return this.ok(jsonData);
       } catch (e) {
         return this.fail(
