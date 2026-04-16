@@ -13,7 +13,7 @@ export class OrderActionEntity extends BaseEntity {
   @Column({ comment: 'name', length: 100, nullable: true })
   name: string;
 
-  @Column({ comment: 'description', nullable: true })
+  @Column({ comment: 'description', type: 'text', nullable: true })
   description: string;
 
   @Column({ comment: 'author' })

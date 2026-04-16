@@ -31,3 +31,16 @@ The V1 frontend component (`src/modules/lead-assistant/components/steps/LeadAssi
 no dedicated driver-availability endpoint exists. M4.1 DriverAvailabilityService must be built
 from scratch, though it may reuse the `label: 'driver'` + `departmentId` filter shape when
 querying `base_sys_user`.
+
+## Production schema migration (required before prod deploy)
+
+```sql
+ALTER TABLE `order_action` MODIFY COLUMN `description` TEXT NULL;
+```
+
+- Non-locking for reads; briefly blocks writes during rewrite
+- Backwards compatible (TEXT accepts any VARCHAR payload)
+- Rollback: not required if feature is rolled back; TEXT still accepts
+  any VARCHAR the old code wrote
+- Dev environment: TypeORM `synchronize: true` handles this automatically
+  when the backend starts with the new entity. No manual action.
