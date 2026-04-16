@@ -10,8 +10,29 @@ import { OrderActionEntity } from '../../order/entity/action';
 import { PartsInventoryEntity } from '../../car/entity/partsInventory';
 import { PartsVehicleEntity } from '../../car/entity/partsVehicle';
 import { VehicleProcessingEntity } from '../../car/entity/vehicleProcessing';
+import { BaseSysUserEntity } from '../../base/entity/sys/user';
 import { OrderService } from '../../order/service/order';
 import { DeepseekService } from './deepseek';
+
+const INTENT_CLASSIFICATION_PROMPT = `You classify car recycling yard search queries into intents and extract entities.
+
+INTENTS (pick exactly one):
+- vehicle_status_query: Wants status/location/stage of a SPECIFIC vehicle. Needs identifier (rego, stock#, VIN) or specific description.
+- vehicle_parts_summary: Wants parts count/value for a SPECIFIC vehicle.
+- operations_filter_query: Wants a filtered list of bookings by operational criteria (e.g. "without driver", "unassigned", "not picked up").
+- customer_lookup: Searching for a customer by name, phone, or email. Use when the query mentions "customer", "client", "buyer", or includes a phone number/email.
+- vehicle_list_query: Wants a LIST of vehicles filtered by stage, date, make/model, or other attributes.
+- stats_summary: Wants aggregate counts or totals (how many, total value) without needing individual records.
+- driver_tasks_query: Wants to see jobs/tasks assigned to a specific driver. Use when the query mentions "driver", "tasks", "jobs", "assigned to", or when asking about a person's pickups/deliveries. When a person's name is given alone without other context, prefer this over customer_lookup — drivers are searched more often by name alone.
+- fuzzy_search: Doesn't clearly match any above intent. Use as fallback.
+
+ENTITIES (extract what's present, use null for absent):
+rego, stockNumber, vinNumber, customerName, phoneNumber, driverName,
+vehicleMake, vehicleModel, vehicleColor, dateRange (today|tomorrow|this_week|this_month|null),
+stage (arrived|processing|depollution|decision|parts|recycling|scrap|sold|overseas|null),
+keyword (catch-all for unstructured search terms)
+
+Respond with JSON only: { "intent": "...", "confidence": 0.0-1.0, "entities": { ... } }`;
 
 function cleanText(value) {
   if (value === undefined || value === null) return '';
@@ -89,33 +110,49 @@ function inferDayRange(prompt: string) {
   };
 }
 
-function hasIdentifierAnchor(prompt: string) {
-  const upper = cleanText(prompt).toUpperCase();
-  return (
-    /\b[A-Z0-9]{5,8}\b/.test(upper) ||
-    /\b[A-Z]{1,5}-?\d{3,}\b/.test(upper) ||
-    /\b[A-HJ-NPR-Z0-9]{11,17}\b/.test(upper)
-  );
-}
+function inferDateRange(rangeKey: string) {
+  const now = new Date();
+  let start: Date;
+  let end: Date;
+  let label: string;
 
-function detectIntent(prompt: string, entryPoint: 'search' | 'create' = 'search') {
-  if (entryPoint === 'create') {
-    return 'booking_create_draft';
+  switch (rangeKey) {
+    case 'today':
+      start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(now);
+      end.setHours(23, 59, 59, 999);
+      label = 'Today';
+      break;
+    case 'tomorrow':
+      start = new Date(now);
+      start.setDate(start.getDate() + 1);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(start);
+      end.setHours(23, 59, 59, 999);
+      label = 'Tomorrow';
+      break;
+    case 'this_week': {
+      const day = now.getDay();
+      start = new Date(now);
+      start.setDate(start.getDate() - (day === 0 ? 6 : day - 1));
+      start.setHours(0, 0, 0, 0);
+      end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+      label = 'This week';
+      break;
+    }
+    case 'this_month':
+      start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      label = 'This month';
+      break;
+    default:
+      return null;
   }
-  const lower = prompt.toLowerCase();
-  if (/without driver|without drivers|no driver|unassigned|not assigned|未派司机/.test(lower)) {
-    return 'operations_filter_query';
-  }
-  if (/how many|parts|unsold|sold count|parts left|零件/.test(lower)) {
-    return 'vehicle_parts_summary';
-  }
-  if (/where|status|stage|what happened|decision|processing|arrived|在哪|状态/.test(lower)) {
-    return 'vehicle_status_query';
-  }
-  if (hasIdentifierAnchor(prompt)) {
-    return 'vehicle_status_query';
-  }
-  return 'booking_create_draft';
+
+  return { label, start: String(start.getTime()), end: String(end.getTime()) };
 }
 
 @Provide()
@@ -143,6 +180,9 @@ export class AiGatewayService extends BaseService {
 
   @InjectEntityModel(VehicleProcessingEntity)
   vehicleProcessingEntity: Repository<VehicleProcessingEntity>;
+
+  @InjectEntityModel(BaseSysUserEntity)
+  baseSysUserEntity: Repository<BaseSysUserEntity>;
 
   @Inject()
   orderService: OrderService;
@@ -569,7 +609,7 @@ export class AiGatewayService extends BaseService {
     };
   }
 
-  private async buildVehicleResult(prompt: string, departmentId?: number) {
+  private async buildVehicleResult(prompt: string, departmentId?: number, classification?: any) {
     const rows = await this.findOrderCandidates(prompt, departmentId, 1);
     const row = rows[0];
     if (!row) {
@@ -610,7 +650,7 @@ export class AiGatewayService extends BaseService {
     };
   }
 
-  private async buildPartsResult(prompt: string, departmentId?: number) {
+  private async buildPartsResult(prompt: string, departmentId?: number, classification?: any) {
     const rows = await this.findOrderCandidates(prompt, departmentId, 1);
     const row = rows[0];
     if (!row) {
@@ -647,35 +687,449 @@ export class AiGatewayService extends BaseService {
     };
   }
 
-  async execute(prompt: string, departmentId?: number, entryPoint: 'search' | 'create' = 'search') {
-    const intent = detectIntent(prompt, entryPoint);
-    if (entryPoint === 'search' && intent === 'booking_create_draft') {
+  private async classifyIntent(prompt: string, anchors: { rego: string; stockNumber: string; vinNumber: string }) {
+    const hints = [];
+    if (anchors.rego) hints.push(`detected rego=${anchors.rego}`);
+    if (anchors.stockNumber) hints.push(`detected stock#=${anchors.stockNumber}`);
+    if (anchors.vinNumber) hints.push(`detected VIN=${anchors.vinNumber}`);
+
+    const enrichedPrompt = hints.length
+      ? `${prompt}\n[System hint: ${hints.join(', ')}]`
+      : prompt;
+
+    try {
+      const result = await this.deepseekService.chatJson(INTENT_CLASSIFICATION_PROMPT, enrichedPrompt);
+      return {
+        intent: result.intent || 'fuzzy_search',
+        confidence: result.confidence || 0.5,
+        entities: result.entities || {},
+      };
+    } catch {
+      // If DeepSeek fails, fall back to fuzzy search
+      return { intent: 'fuzzy_search', confidence: 0, entities: {} };
+    }
+  }
+
+  private async buildCustomerResult(prompt: string, departmentId?: number, classification?: any) {
+    const entities = classification?.entities || {};
+    const customerName = cleanText(entities.customerName);
+    const phoneNumber = cleanText(entities.phoneNumber);
+
+    const qb = this.customerProfileEntity
+      .createQueryBuilder('c')
+      .select([
+        'c.id as customerID',
+        'c.firstName as firstName',
+        'c.surname as surname',
+        'c.phoneNumber as phoneNumber',
+        'c.emailAddress as emailAddress',
+      ])
+      .limit(5);
+
+    if (departmentId) {
+      qb.andWhere('c.departmentId = :departmentId', { departmentId });
+    }
+
+    const conditions = [];
+    const params: any = {};
+
+    if (customerName) {
+      const nameParts = customerName.split(/\s+/).filter(Boolean);
+      nameParts.forEach((part, i) => {
+        const key = `name${i}`;
+        params[key] = `%${part}%`;
+        conditions.push(`c.firstName LIKE :${key}`);
+        conditions.push(`c.surname LIKE :${key}`);
+      });
+    }
+    if (phoneNumber) {
+      params['phone'] = `%${phoneNumber}%`;
+      conditions.push('c.phoneNumber LIKE :phone');
+    }
+
+    if (!conditions.length) {
+      // fallback: use prompt words
+      const words = cleanText(prompt).split(/\s+/).filter(Boolean).slice(0, 3);
+      words.forEach((word, i) => {
+        const key = `w${i}`;
+        params[key] = `%${word}%`;
+        conditions.push(`c.firstName LIKE :${key}`);
+        conditions.push(`c.surname LIKE :${key}`);
+      });
+    }
+
+    if (conditions.length) {
+      qb.andWhere(`(${conditions.join(' OR ')})`, params);
+    }
+
+    const customers = await qb.getRawMany();
+
+    // For each customer, get booking count and latest order
+    const enriched = await Promise.all(
+      customers.map(async (c) => {
+        const countResult = await this.orderInfoEntity
+          .createQueryBuilder('o')
+          .select('COUNT(*)', 'cnt')
+          .where('o.customerID = :cid', { cid: c.customerID })
+          .getRawOne();
+
+        const latestOrder = await this.orderInfoEntity
+          .createQueryBuilder('o')
+          .leftJoin(CarEntity, 'car', 'o.carID = car.id')
+          .select([
+            'o.id as orderID',
+            'o.status as order_status',
+            'car.registrationNumber as registrationNumber',
+            'car.brand as brand',
+            'car.model as model',
+            'car.year as year',
+            'car.name as name',
+          ])
+          .where('o.customerID = :cid', { cid: c.customerID })
+          .orderBy('o.createTime', 'DESC')
+          .limit(1)
+          .getRawOne();
+
+        return {
+          customerID: Number(c.customerID),
+          firstName: cleanText(c.firstName),
+          surname: cleanText(c.surname),
+          phoneNumber: cleanText(c.phoneNumber),
+          emailAddress: cleanText(c.emailAddress),
+          bookingCount: Number(countResult?.cnt || 0),
+          latestBookingStatus: latestOrder ? this.bookingStatusLabel(Number(latestOrder.order_status), 0) : null,
+          latestOrderID: latestOrder ? Number(latestOrder.orderID) : null,
+          latestVehicleLabel: latestOrder ? this.buildVehicleLabel(latestOrder) : null,
+          latestRegistrationNumber: latestOrder ? cleanText(latestOrder.registrationNumber) : null,
+        };
+      })
+    );
+
+    // If no customers found, fallback: try driver search (a bare name might be a driver)
+    if (!enriched.length) {
+      const driverClassification = {
+        ...classification,
+        entities: {
+          ...entities,
+          driverName: customerName || cleanText(prompt),
+        },
+      };
+      return this.buildDriverTasksResult(prompt, departmentId, driverClassification);
+    }
+
+    return {
+      interpret: {
+        intent: 'customer_lookup',
+        confidence: classification?.confidence || 0.5,
+        entities: entities,
+      },
+      mode: 'customer',
+      customerResult: {
+        title: `Customers matching "${customerName || prompt}"`,
+        count: enriched.length,
+        customers: enriched,
+      },
+      source: 'live',
+    };
+  }
+
+  private async buildDriverTasksResult(prompt: string, departmentId?: number, classification?: any) {
+    const entities = classification?.entities || {};
+    const driverName = cleanText(entities.driverName);
+    const dateRangeKey = cleanText(entities.dateRange);
+
+    const qb = this.jobEntity
+      .createQueryBuilder('job')
+      .leftJoin(BaseSysUserEntity, 'driver', 'job.driverID = driver.id')
+      .leftJoin(OrderInfoEntity, 'o', 'job.orderID = o.id')
+      .leftJoin(CarEntity, 'car', 'o.carID = car.id')
+      .leftJoin(CustomerProfileEntity, 'customer', 'o.customerID = customer.id')
+      .select([
+        'job.id as jobID',
+        'job.orderID as orderID',
+        'job.status as jobStatus',
+        'job.schedulerStart as schedulerStart',
+        'job.schedulerEnd as schedulerEnd',
+        'o.quoteNumber as quoteNumber',
+        'o.pickupAddress as pickupAddress',
+        'car.registrationNumber as registrationNumber',
+        'car.brand as brand',
+        'car.model as model',
+        'car.year as year',
+        'car.name as name',
+        'customer.firstName as firstName',
+        'customer.surname as surname',
+      ])
+      // Active jobs first (Assigned=1, Accepted=2, ToAssign=0), then inactive (Rejected=3, Completed=4)
+      .orderBy(`CASE job.status WHEN 1 THEN 0 WHEN 2 THEN 1 WHEN 0 THEN 2 WHEN 3 THEN 3 WHEN 4 THEN 4 ELSE 5 END`, 'ASC')
+      .addOrderBy('job.schedulerStart', 'ASC')
+      .limit(20);
+
+    if (driverName) {
+      qb.andWhere(
+        '(driver.nickName LIKE :dn OR driver.username LIKE :dn OR driver.name LIKE :dn)',
+        { dn: `%${driverName}%` }
+      );
+    }
+
+    if (departmentId) {
+      qb.andWhere('o.departmentId = :departmentId', { departmentId });
+    }
+
+    if (dateRangeKey) {
+      const range = inferDateRange(dateRangeKey);
+      if (range) {
+        qb.andWhere('job.schedulerStart >= :rangeStart', { rangeStart: range.start });
+        qb.andWhere('job.schedulerStart <= :rangeEnd', { rangeEnd: range.end });
+      }
+    }
+
+    const rows = await qb.getRawMany();
+
+    const jobStatusMap = { 0: 'To Assign', 1: 'Assigned', 2: 'Accepted', 3: 'Rejected', 4: 'Completed' };
+
+    return {
+      interpret: {
+        intent: 'driver_tasks_query',
+        confidence: classification?.confidence || 0.5,
+        entities: entities,
+      },
+      mode: 'driver_tasks',
+      driverTasks: {
+        title: `${driverName || 'Driver'}'s tasks` + (dateRangeKey ? ` ${dateRangeKey.replace('_', ' ')}` : ''),
+        driverName: driverName || null,
+        count: rows.length,
+        rows: rows.map(row => ({
+          jobID: Number(row.jobID),
+          orderID: Number(row.orderID),
+          stockNumber: row.quoteNumber,
+          registrationNumber: row.registrationNumber,
+          vehicleLabel: this.buildVehicleLabel(row),
+          customerName: [row.firstName, row.surname].filter(Boolean).join(' '),
+          jobStatus: jobStatusMap[Number(row.jobStatus)] || 'Unknown',
+          expectedDateLabel: formatExpectedDateLabel(row.schedulerStart),
+          schedulerStart: row.schedulerStart || null,
+          schedulerEnd: row.schedulerEnd || null,
+          pickupAddress: cleanText(row.pickupAddress),
+        })),
+      },
+      source: 'live',
+    };
+  }
+
+  private async buildVehicleListResult(prompt: string, departmentId?: number, classification?: any) {
+    const entities = classification?.entities || {};
+    const stage = cleanText(entities.stage);
+    const vehicleMake = cleanText(entities.vehicleMake);
+    const vehicleModel = cleanText(entities.vehicleModel);
+    const dateRangeKey = cleanText(entities.dateRange);
+
+    const qb = this.orderInfoEntity
+      .createQueryBuilder('o')
+      .leftJoin(CarEntity, 'car', 'o.carID = car.id')
+      .leftJoin(VehicleProcessingEntity, 'processing', 'processing.carID = car.id')
+      .leftJoin(CustomerProfileEntity, 'customer', 'o.customerID = customer.id')
+      .select([
+        'car.id as carID',
+        'o.id as orderID',
+        'o.quoteNumber as quoteNumber',
+        'car.registrationNumber as registrationNumber',
+        'car.brand as brand',
+        'car.model as model',
+        'car.year as year',
+        'car.name as name',
+        'processing.stage as processingStage',
+        'processing.destination as destination',
+        'customer.firstName as firstName',
+        'customer.surname as surname',
+        'o.expectedDate as expectedDate',
+      ])
+      .orderBy('o.createTime', 'DESC')
+      .limit(20);
+
+    if (departmentId) {
+      qb.andWhere('o.departmentId = :departmentId', { departmentId });
+    }
+
+    if (stage) {
+      qb.andWhere('processing.stage = :stage', { stage });
+    }
+    if (vehicleMake) {
+      qb.andWhere('car.brand LIKE :make', { make: `%${vehicleMake}%` });
+    }
+    if (vehicleModel) {
+      qb.andWhere('car.model LIKE :model', { model: `%${vehicleModel}%` });
+    }
+    if (dateRangeKey) {
+      const range = inferDateRange(dateRangeKey);
+      if (range) {
+        qb.andWhere('o.createTime >= :rangeStart', { rangeStart: range.start });
+        qb.andWhere('o.createTime <= :rangeEnd', { rangeEnd: range.end });
+      }
+    }
+
+    const rows = await qb.getRawMany();
+
+    const titleParts = ['Vehicles'];
+    if (stage) titleParts.push(`in ${stage}`);
+    if (vehicleMake) titleParts.push(`make: ${vehicleMake}`);
+    if (vehicleModel) titleParts.push(`model: ${vehicleModel}`);
+    if (dateRangeKey) titleParts.push(`(${dateRangeKey.replace('_', ' ')})`);
+
+    return {
+      interpret: {
+        intent: 'vehicle_list_query',
+        confidence: classification?.confidence || 0.5,
+        entities: entities,
+      },
+      mode: 'vehicle_list',
+      vehicleList: {
+        title: titleParts.join(' '),
+        count: rows.length,
+        rows: rows.map(row => ({
+          carID: Number(row.carID),
+          orderID: Number(row.orderID),
+          stockNumber: row.quoteNumber,
+          registrationNumber: row.registrationNumber,
+          vehicleLabel: this.buildVehicleLabel(row),
+          stage: cleanText(row.processingStage) || 'Booked',
+          destination: cleanText(row.destination),
+          customerName: [row.firstName, row.surname].filter(Boolean).join(' '),
+          expectedDateLabel: formatExpectedDateLabel(row.expectedDate),
+        })),
+      },
+      source: 'live',
+    };
+  }
+
+  private async buildStatsResult(prompt: string, departmentId?: number, classification?: any) {
+    const entities = classification?.entities || {};
+    const dateRangeKey = cleanText(entities.dateRange);
+    const range = dateRangeKey ? inferDateRange(dateRangeKey) : null;
+
+    // Total vehicles
+    const totalQb = this.orderInfoEntity.createQueryBuilder('o').select('COUNT(*)', 'total');
+    if (departmentId) totalQb.andWhere('o.departmentId = :departmentId', { departmentId });
+    if (range) {
+      totalQb.andWhere('o.createTime >= :rangeStart', { rangeStart: range.start });
+      totalQb.andWhere('o.createTime <= :rangeEnd', { rangeEnd: range.end });
+    }
+    const totalRow = await totalQb.getRawOne();
+
+    // Count by processing stage
+    const stageQb = this.vehicleProcessingEntity
+      .createQueryBuilder('vp')
+      .select('vp.stage', 'stage')
+      .addSelect('COUNT(*)', 'cnt')
+      .groupBy('vp.stage');
+    if (departmentId) {
+      stageQb.leftJoin(CarEntity, 'car', 'vp.carID = car.id')
+        .leftJoin(OrderInfoEntity, 'o', 'o.carID = car.id')
+        .andWhere('o.departmentId = :departmentId', { departmentId });
+    }
+    const stageRows = await stageQb.getRawMany();
+
+    const metrics: { label: string; value: number }[] = [
+      { label: 'Total Vehicles', value: Number(totalRow?.total || 0) },
+    ];
+    for (const sr of stageRows) {
+      if (sr.stage) {
+        metrics.push({ label: `In ${sr.stage}`, value: Number(sr.cnt || 0) });
+      }
+    }
+
+    const titleParts = ['Yard statistics'];
+    if (range) titleParts.push(`(${range.label})`);
+
+    return {
+      interpret: {
+        intent: 'stats_summary',
+        confidence: classification?.confidence || 0.5,
+        entities: entities,
+      },
+      mode: 'stats',
+      stats: {
+        title: titleParts.join(' '),
+        metrics,
+        dateRange: dateRangeKey || null,
+      },
+      source: 'live',
+    };
+  }
+
+  private async buildFuzzyResult(prompt: string, departmentId?: number, classification?: any) {
+    const rows = await this.findOrderCandidates(prompt, departmentId, 10);
+
+    if (!rows.length) {
       return {
         interpret: {
-          intent: 'unknown',
-          confidence: 0.88,
-          entities: {},
-          filters: {},
-          missingRequired: [],
-          ambiguities: [],
-          suggestedTools: [],
-          responseMode: 'clarify',
+          intent: 'fuzzy_search',
+          confidence: classification?.confidence || 0,
+          entities: classification?.entities || {},
         },
-        mode: 'clarify',
-        clarificationQuestion: 'This looks like a lead-creation request. Use Quick Create to generate a lead draft.',
+        mode: 'vehicle_list',
+        vehicleList: { title: `No results for "${prompt}"`, count: 0, rows: [] },
         source: 'live',
       };
     }
-    if (intent === 'operations_filter_query') {
-      return this.buildOperationsResult(prompt, departmentId);
+
+    return {
+      interpret: {
+        intent: 'fuzzy_search',
+        confidence: classification?.confidence || 0,
+        entities: classification?.entities || {},
+      },
+      mode: 'vehicle_list',
+      vehicleList: {
+        title: `Search results for "${prompt}"`,
+        count: rows.length,
+        rows: rows.map(row => ({
+          carID: Number(row.carID),
+          orderID: Number(row.orderID),
+          stockNumber: row.quoteNumber,
+          registrationNumber: row.registrationNumber,
+          vehicleLabel: this.buildVehicleLabel(row),
+          stage: cleanText(row.processingStage) || 'Booked',
+          destination: cleanText(row.destination),
+          customerName: [row.firstName, row.surname].filter(Boolean).join(' '),
+          expectedDateLabel: formatExpectedDateLabel(row.expectedDate),
+        })),
+      },
+      source: 'live',
+    };
+  }
+
+  async execute(prompt: string, departmentId?: number, entryPoint: 'search' | 'create' = 'search') {
+    if (entryPoint === 'create') {
+      return this.createDraftFromPrompt(prompt, departmentId);
     }
-    if (intent === 'vehicle_parts_summary') {
-      return this.buildPartsResult(prompt, departmentId);
+
+    const anchors = this.extractAnchors(prompt);
+    const classification = await this.classifyIntent(prompt, anchors);
+
+    // Low confidence → fuzzy
+    if (classification.confidence < 0.3) {
+      classification.intent = 'fuzzy_search';
     }
-    if (intent === 'vehicle_status_query') {
-      return this.buildVehicleResult(prompt, departmentId);
+
+    switch (classification.intent) {
+      case 'vehicle_status_query':
+        return this.buildVehicleResult(prompt, departmentId, classification);
+      case 'vehicle_parts_summary':
+        return this.buildPartsResult(prompt, departmentId, classification);
+      case 'operations_filter_query':
+        return this.buildOperationsResult(prompt, departmentId);
+      case 'customer_lookup':
+        return this.buildCustomerResult(prompt, departmentId, classification);
+      case 'vehicle_list_query':
+        return this.buildVehicleListResult(prompt, departmentId, classification);
+      case 'stats_summary':
+        return this.buildStatsResult(prompt, departmentId, classification);
+      case 'driver_tasks_query':
+        return this.buildDriverTasksResult(prompt, departmentId, classification);
+      default:
+        return this.buildFuzzyResult(prompt, departmentId, classification);
     }
-    return this.createDraftFromPrompt(prompt, departmentId);
   }
 
   async commitLead(draft, departmentId?: number) {
