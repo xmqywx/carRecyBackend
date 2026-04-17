@@ -37,7 +37,7 @@ export class LeadAssistantSessionService extends BaseService {
     await this.cacheManager.set(
       this.sessionKey(session.id),
       JSON.stringify(session),
-      SESSION_TTL_SECONDS
+      { ttl: SESSION_TTL_SECONDS }
     );
     return session;
   }
@@ -69,7 +69,7 @@ export class LeadAssistantSessionService extends BaseService {
     await this.cacheManager.set(
       this.sessionKey(id),
       JSON.stringify(nextSession),
-      SESSION_TTL_SECONDS
+      { ttl: SESSION_TTL_SECONDS }
     );
     return nextSession;
   }

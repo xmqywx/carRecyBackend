@@ -9,6 +9,7 @@ import { BaseSysUserRoleEntity } from '../../entity/sys/user_role';
 import * as md5 from 'md5';
 import { BaseSysDepartmentEntity } from '../../entity/sys/department';
 import { CacheManager } from '@midwayjs/cache';
+import { syncUserRoles } from './user-role-refresh';
 
 /**
  * 系统用户
@@ -137,21 +138,14 @@ export class BaseSysUserService extends BaseService {
    * @param user
    */
   async updateUserRole(user) {
-    if (_.isEmpty(user.roleIdList)) {
-      return;
-    }
-    if (user.username === 'admin') {
-      throw new CoolCommException('Illegal operation~');
-    }
-    await this.baseSysUserRoleEntity.delete({ userId: user.id });
-    if (user.roleIdList) {
-      for (const roleId of user.roleIdList) {
-        await this.baseSysUserRoleEntity.save({ userId: user.id, roleId });
+    try {
+      await syncUserRoles(this.baseSysUserRoleEntity, this.baseSysPermsService, user);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Illegal operation~') {
+        throw new CoolCommException(error.message);
       }
+      throw error;
     }
-    console.log(user);
-    // if(user.username) ？？？
-    // await this.baseSysPermsService.refreshPerms(user.id);
   }
 
   /**

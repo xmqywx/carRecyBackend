@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Post, Provide } from '@midwayjs/decorator';
+import { Body, Controller, Inject, Param, Post, Provide } from '@midwayjs/decorator';
 import { BaseController } from '@cool-midway/core';
 import { LeadAssistantCustomerResolveService } from '../../service/customerResolve';
 import { LeadAssistantDuplicateCheckService } from '../../service/duplicateCheck';
@@ -7,6 +7,7 @@ import { LeadAssistantCommitService } from '../../service/commit';
 import { LeadAssistantSessionService } from '../../service/session';
 import { LeadAssistantScheduleResolveService } from '../../service/scheduleResolve';
 import { LeadAssistantVehicleResolveService } from '../../service/vehicleResolve';
+import { DriverAvailabilityService } from '../../service/driverRecommend';
 
 @Provide()
 @Controller('/admin/base/comm/lead-assistant')
@@ -31,6 +32,9 @@ export class LeadAssistantCommController extends BaseController {
 
   @Inject()
   leadAssistantCommitService: LeadAssistantCommitService;
+
+  @Inject()
+  driverAvailabilityService: DriverAvailabilityService;
 
   @Post('/session/start')
   async start(@Body('departmentId') departmentId: number) {
@@ -177,6 +181,46 @@ export class LeadAssistantCommController extends BaseController {
       Number(departmentId),
       { continueAsNew: Boolean(continueAsNew) }
     );
+    return this.ok(result);
+  }
+
+  @Post('/session/:id/recommend-drivers')
+  async recommendDrivers(
+    @Param('id') id: string,
+    @Body('departmentId') departmentId: number,
+  ) {
+    const result = await this.driverAvailabilityService.recommendDrivers(id, Number(departmentId));
+    return this.ok(result);
+  }
+
+  @Post('/session/:id/commit-booked')
+  async commitBooked(
+    @Param('id') id: string,
+    @Body('departmentId') departmentId: number,
+    @Body('driverId') driverId: number | null,
+  ) {
+    const result = await this.leadAssistantCommitService.commitBooked(
+      id,
+      Number(departmentId),
+      driverId ?? null,
+    );
+    return this.ok(result);
+  }
+
+  @Post('/session/:id/intake-image')
+  async intakeImage(
+    @Param('id') id: string,
+    @Body('imageBase64') imageBase64: string,
+    @Body('departmentId') departmentId: number,
+  ) {
+    if (!imageBase64?.startsWith('data:image/')) {
+      return this.fail('imageBase64 must be a data: URI');
+    }
+    const approxSize = (imageBase64.length * 3) / 4;
+    if (approxSize > 5 * 1024 * 1024) {
+      return this.fail('Image too large (max 5MB)');
+    }
+    const result = await this.leadAssistantIntakeService.runImage(id, departmentId, imageBase64);
     return this.ok(result);
   }
 }
