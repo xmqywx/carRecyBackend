@@ -74,6 +74,9 @@ export class OrderInfoEntity extends BaseEntity {
   @Column({ comment: 'note', nullable: true })
   note: string;
 
+  @Column({ comment: 'pickup notes — driver handout instructions', nullable: true, type: 'text' })
+  pickupNotes: string;
+
   @Column({ comment: 'yard ID', type: 'bigint' })
   departmentId: number;
 

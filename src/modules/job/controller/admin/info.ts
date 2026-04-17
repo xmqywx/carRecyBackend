@@ -32,7 +32,7 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
     select: [
       'a.*',
       'b.expectedDate',
-      'b.pickupAddress',
+      'IFNULL(b.pickupAddress, "") AS pickupAddress',
       'b.pickupAddressState',
       'b.quoteNumber',
       'c.name',
@@ -40,10 +40,15 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
       'c.year',
       'c.brand',
       'c.colour',
+      // a.* already exposes JobEntity.color (hex, default '#3b5bc2'). Do NOT
+      // alias c.colour (free-text car paint colour like "WHITE") as `color` —
+      // that overrides the proper UI color field and breaks Flutter's
+      // int.parse(color.replaceFirst('#', '0xFF')).
+      'IFNULL(a.color, "#3b5bc2") AS color',
       'c.vinNumber',
       'c.series',
       'c.engine',
-      'c.image',
+      'IFNULL(c.image, "") AS image',
       'e.phoneNumber',
       'e.firstName',
       'b.floating',

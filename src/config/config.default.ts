@@ -29,6 +29,13 @@ export default {
       methods: ['GET', 'POST'],
     },
   },
+  // HTTP 跨域（dev 环境：允许任意 origin + 凭据）
+  cors: {
+    origin: (ctx: any) => ctx.get('Origin') || '*',
+    credentials: true,
+    allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS',
+    allowHeaders: 'Content-Type,Authorization,Token,token,x-requested-with',
+  },
   // 文件上传
   upload: {
     fileSize: '200mb',

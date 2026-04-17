@@ -10,6 +10,7 @@ import * as cool from '@cool-midway/core';
 import * as file from '@cool-midway/file';
 import * as localTask from '@midwayjs/task';
 import * as socketio from '@midwayjs/socketio';
+import * as crossDomain from '@midwayjs/cross-domain';
 // import * as task from '@cool-midway/task';
 // import * as pay from '@cool-midway/pay';
 // import * as es from '@cool-midway/es';
@@ -31,6 +32,8 @@ import * as socketio from '@midwayjs/socketio';
     orm,
     // socketio http://www.midwayjs.org/docs/extensions/socketio
     socketio,
+    // 跨域
+    crossDomain,
     // cool-admin 官方组件 https://www.cool-js.com
     cool,
     // 文件上传 阿里云存储 腾讯云存储 七牛云存储
