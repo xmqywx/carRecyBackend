@@ -41,14 +41,17 @@ export function buildBookingCountQueryParts({
     params.jobStatus = 4;
   }
 
+  // Booking page filters by createTime (booking entry time). Customer-preferred
+  // pickup date (a.expectedDate) is for Schedule / job dispatch, not for the
+  // booking historical list.
   if (expectedDateStart != null) {
-    clauses.push('CAST(a.expectedDate AS UNSIGNED) >= :expectedDateStart');
-    params.expectedDateStart = expectedDateStart;
+    clauses.push('a.createTime >= :bookingDateStart');
+    params.bookingDateStart = new Date(expectedDateStart);
   }
 
   if (expectedDateEnd != null) {
-    clauses.push('CAST(a.expectedDate AS UNSIGNED) <= :expectedDateEnd');
-    params.expectedDateEnd = expectedDateEnd;
+    clauses.push('a.createTime <= :bookingDateEnd');
+    params.bookingDateEnd = new Date(expectedDateEnd);
   }
 
   const trimmedKeyword = keyWord?.trim();

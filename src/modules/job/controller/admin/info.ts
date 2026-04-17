@@ -93,15 +93,14 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
       const { startDate, endDate, status, expectedDateStart, expectedDateEnd } =
         ctx.request.body;
       if (status === 0) {
+        // To Assign: primary date filter uses customer-preferred pickup date
         return [
           ['a.status != :archivedStatus', { archivedStatus: 5 }],
           ['a.status != :deletedStatus', { deletedStatus: -1 }],
           startDate
-            ? ['a.updateTime >= :startDate', { startDate: new Date(startDate) }]
+            ? ['b.expectedDate >= :startDate', { startDate }]
             : [],
-          endDate
-            ? ['a.updateTime <= :endDate', { endDate: new Date(endDate) }]
-            : [],
+          endDate ? ['b.expectedDate <= :endDate', { endDate }] : [],
           expectedDateStart
             ? ['b.expectedDate >= :expectedDateStart', { expectedDateStart }]
             : [],
@@ -186,26 +185,24 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
     where: async ctx => {
       const { startDate, endDate, status } = ctx.request.body;
       if (status === 0) {
+        // To Assign: filter by customer-preferred pickup date (b.expectedDate)
         return [
           ['a.status != :archivedStatus', { archivedStatus: 5 }],
           ['a.status != :deletedStatus', { deletedStatus: -1 }],
           startDate
-            ? ['a.updateTime >= :startDate', { startDate: new Date(startDate) }]
+            ? ['b.expectedDate >= :startDate', { startDate }]
             : [],
-          endDate
-            ? ['a.updateTime <= :endDate', { endDate: new Date(endDate) }]
-            : [],
+          endDate ? ['b.expectedDate <= :endDate', { endDate }] : [],
         ];
       } else {
+        // Assigned / Accepted / Completed / All — filter by scheduled time
         return [
           ['a.status != :archivedStatus', { archivedStatus: 5 }],
           ['a.status != :deletedStatus', { deletedStatus: -1 }],
           startDate
-            ? ['a.updateTime >= :startDate', { startDate: new Date(startDate) }]
+            ? ['a.schedulerStart >= :startDate', { startDate }]
             : [],
-          endDate
-            ? ['a.updateTime <= :endDate', { endDate: new Date(endDate) }]
-            : [],
+          endDate ? ['a.schedulerStart <= :endDate', { endDate }] : [],
         ];
       }
     },

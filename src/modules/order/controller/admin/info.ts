@@ -259,16 +259,18 @@ import { buildBookingCountQueryParts } from '../../utils/bookingCountQuery';
 
       return [
         isPaid ? ['e.status = 4', {}] : [],
+        // Booking page date filter = booking createTime (when the order was
+        // entered into the system). Job/dispatch dates live on Schedule page.
         expectedRange.expectedDateStart != null
           ? [
-              'CAST(a.expectedDate AS UNSIGNED) >= :expectedDateStart',
-              { expectedDateStart: expectedRange.expectedDateStart },
+              'a.createTime >= :bookingDateStart',
+              { bookingDateStart: new Date(expectedRange.expectedDateStart) },
             ]
           : [],
         expectedRange.expectedDateEnd != null
           ? [
-              'CAST(a.expectedDate AS UNSIGNED) <= :expectedDateEnd',
-              { expectedDateEnd: expectedRange.expectedDateEnd },
+              'a.createTime <= :bookingDateEnd',
+              { bookingDateEnd: new Date(expectedRange.expectedDateEnd) },
             ]
           : [],
         isNotScheduleSearch,
