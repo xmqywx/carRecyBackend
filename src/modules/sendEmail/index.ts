@@ -7,7 +7,7 @@ const dotenv = require('dotenv');
 const envFile =
   process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
 // const pdf = require('html-pdf-chrome');
-const puppeteerCore = require('puppeteer-core');
+const puppeteerCore = require('puppeteer');
 const fs = require('fs');
 dotenv.config({ path: envFile });
 // 配置 AWS SDK
@@ -435,20 +435,21 @@ ${email}</pre>
   // })
   // const pdfBuffer = await pdf.create(invoiceHtml).toBuffer();
   // console.log(pdfBuffer);
-  const chromePaths = [
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium-browser',
-    '/usr/bin/chromium',
-  ];
-  const executablePath = chromePaths.find(p => fs.existsSync(p));
-  const browser = await puppeteerCore.launch({
-    headless: 'new',
-    executablePath,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
-  });
+  // puppeteer bundles Chromium; rely on it. Honor the env override for
+  // custom container images.
+  const launchOptions: any = {
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-gpu',
+      '--disable-dev-shm-usage',
+    ],
+  };
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+  const browser = await puppeteerCore.launch(launchOptions);
   const page = await browser.newPage();
   await page.setContent(invoiceHtml, { waitUntil: 'networkidle0' });
   const pdfBuffer = await page.pdf({ format: 'A4', landscape: true });

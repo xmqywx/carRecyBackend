@@ -3,8 +3,11 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const envFile =
   process.env.NODE_ENV === 'local' ? '.env.local' : '.env.production';
-// const pdf = require('html-pdf-chrome');
-const puppeteerCore = require('puppeteer-core');
+// Full `puppeteer` bundles its own Chromium — no system Chrome needed.
+// Previously we used puppeteer-core + a chromePaths fallback list; that
+// broke on production (snap chromium + pm2) so we moved to the bundled
+// runtime. `PUPPETEER_EXECUTABLE_PATH` env is still honored if set.
+const puppeteerCore = require('puppeteer');
 const AWS = require('aws-sdk');
 dotenv.config({ path: envFile });
 import { normalizeSignatureImagesLeftAligned } from './utils/emailSignature';
@@ -133,20 +136,22 @@ export async function outPutPdf({ textToSend }) {
       </main>
     </body>
     </html>`;
-  const chromePaths = [
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium-browser',
-    '/usr/bin/chromium',
-  ];
-  const executablePath = chromePaths.find(p => fs.existsSync(p));
-  const browser = await puppeteerCore.launch({
-    headless: 'new',
-    executablePath,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
-  });
+  // puppeteer bundles Chromium; no system-path fallback needed. Honor
+  // PUPPETEER_EXECUTABLE_PATH when explicitly set (e.g. custom container
+  // image). Launch args stay aggressive for unprivileged container runs.
+  const launchOptions: any = {
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-gpu',
+      '--disable-dev-shm-usage',
+    ],
+  };
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+  const browser = await puppeteerCore.launch(launchOptions);
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: 'networkidle0' });
   const pdfBuffer = await page.pdf({ format: 'A4', landscape: true });

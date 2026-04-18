@@ -223,25 +223,20 @@ export class SoldCompleteEmailService extends BaseService {
     // Try to generate PDF
     let pdfBuffer: Buffer | null = null;
     try {
-      const puppeteer = require('puppeteer-core');
-      // Find Chrome executable
-      const fs = require('fs');
-      const chromePaths = [
-        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-        '/usr/bin/google-chrome',
-        '/usr/bin/chromium-browser',
-        '/usr/bin/chromium',
-      ];
-      const executablePath = chromePaths.find(p => fs.existsSync(p));
-      if (!executablePath) throw new Error('No Chrome/Chromium found');
-
-      const browser = await puppeteer.launch({
-        headless: 'new',
-        executablePath,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
-      });
+      const puppeteer = require('puppeteer');
+      const launchOptions: any = {
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+        ],
+      };
+      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      }
+      const browser = await puppeteer.launch(launchOptions);
       const page = await browser.newPage();
       await page.setContent(invoiceHtml, { waitUntil: 'networkidle0' });
       pdfBuffer = await page.pdf({ format: 'A4' });
