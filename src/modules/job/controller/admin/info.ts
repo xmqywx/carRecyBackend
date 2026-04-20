@@ -31,6 +31,7 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
     ],
     select: [
       'a.*',
+      '(SELECT COUNT(*) FROM order_action WHERE orderID = a.orderID AND type = 1) AS noteCount',
       'b.expectedDate',
       'IFNULL(b.pickupAddress, "") AS pickupAddress',
       'b.pickupAddressState',
@@ -138,6 +139,7 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
     ],
     select: [
       'a.*',
+      '(SELECT COUNT(*) FROM order_action WHERE orderID = a.orderID AND type = 1) AS noteCount',
       'b.expectedDate',
       'b.pickupAddress',
       'b.pickupAddressState',
