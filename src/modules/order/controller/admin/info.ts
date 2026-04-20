@@ -157,6 +157,7 @@ import { buildBookingCountQueryParts } from '../../utils/bookingCountQuery';
     ],
     select: [
       'a.*',
+      '(SELECT COUNT(*) FROM order_action WHERE orderID = a.id AND type = 1) AS noteCount',
       'b.firstName',
       'b.surname',
       'b.phoneNumber',
