@@ -1,15 +1,21 @@
 -- 2026-04-21-migrate-comments-to-notes.sql
--- Migrates legacy `order_info.commentText` / `order_info.pickupNotes` blobs
+-- Migrates legacy `order.commentText` / `order.pickupNotes` blobs
 -- into threaded `order_action` rows (type=1, name='Internal'/'Driver').
 -- Legacy columns are PRESERVED for 2-3 weeks — carRecyFontend/src/modules/lead
 -- /components/form-car.vue:1765 still actively writes commentText; Flutter
 -- we_pick_your_car writes commentText too. A follow-up drop-columns migration
 -- ships only after those writers are decommissioned.
 --
--- MySQL 5.7 compatible. IDEMPOTENT: INSERTs are guarded by NOT EXISTS so a
--- rerun inserts zero additional rows as long as the content+tag match.
+-- MySQL 5.7 compatible. IDEMPOTENT w.r.t. unchanged sources: a rerun inserts
+-- zero rows iff the legacy blob text is unchanged since the last run. If a
+-- legacy writer (e.g. carRecyFontend, Flutter) has since edited the blob,
+-- the new version will be appended as a second note row (intentional — treat
+-- as a new edit).
 -- Run manually against prod; DB_SYNCHRONIZE=false on apexpoint-front local,
 -- so no auto-apply.
+--
+-- Apply with: mysql -h<host> -u<user> -p<DB name> < 2026-04-21-migrate-comments-to-notes.sql
+-- (or first `USE \`<DB name>\`;` — some wrappers drop the shell arg).
 
 -- 0) Ensure composite index (orderID, type) on order_action. §7 adds a
 --    correlated COUNT(*) subquery to booking/job page(); without an index,
@@ -38,7 +44,7 @@ INSERT INTO order_action
 SELECT oi.id, 0, oi.commentText,
        CAST(UNIX_TIMESTAMP(oi.updateTime) * 1000 AS CHAR),
        1, 'Internal', NOW(), NOW()
-FROM order_info oi
+FROM `order` oi
 WHERE oi.commentText IS NOT NULL AND oi.commentText != ''
   AND NOT EXISTS (
     SELECT 1 FROM order_action oa
@@ -55,7 +61,7 @@ INSERT INTO order_action
 SELECT oi.id, 0, oi.pickupNotes,
        CAST(UNIX_TIMESTAMP(oi.updateTime) * 1000 AS CHAR),
        1, 'Driver', NOW(), NOW()
-FROM order_info oi
+FROM `order` oi
 WHERE oi.pickupNotes IS NOT NULL AND oi.pickupNotes != ''
   AND NOT EXISTS (
     SELECT 1 FROM order_action oa
