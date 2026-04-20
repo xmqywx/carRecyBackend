@@ -8,7 +8,6 @@ const envFile =
   process.env.NODE_ENV === 'prod' ? '.env.production' : '.env.local';
 // const pdf = require('html-pdf-chrome');
 const puppeteerCore = require('puppeteer');
-const fs = require('fs');
 dotenv.config({ path: envFile });
 // 配置 AWS SDK
 AWS.config.update({

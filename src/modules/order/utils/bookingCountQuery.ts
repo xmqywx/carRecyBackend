@@ -10,12 +10,15 @@ interface BookingCountQueryPartsInput {
 const BOOKING_COUNT_KEYWORD_FIELDS = [
   'b.firstName',
   'b.surname',
+  'b.phoneNumber',
   'c.registrationNumber',
   'c.state',
   'c.name',
   'c.model',
   'c.year',
   'c.brand',
+  'c.vinNumber',
+  'a.quoteNumber',
 ];
 
 export function buildBookingCountQueryParts({

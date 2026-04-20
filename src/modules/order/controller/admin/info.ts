@@ -28,10 +28,14 @@ import { buildBookingCountQueryParts } from '../../utils/bookingCountQuery';
     keyWordLikeFields: [
       'firstName',
       'surname',
+      'b.phoneNumber',
       'c.name',
       'model',
       'year',
       'brand',
+      'c.registrationNumber',
+      'c.vinNumber',
+      'a.quoteNumber',
     ],
     select: [
       'a.*',
@@ -157,7 +161,6 @@ import { buildBookingCountQueryParts } from '../../utils/bookingCountQuery';
     ],
     select: [
       'a.*',
-      '(SELECT COUNT(*) FROM order_action WHERE orderID = a.id AND type = 1) AS noteCount',
       'b.firstName',
       'b.surname',
       'b.phoneNumber',
@@ -373,26 +376,44 @@ export class VehicleProfileController extends BaseController {
   }
 
   /**
-   * 获取统计信息
+   * 获取 Job 统计数。where 子句与 job.page() 保持一致，这样 Schedule List 上方
+   * 的 tab 数字和下方表格实际行数对得上：
+   *   - 始终排除 status=5 (archived) / status=-1 (deleted)
+   *   - status=0 (To Assign) 的日期筛选用客户期望日 b.expectedDate
+   *   - 其他 status 的日期筛选用排期时间 a.schedulerStart
+   *   - 无日期参数时保持旧前端行为（不做日期过滤）
    */
   @Post('/getCountJob')
   async getCountJob(
     @Body('status') status: number,
     @Body('departmentId') departmentId: number,
-    @Body('startDate') startDate: Date,
-    @Body('endDate') endDate: Date
+    @Body('startDate') startDate: number | string,
+    @Body('endDate') endDate: number | string
   ) {
-    const filter: any = {};
-    if (status != undefined) {
-      filter.status = status;
+    const qb = this.jobEntity
+      .createQueryBuilder('a')
+      .where('a.status != :archived', { archived: 5 })
+      .andWhere('a.status != :deleted', { deleted: -1 });
+
+    if (status !== undefined && status !== null) {
+      qb.andWhere('a.status = :status', { status });
     }
+    if (departmentId) {
+      qb.andWhere('a.departmentId = :departmentId', { departmentId });
+    }
+
     if (startDate && endDate) {
-      filter.updateTime = Between(startDate, endDate);
+      if (status === 0) {
+        qb.leftJoin(OrderInfoEntity, 'b', 'a.orderID = b.id')
+          .andWhere('b.expectedDate >= :startDate', { startDate })
+          .andWhere('b.expectedDate <= :endDate', { endDate });
+      } else {
+        qb.andWhere('a.schedulerStart >= :startDate', { startDate })
+          .andWhere('a.schedulerStart <= :endDate', { endDate });
+      }
     }
-    filter.departmentId = departmentId;
-    const count = await this.jobEntity.count({
-      where: filter,
-    });
+
+    const count = await qb.getCount();
     return this.ok(count);
   }
 

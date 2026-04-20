@@ -31,7 +31,6 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
     ],
     select: [
       'a.*',
-      '(SELECT COUNT(*) FROM order_action WHERE orderID = a.orderID AND type = 1) AS noteCount',
       'b.expectedDate',
       'IFNULL(b.pickupAddress, "") AS pickupAddress',
       'b.pickupAddressState',
@@ -53,6 +52,9 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
       'e.phoneNumber',
       'e.firstName',
       'b.floating',
+      'b.isPaidOnly',
+      'b.isPickedUpOnly',
+      'b.isPaperworkOnly',
     ],
     // 多表关联，请求筛选字段与表字段不一致的情况
     fieldEq: [
@@ -139,7 +141,6 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
     ],
     select: [
       'a.*',
-      '(SELECT COUNT(*) FROM order_action WHERE orderID = a.orderID AND type = 1) AS noteCount',
       'b.expectedDate',
       'b.pickupAddress',
       'b.pickupAddressState',
@@ -154,6 +155,9 @@ import { VehicleProcessingService } from '../../../car/service/vehicleProcessing
       'c.vinNumber',
       'd.username',
       'b.floating',
+      'b.isPaidOnly',
+      'b.isPickedUpOnly',
+      'b.isPaperworkOnly',
       // Customer (aliased to avoid colliding with joins a/b/c/d)
       'e.firstName AS customerFirstName',
       'e.surname AS customerSurname',

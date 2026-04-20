@@ -48,6 +48,26 @@ export class OrderActionController extends BaseController {
   @Inject()
   emailLogService: EmailLogService;
 
+  /**
+   * 批量返回每个 orderID 对应的用户 note 数量 (type=1)。
+   * 用于 Booking/Schedule list 页渲染 NoteBadge，避免 N+1。
+   * 一次请求完成；依赖索引 idx_order_action_order_type (orderID, type)。
+   */
+  @Post('/getCounts')
+  async getCounts(@Body('orderIDs') orderIDs: number[]) {
+    if (!orderIDs || !orderIDs.length) return this.ok({});
+    const rows = await this.orderInfoEntity
+      .createQueryBuilder()
+      .select('orderID', 'orderID')
+      .addSelect('COUNT(*)', 'cnt')
+      .where('orderID IN (:...ids) AND type = 1', { ids: orderIDs })
+      .groupBy('orderID')
+      .getRawMany();
+    const map: Record<number, number> = {};
+    for (const r of rows) map[r.orderID] = Number(r.cnt) || 0;
+    return this.ok(map);
+  }
+
   @Post('/sendEmail')
   async sendEmail(
     @Body('name') name: string,

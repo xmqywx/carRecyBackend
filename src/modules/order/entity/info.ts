@@ -325,4 +325,16 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ comment: '暂存时长(小时)', type: 'decimal', precision: 4, scale: 1, nullable: true })
   tempDuration: number;
+
+  // Partial-completion flags shown in the Booking · Payment panel.
+  // Multi-select: any combination may be set; each is nullable so legacy
+  // rows without values are left unchanged.
+  @Column({ comment: '仅已付款', type: 'tinyint', nullable: true })
+  isPaidOnly: number;
+
+  @Column({ comment: '仅已提车', type: 'tinyint', nullable: true })
+  isPickedUpOnly: number;
+
+  @Column({ comment: '仅完成文件', type: 'tinyint', nullable: true })
+  isPaperworkOnly: number;
 }

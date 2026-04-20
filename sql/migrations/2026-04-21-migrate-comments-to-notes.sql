@@ -35,14 +35,17 @@ EXECUTE s;
 DEALLOCATE PREPARE s;
 
 -- 1) Migrate commentText blob -> Internal notes. ActionHistory.vue writes
---    Date.now() numbers into timestamp varchar(50); CAST below produces the
---    same digit-count numeric strings so ORDER BY timestamp stays stable.
+--    Date.now() (integer ms) into timestamp varchar(50). UNIX_TIMESTAMP
+--    against datetime(6) returns DECIMAL with fractional seconds — FLOOR(...)
+--    drops them so the stored string stays a clean 13-digit integer like
+--    "1774685139000", matching the Date.now() format and keeping lexical
+--    ORDER BY stable across migrated and live-written rows.
 --    The NOT EXISTS guard makes this file safe to re-run (same content +
 --    same orderID + authorID=0 + name='Internal' is considered already migrated).
 INSERT INTO order_action
   (orderID, authorID, description, timestamp, type, name, createTime, updateTime)
 SELECT oi.id, 0, oi.commentText,
-       CAST(UNIX_TIMESTAMP(oi.updateTime) * 1000 AS CHAR),
+       CAST(FLOOR(UNIX_TIMESTAMP(oi.updateTime) * 1000) AS CHAR),
        1, 'Internal', NOW(), NOW()
 FROM `order` oi
 WHERE oi.commentText IS NOT NULL AND oi.commentText != ''
@@ -59,7 +62,7 @@ WHERE oi.commentText IS NOT NULL AND oi.commentText != ''
 INSERT INTO order_action
   (orderID, authorID, description, timestamp, type, name, createTime, updateTime)
 SELECT oi.id, 0, oi.pickupNotes,
-       CAST(UNIX_TIMESTAMP(oi.updateTime) * 1000 AS CHAR),
+       CAST(FLOOR(UNIX_TIMESTAMP(oi.updateTime) * 1000) AS CHAR),
        1, 'Driver', NOW(), NOW()
 FROM `order` oi
 WHERE oi.pickupNotes IS NOT NULL AND oi.pickupNotes != ''
