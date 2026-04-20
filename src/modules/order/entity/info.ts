@@ -337,4 +337,10 @@ export class OrderInfoEntity extends BaseEntity {
 
   @Column({ comment: '仅完成文件', type: 'tinyint', nullable: true })
   isPaperworkOnly: number;
+
+  // Scheduled callback time (ms timestamp). Orthogonal to status — any order
+  // in any status may have a callback set. Booking list exposes a dedicated
+  // "Callback" tab that filters WHERE callbackTime IS NOT NULL.
+  @Column({ comment: '客户回拨时间 (ms timestamp)', type: 'bigint', nullable: true })
+  callbackTime: number;
 }

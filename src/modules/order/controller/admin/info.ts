@@ -39,6 +39,10 @@ import { buildBookingCountQueryParts } from '../../utils/bookingCountQuery';
     ],
     select: [
       'a.*',
+      // JobEntity is already joined as alias `e` (used for job_status etc),
+      // so `e.isInspection` is cheap and cool-admin's select() quoter accepts
+      // plain alias.column strings (vs. parenthesised subqueries which it mis-quotes).
+      'e.isInspection as isInspection',
       'b.firstName',
       'b.surname',
       'b.phoneNumber',
@@ -161,6 +165,10 @@ import { buildBookingCountQueryParts } from '../../utils/bookingCountQuery';
     ],
     select: [
       'a.*',
+      // JobEntity is already joined as alias `e` (used for job_status etc),
+      // so `e.isInspection` is cheap and cool-admin's select() quoter accepts
+      // plain alias.column strings (vs. parenthesised subqueries which it mis-quotes).
+      'e.isInspection as isInspection',
       'b.firstName',
       'b.surname',
       'b.phoneNumber',
@@ -237,7 +245,7 @@ import { buildBookingCountQueryParts } from '../../utils/bookingCountQuery';
       },
     ],
     where: async ctx => {
-      const { startDate, endDate, expectedDateStart, expectedDateEnd, isPaid, notSchedule, keywordCustomer } =
+      const { startDate, endDate, expectedDateStart, expectedDateEnd, isPaid, notSchedule, keywordCustomer, hasCallback } =
         ctx.request.body;
       const expectedRange = parseExpectedDateRange(
         expectedDateStart ?? startDate,
@@ -283,6 +291,11 @@ import { buildBookingCountQueryParts } from '../../utils/bookingCountQuery';
               'b.firstName LIKE :keywordCustomer',
               { keywordCustomer: `%${keywordCustomer}%` },
             ]
+          : [],
+        // Callback tab — only orders with a scheduled callback time.
+        // Uses idx_order_callback_time for ordering.
+        hasCallback
+          ? ['a.callbackTime IS NOT NULL', {}]
           : [],
       ];
     },
@@ -730,6 +743,9 @@ export class VehicleProfileController extends BaseController {
         car_status:carInfo?.status,
         job_status: jobInfo?.status,
         jobID: jobInfo?.id,
+        // Inspection flag lives on the Job; surface it here so the BookingForm
+        // edit-mode chip can self-initialise from populateForm.
+        isInspection: jobInfo?.isInspection ?? 0,
       }, orderInfo);
     if (result) {
       return this.ok(result);

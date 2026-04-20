@@ -309,6 +309,9 @@ export class OrderService extends BaseService {
               if (job_info?.preselectedDuration !== undefined) {
                 res.preselectedDuration = job_info.preselectedDuration;
               }
+              if ((job_info as any)?.isInspection !== undefined) {
+                (res as any).isInspection = (job_info as any).isInspection;
+              }
               await this.jobEntity.save(res);
 
               // Log status change

@@ -51,4 +51,10 @@ export class JobEntity extends BaseEntity {
 
   @Column({ comment: '预选时长(小时)', nullable: true })
   preselectedDuration: number;
+
+  // Inspection-only flag: the assignee goes to LOOK at the vehicle, NOT to tow it.
+  // Shares the same scheduling + assignment flow as tow jobs; front-end surfaces
+  // a visual distinction (purple border + 🔍 icon) so operators don't confuse them.
+  @Column({ comment: '仅勘察 (不拖车)', type: 'tinyint', width: 1, default: 0 })
+  isInspection: number;
 }
