@@ -1,7 +1,7 @@
 import { Provide, Inject } from '@midwayjs/decorator';
 import { BaseService, CoolCommException } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/orm';
-import { Repository, Between } from 'typeorm';
+import { Repository, Between, In } from 'typeorm';
 import { OrderInfoEntity } from '../entity/info';
 import { OrderActionEntity } from '../entity/action';
 import { JobEntity } from '../../job/entity/info';
@@ -34,6 +34,31 @@ export class OrderService extends BaseService {
   jobService: JobService;
   @Inject()
   notificationService: SocketNotificationService;
+
+  /**
+   * Cascade delete: when an order is removed via /admin/order/info/delete,
+   * also remove any job rows pointing at it. Without this, the job table
+   * ends up with orphan rows (orderID points to a non-existent order) that
+   * still surface on the Schedule "To Be Assigned" sidebar as blank cards
+   * the user can't edit or save. We do it in `modifyAfter` instead of
+   * overriding `delete` so the framework's main delete path stays intact.
+   */
+  async modifyAfter(data: any, type: string) {
+    if (type !== 'delete') return;
+    const ids = (Array.isArray(data)
+      ? data
+      : String(data).split(',')
+    )
+      .map((v: any) => Number(String(v).trim()))
+      .filter((n: number) => Number.isFinite(n) && n > 0);
+    if (ids.length === 0) return;
+    try {
+      await this.jobEntity.delete({ orderID: In(ids) });
+    } catch (e) {
+      // Don't block the order delete if cleanup fails — just log.
+      console.error('Failed to cascade-delete jobs for orders', ids, e);
+    }
+  }
 
   async getCountMonth(departmentId) {
     const year = new Date().getFullYear();
