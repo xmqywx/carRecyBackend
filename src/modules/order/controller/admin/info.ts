@@ -330,7 +330,8 @@ export class VehicleProfileController extends BaseController {
     @Body('expectedDateStart') expectedDateStart: string | number,
     @Body('expectedDateEnd') expectedDateEnd: string | number,
     @Body('keyWord') keyWord: string,
-    @Body('jobComplete') jobComplete = false
+    @Body('jobComplete') jobComplete = false,
+    @Body('hasCallback') hasCallback = false
   ) {
     const expectedRange = parseExpectedDateRange(
       expectedDateStart ?? startDate,
@@ -343,6 +344,7 @@ export class VehicleProfileController extends BaseController {
       expectedDateEnd: expectedRange.expectedDateEnd,
       keyWord,
       jobComplete,
+      hasCallback,
     });
 
     const countQuery = this.orderInfoEntity
@@ -450,19 +452,47 @@ export class VehicleProfileController extends BaseController {
       return this.fail('Registration number or VIN is required');
     }
 
-    // Cache lookup: use OR logic so VIN-only or rego-only queries still hit
-    // previously-cached rows. The old AND query missed cache when either field
-    // was empty, causing every call to hit the third-party API.
-    const whereConditions = [];
-    if (registrationNumber) {
-      whereConditions.push({ registrationNumber });
+    // Cache lookup with mismatch detection.
+    // - Both rego + vin provided → first try exact (both match same row).
+    //   Otherwise, only flag mismatch when a cached row has BOTH fields
+    //   populated AND a populated field actually disagrees with the request.
+    //   A row that's missing one field (e.g. cached when user originally
+    //   searched by rego only) is incomplete, not contradictory — fall through
+    //   to the third-party API to refill it.
+    // - Only one provided → use it as the cache key.
+    let carRegList: any[] = [];
+    if (registrationNumber && vin) {
+      const exact = await this.carRegEntity.find({
+        where: { registrationNumber, vin },
+      } as any);
+      if (exact.length) {
+        carRegList = exact;
+      } else {
+        const eitherMatch = await this.carRegEntity.find({
+          where: [{ registrationNumber }, { vin }],
+        } as any);
+        const conflict = eitherMatch.find((r: any) => {
+          // cached row's rego is set AND disagrees with request → real mismatch
+          if (r.registrationNumber && r.registrationNumber !== registrationNumber) return true;
+          // OR cached row's vin is set AND disagrees with request → real mismatch
+          if (r.vin && r.vin !== vin) return true;
+          return false;
+        });
+        if (conflict) {
+          return this.fail(
+            'Registration number and VIN do not match the same vehicle. Please verify both, or clear one before searching.'
+          );
+        }
+        // Otherwise (rows are partial / compatible) → don't return cached
+        // record (it's incomplete); let the third-party fetch run and refresh.
+      }
+    } else if (registrationNumber) {
+      carRegList = await this.carRegEntity.find({
+        where: { registrationNumber },
+      } as any);
+    } else if (vin) {
+      carRegList = await this.carRegEntity.find({ where: { vin } } as any);
     }
-    if (vin) {
-      whereConditions.push({ vin });
-    }
-    const carRegList = whereConditions.length
-      ? await this.carRegEntity.find({ where: whereConditions } as any)
-      : [];
     let carRegFind;
     if (carRegList.length) {
       carRegFind = carRegList[0].id ?? undefined;
@@ -600,6 +630,28 @@ export class VehicleProfileController extends BaseController {
           try { await this.carRegEntity.save(savePayload); } catch {}
           return this.fail('This content cannot be found or does not exist.');
         }
+        // Mismatch guard: if both rego AND vin were sent, the third-party
+        // (infoagent.com.au) decides on its own which to prioritize. Whichever
+        // it picks, the OTHER field in the response may not match what the
+        // user typed — the frontend silently overwrites the typed value
+        // (customer report 2026-04-23). Compare BOTH plate and VIN.
+        const norm = (s: any) => String(s || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
+        if (registrationNumber && vin) {
+          const apiPlate = norm(jsonData2?.identification?.plate);
+          const apiVin = norm(jsonData2?.identification?.vin);
+          const reqPlate = norm(registrationNumber);
+          const reqVin = norm(vin);
+          if (apiPlate && apiPlate !== reqPlate) {
+            return this.fail(
+              `VIN belongs to ${apiPlate}, not ${reqPlate}. Please verify both fields match the same vehicle.`
+            );
+          }
+          if (apiVin && apiVin !== reqVin) {
+            return this.fail(
+              `Registration ${reqPlate} belongs to VIN ${apiVin}, not the VIN you entered. Please verify both fields match the same vehicle.`
+            );
+          }
+        }
         const jsonData = { ...jsonData2 };
         savePayload.json_v2 = jsonData;
         try {
@@ -648,6 +700,24 @@ export class VehicleProfileController extends BaseController {
           savePayload.json_v3 = { _notFound: true, reason: 'no vehicle data', cachedAt: new Date().toISOString() };
           try { await this.carRegEntity.save(savePayload); } catch {}
           return this.fail('This content cannot be found or does not exist.');
+        }
+        // Same mismatch guard as V2 — see V2 path for rationale.
+        const normV3 = (s: any) => String(s || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
+        if (registrationNumber && vin) {
+          const apiPlate = normV3(jsonData2?.identification?.plate);
+          const apiVin = normV3(jsonData2?.identification?.vin);
+          const reqPlate = normV3(registrationNumber);
+          const reqVin = normV3(vin);
+          if (apiPlate && apiPlate !== reqPlate) {
+            return this.fail(
+              `VIN belongs to ${apiPlate}, not ${reqPlate}. Please verify both fields match the same vehicle.`
+            );
+          }
+          if (apiVin && apiVin !== reqVin) {
+            return this.fail(
+              `Registration ${reqPlate} belongs to VIN ${apiVin}, not the VIN you entered. Please verify both fields match the same vehicle.`
+            );
+          }
         }
         const jsonData = { ...jsonData2 };
         savePayload.json_v3 = jsonData;
@@ -733,6 +803,15 @@ export class VehicleProfileController extends BaseController {
         series: carInfo?.series,
         engine: carInfo?.engine,
         engineCode: carInfo?.engineCode,
+        // Previously missing — caused the Edit drawer to show blank
+        // Engine Number / Cylinders / Power / Fuel / Kilometers /
+        // Transmission every time even when saved in DB.
+        engineNumber: carInfo?.engineNumber,
+        cylinders: carInfo?.cylinders,
+        power: carInfo?.power,
+        fuel: carInfo?.fuel,
+        kilometers: carInfo?.kilometers,
+        transmission: carInfo?.transmission,
         name: carInfo?.name,
         bodyStyle: carInfo?.bodyStyle,
         image: carInfo?.image,

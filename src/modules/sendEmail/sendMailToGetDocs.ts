@@ -45,7 +45,7 @@ const DEFAULT_SMTP_CONFIG: SmtpConfig = {
 const DEFAULT_EMAIL_TEMPLATE: EmailTemplateConfig = {
   proofRequestSubject: 'Proof materials request from WePickYourCar',
   invoiceSubject: 'Invoice from WePickYourCar',
-  signatureHtml: `<p><span style="color: rgb(44, 90, 160);"><strong>Mason</strong></span><br><span style="color: rgb(102, 102, 102);">General Manager</span></p><p><img src="https://apexpoint.com.au/api/public/uploads/20241213/0d016b43-6797-471a-bafc-0d57d5d1efbc_1734063663613.jpg" alt="We Pick Your Car" data-href="" style="width: 150px;height: 78px;"/></p><p><span style="color: rgb(44, 90, 160);"><strong>We Pick Your Car Pty Ltd</strong></span><br><span style="color: rgb(102, 102, 102);">16-18 Tait Street, Smithfield, NSW 2164</span></p><p><a href="mailto:Inquiry@wepickyourcar.com.au" target="">Inquiry@wepickyourcar.com.au</a><br><span style="color: rgb(102, 102, 102);">M: </span><a href="tel:0406007000" target="">0406 007 000</a><span style="color: rgb(102, 102, 102);"> | P: </span><a href="tel:0297572321" target="">(02) 9757 2321</a></p>`,
+  signatureHtml: `<p><span style="color: rgb(44, 90, 160);"><strong>Mason</strong></span><br><span style="color: rgb(102, 102, 102);">General Manager</span></p><p><img src="${process.env.EMAIL_LOGO_URL || 'https://apexpoint.com.au/api/public/pickYourCar.png'}" alt="We Pick Your Car" data-href="" style="width: 200px;height: auto;"/></p><p><span style="color: rgb(44, 90, 160);"><strong>We Pick Your Car Pty Ltd</strong></span><br><span style="color: rgb(102, 102, 102);">16-18 Tait Street, Smithfield, NSW 2164</span></p><p><a href="mailto:Inquiry@wepickyourcar.com.au" target="">Inquiry@wepickyourcar.com.au</a><br><span style="color: rgb(102, 102, 102);">M: </span><a href="tel:0406007000" target="">0406 007 000</a><span style="color: rgb(102, 102, 102);"> | P: </span><a href="tel:0297572321" target="">(02) 9757 2321</a></p>`,
 };
 
 // 前端域名，从环境变量读取，默认为线上地址
@@ -227,6 +227,25 @@ export async function savePdf(buffer) {
   }
 }
 
+// Email kind controls which template body is rendered. When omitted, falls
+// back to legacy giveUploadBtn semantics (true → docRequest, false → invoice
+// with PDF attachment) for backwards compatibility with any caller that hasn't
+// been updated yet.
+export type EmailKind = 'quote' | 'docRequest' | 'cancellation' | 'invoice';
+
+// Subset of joined order data the email templates render. Controller is
+// responsible for fetching from order + customer + car + job tables.
+export interface BookingEmailData {
+  vehicleLabel?: string;     // e.g. "Toyota Corolla 2010"
+  registrationNumber?: string;
+  vinNumber?: string;
+  quoteAmount?: number | string;   // number for fixed quote, string label for negotiable range
+  quoteType?: string;        // 'Fixed' | 'Negotiable'
+  totalAmount?: number;      // for invoice
+  payMethod?: string;        // for invoice
+  pickupAddress?: string;
+}
+
 export default async function getDocs({
   email,
   name,
@@ -237,6 +256,8 @@ export default async function getDocs({
   orderID,
   smtpConfig,
   emailTemplate,
+  emailKind,
+  bookingData,
 }: {
   email: string;
   name: string;
@@ -247,6 +268,8 @@ export default async function getDocs({
   orderID: number;
   smtpConfig?: SmtpConfig;
   emailTemplate?: EmailTemplateConfig;
+  emailKind?: EmailKind;
+  bookingData?: BookingEmailData;
 }) {
   // 使用传入的配置或默认配置
   const config = smtpConfig || DEFAULT_SMTP_CONFIG;
@@ -277,6 +300,47 @@ export default async function getDocs({
   if (email != null) {
     toEmail = email;
   }
+
+  // Status-based dispatch (added 2026-04-23). When emailKind is provided, take
+  // the explicit template path. The legacy giveUploadBtn branches below remain
+  // for any caller that hasn't been migrated yet.
+  if (emailKind === 'quote') {
+    return sendEmail(transport, {
+      from: fromEmail,
+      to: toEmail,
+      subject: `Quote from We Pick Your Car${bookingData?.vehicleLabel ? ' — ' + bookingData.vehicleLabel : ''}`,
+      html: buildQuoteEmailHtml(name, bookingData, emailSignature),
+    }, {});
+  }
+  if (emailKind === 'cancellation') {
+    return sendEmail(transport, {
+      from: fromEmail,
+      to: toEmail,
+      subject: `Update on your booking with We Pick Your Car${bookingData?.vehicleLabel ? ' — ' + bookingData.vehicleLabel : ''}`,
+      html: buildCancellationEmailHtml(name, bookingData, emailSignature),
+    }, {});
+  }
+  if (emailKind === 'invoice') {
+    const mailOpts: any = {
+      from: fromEmail,
+      to: toEmail,
+      subject: `Invoice from We Pick Your Car${bookingData?.vehicleLabel ? ' — ' + bookingData.vehicleLabel : ''}`,
+      html: buildInvoiceEmailHtml(name, bookingData, emailSignature),
+    };
+    if (attachment && (attachment.path || attachment.content)) mailOpts.attachments = [attachment];
+    return sendEmail(transport, mailOpts, attachment || {});
+  }
+  if (emailKind === 'docRequest') {
+    // Same template as the legacy giveUploadBtn=true branch — kept inline so
+    // the new explicit path doesn't depend on the legacy flag.
+    return sendEmail(transport, {
+      from: fromEmail,
+      to: toEmail,
+      subject: template.proofRequestSubject,
+      html: buildDocRequestEmailHtml(name, frontendDomain, token, orderID, emailSignature),
+    }, {});
+  }
+
   if (giveUploadBtn) {
     const mailOptions = {
       from: fromEmail,
@@ -430,4 +494,87 @@ async function sendEmail(transport, mailOptions, otherData) {
     console.error('发送发票邮件时出错: %s', error);
     return { error, status: 'failure' };
   }
+}
+
+// ────────── Email body templates (status-based dispatch) ──────────
+
+const baseEmailStyle = `
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; color: #1a1a2e; }
+    main { max-width: 640px; margin: auto; padding: 16px; }
+    p { line-height: 1.5; }
+    .veh-box { margin: 12px 0; padding: 10px 14px; background: #fdf6e3; border-left: 3px solid #f59e0b; }
+    .quote-amount { font-size: 22px; font-weight: 700; color: #16a34a; margin: 6px 0 0; }
+    .totals { margin: 12px 0; padding: 10px 14px; background: #f1f5f9; border-radius: 6px; }
+    .totals .row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 14px; }
+    .totals .row.total { border-top: 1px solid #cbd5e1; margin-top: 6px; padding-top: 6px; font-weight: 700; font-size: 16px; }
+  </style>
+`;
+
+function fmtMoney(v: any): string {
+  const n = Number(v);
+  if (!Number.isFinite(n) || n <= 0) return '—';
+  return `$${n.toFixed(2)}`;
+}
+
+function vehicleBlock(b?: BookingEmailData): string {
+  if (!b) return '';
+  const lines: string[] = [];
+  if (b.vehicleLabel) lines.push(`<strong>${b.vehicleLabel}</strong>`);
+  if (b.registrationNumber) lines.push(`Rego: ${b.registrationNumber}`);
+  if (b.vinNumber) lines.push(`VIN: ${b.vinNumber}`);
+  if (!lines.length) return '';
+  return `<div class="veh-box">${lines.join('<br/>')}</div>`;
+}
+
+function buildQuoteEmailHtml(name: string, b: BookingEmailData | undefined, signature: string): string {
+  const isFixed = (b?.quoteType || 'Fixed') !== 'Negotiable';
+  const amountLabel = isFixed
+    ? fmtMoney(b?.quoteAmount)
+    : (typeof b?.quoteAmount === 'string' ? b.quoteAmount : 'Negotiable');
+  return `<html><head><meta charset="UTF-8">${baseEmailStyle}</head><body><main>
+    <p>Dear ${name || 'Customer'},</p>
+    <p>Thank you for getting in touch with We Pick Your Car. Below is our quote for your vehicle:</p>
+    ${vehicleBlock(b)}
+    <p>Our offer:</p>
+    <p class="quote-amount">${amountLabel}</p>
+    <p>Please reply to this email to confirm or let us know if you'd like to discuss further. Once confirmed we'll arrange a suitable pickup time.</p>
+    ${signature}
+  </main></body></html>`;
+}
+
+function buildCancellationEmailHtml(name: string, b: BookingEmailData | undefined, signature: string): string {
+  return `<html><head><meta charset="UTF-8">${baseEmailStyle}</head><body><main>
+    <p>Dear ${name || 'Customer'},</p>
+    <p>Thank you for considering We Pick Your Car. Unfortunately we won't be able to proceed with the booking for the vehicle below at this time:</p>
+    ${vehicleBlock(b)}
+    <p>If your circumstances change, or if you'd like a fresh quote on the same or another vehicle, we'd be happy to hear from you again.</p>
+    <p>Thank you for getting in touch.</p>
+    ${signature}
+  </main></body></html>`;
+}
+
+function buildInvoiceEmailHtml(name: string, b: BookingEmailData | undefined, signature: string): string {
+  const total = fmtMoney(b?.totalAmount);
+  return `<html><head><meta charset="UTF-8">${baseEmailStyle}</head><body><main>
+    <p>Dear ${name || 'Customer'},</p>
+    <p>Please find your invoice for the vehicle pickup below.</p>
+    ${vehicleBlock(b)}
+    <div class="totals">
+      <div class="row total"><span>Total Paid</span><span>${total}</span></div>
+      ${b?.payMethod ? `<div class="row"><span>Payment Method</span><span>${b.payMethod}</span></div>` : ''}
+    </div>
+    <p>Thank you for choosing We Pick Your Car.</p>
+    ${signature}
+  </main></body></html>`;
+}
+
+function buildDocRequestEmailHtml(name: string, frontendDomain: string, token: string, orderID: number, signature: string): string {
+  return `<html><head><meta charset="UTF-8">${baseEmailStyle}</head><body><main>
+    <p>Dear ${name || 'Customer'},</p>
+    <p>Please click the link below to upload related Proof materials.</p>
+    <p>Thank you for choosing our services.</p>
+    <p>Please click <a href="${frontendDomain}/customer_provide_files?token=${token}&oi=${orderID}" style="font-weight: bold;">here</a> to upload the documents.</p>
+    ${signature}
+  </main></body></html>`;
 }

@@ -173,7 +173,13 @@ export class BaseOpenController extends BaseController {
     @Body('giveUploadBtn') giveUploadBtn: boolean,
     @Body('sendBy') sendBy: string,
     @Body('contentData') contentData?: object, // 邮件关键内容数据
-    @Body('operatorName') operatorName?: string // 操作者用户名
+    @Body('operatorName') operatorName?: string, // 操作者用户名
+    // Status-based dispatch (added 2026-04-23). When emailKind is supplied,
+    // overrides the legacy giveUploadBtn switch and routes to the matching
+    // template. bookingData provides per-template fields (vehicle label,
+    // quote, total) the frontend already has cached, so no extra DB join.
+    @Body('emailKind') emailKind?: 'quote' | 'docRequest' | 'cancellation' | 'invoice',
+    @Body('bookingData') bookingData?: any
   ) {
     const token = await this.orderService.generateToken({
       orderID,
@@ -183,11 +189,20 @@ export class BaseOpenController extends BaseController {
     let attachment: any = {};
     let pdfUrl: string = null;
 
-    if (!giveUploadBtn) {
+    // Quote / cancellation never carry a PDF. docRequest opens upload
+    // permission. invoice + legacy giveUploadBtn=false build the PDF from
+    // textToSend (caller's pre-rendered HTML).
+    const isPdfPath =
+      (emailKind === 'invoice' && textToSend) ||
+      (!emailKind && !giveUploadBtn);
+    const opensUpload = emailKind === 'docRequest' || (!emailKind && giveUploadBtn);
+
+    if (isPdfPath) {
       const buffer = await outPutPdf({ textToSend });
       attachment = await savePdf(buffer);
       pdfUrl = attachment.url || attachment.path;
-    } else {
+    }
+    if (opensUpload) {
       await this.orderService.updateOrderAllowUpload(orderID, true);
     }
 
@@ -206,6 +221,8 @@ export class BaseOpenController extends BaseController {
         orderID,
         smtpConfig,
         emailTemplate,
+        emailKind,
+        bookingData,
       });
     });
     const emailResults = await Promise.all(emailPromises);
@@ -215,17 +232,23 @@ export class BaseOpenController extends BaseController {
       result => result.status === 'success'
     );
 
-    // 确定邮件类型和主题
-    const emailType = giveUploadBtn ? 'proof_request' : 'invoice';
-    const subject = giveUploadBtn
-      ? emailTemplate.proofRequestSubject
-      : emailTemplate.invoiceSubject;
+    // 确定邮件类型和主题（用于日志）
+    const emailType = emailKind
+      ? (emailKind === 'docRequest' ? 'proof_request' : emailKind)
+      : (giveUploadBtn ? 'proof_request' : 'invoice');
+    const subject = emailKind === 'quote'
+      ? `Quote from We Pick Your Car${bookingData?.vehicleLabel ? ' — ' + bookingData.vehicleLabel : ''}`
+      : emailKind === 'cancellation'
+        ? `Update on your booking with We Pick Your Car${bookingData?.vehicleLabel ? ' — ' + bookingData.vehicleLabel : ''}`
+        : emailKind === 'invoice'
+          ? `Invoice from We Pick Your Car${bookingData?.vehicleLabel ? ' — ' + bookingData.vehicleLabel : ''}`
+          : (giveUploadBtn ? emailTemplate.proofRequestSubject : emailTemplate.invoiceSubject);
 
     // 保存邮件日志
     try {
       await this.emailLogService.saveLog({
         orderId: orderID,
-        emailType: emailType as 'invoice' | 'proof_request',
+        emailType: emailType as 'invoice' | 'proof_request' | 'quote' | 'cancellation',
         recipients: email,
         subject: subject,
         contentData: contentData || { name, sendBy },

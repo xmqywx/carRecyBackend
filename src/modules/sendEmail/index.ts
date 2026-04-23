@@ -22,7 +22,10 @@ const s3 = new AWS.S3();
 // const ses = new AWS.SES();
 // 电子邮件发送者和接收者
 const fromEmail = process.env.EMAIL_FROM || `"We Pick Your Car" <noreply@wepickyourcar.com.au>`;
-const logoUrl = 'https://apexpoint.com.au/api//public/uploads/20241213/0d016b43-6797-471a-bafc-0d57d5d1efbc_1734063663613.jpg';
+// "We Pick Your Car" yellow plate logo, served from backend public dir.
+// Override via env if a different host serves the static file.
+const logoUrl = process.env.EMAIL_LOGO_URL
+  || 'https://apexpoint.com.au/api/public/pickYourCar.png';
 
 // 邮件签名模板
 const emailSignature = `

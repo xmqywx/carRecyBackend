@@ -69,6 +69,7 @@ export class SoldCompleteEmailService extends BaseService {
   .header { display: flex; justify-content: space-between; align-items: flex-start; padding: 40px 40px 20px; border-bottom: 3px solid #6366f1; }
   .header-left h1 { margin: 0; font-size: 28px; color: #6366f1; letter-spacing: -0.5px; }
   .header-left p { margin: 4px 0 0; color: #64748b; font-size: 13px; }
+  .header-left .brand-logo { display: block; height: 56px; width: auto; margin-bottom: 6px; }
   .header-right { text-align: right; }
   .header-right .inv-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
   .header-right .inv-number { font-size: 22px; font-weight: 700; color: #1a1a2e; }
@@ -110,7 +111,7 @@ export class SoldCompleteEmailService extends BaseService {
 <div class="invoice">
   <div class="header">
     <div class="header-left">
-      <h1>Apexpoint</h1>
+      <img class="brand-logo" src="${process.env.EMAIL_LOGO_URL || 'https://apexpoint.com.au/api/public/pickYourCar.png'}" alt="We Pick Your Car"/>
       <p>Vehicle Sales Invoice</p>
     </div>
     <div class="header-right">
@@ -123,8 +124,8 @@ export class SoldCompleteEmailService extends BaseService {
     <div class="parties">
       <div class="party">
         <div class="party-label">From</div>
-        <div class="party-name">Apexpoint Pty Ltd</div>
-        <div class="party-detail">Melbourne, VIC, Australia</div>
+        <div class="party-name">We Pick Your Car Pty Ltd</div>
+        <div class="party-detail">16-18 Tait Street, Smithfield, NSW 2164</div>
       </div>
       <div class="party">
         <div class="party-label">Bill To</div>
@@ -160,7 +161,7 @@ export class SoldCompleteEmailService extends BaseService {
   </div>
   <div class="footer">
     <p>Thank you for your business.</p>
-    <p>Apexpoint Pty Ltd &bull; Melbourne, VIC &bull; apexpoint.com.au</p>
+    <p>We Pick Your Car Pty Ltd &bull; 16-18 Tait Street, Smithfield, NSW 2164 &bull; wepickyourcar.com.au</p>
   </div>
 </div>
 </body></html>`;

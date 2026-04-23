@@ -17,7 +17,7 @@ export class EmailLogService extends BaseService {
    */
   async saveLog(data: {
     orderId: number;
-    emailType: 'invoice' | 'proof_request';
+    emailType: 'invoice' | 'proof_request' | 'quote' | 'cancellation';
     recipients: string[];
     subject: string;
     contentData: object;

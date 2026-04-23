@@ -5,6 +5,9 @@ interface BookingCountQueryPartsInput {
   expectedDateEnd?: number | null;
   keyWord?: string;
   jobComplete?: boolean;
+  // Callback tab is cross-status — counts any order with a scheduled
+  // callback time. Mirrors the page endpoint's where clause at info.ts:297.
+  hasCallback?: boolean;
 }
 
 const BOOKING_COUNT_KEYWORD_FIELDS = [
@@ -28,6 +31,7 @@ export function buildBookingCountQueryParts({
   expectedDateEnd,
   keyWord,
   jobComplete = false,
+  hasCallback = false,
 }: BookingCountQueryPartsInput) {
   const clauses = ['a.departmentId = :departmentId'];
   const params: Record<string, any> = {
@@ -42,6 +46,10 @@ export function buildBookingCountQueryParts({
   if (jobComplete) {
     clauses.push('e.status = :jobStatus');
     params.jobStatus = 4;
+  }
+
+  if (hasCallback) {
+    clauses.push('a.callbackTime IS NOT NULL');
   }
 
   // Booking page filters by createTime (booking entry time). Customer-preferred
