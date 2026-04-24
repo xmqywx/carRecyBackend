@@ -571,8 +571,12 @@ export class VehicleProfileController extends BaseController {
 
       try {
         const savePayload: any = { registrationNumber, state, vin };
-        if (carRegList.length && carRegList[0].id) {
-          savePayload.id = carRegList[0].id;
+        // Use carRegFind (set above from either carRegList or bypassReuseId)
+        // so that bypassCache=true UPDATES the stale row in place instead of
+        // INSERTing a new one. Otherwise the old not-found cache would
+        // linger and re-block any non-bypass query.
+        if (carRegFind != null) {
+          savePayload.id = carRegFind;
         }
         const res = await this.orderService.fetchDataWithV1(
           registrationNumber,
@@ -622,8 +626,12 @@ export class VehicleProfileController extends BaseController {
         // Build save payload WITHOUT id:undefined (which can cause TypeORM
         // to do a broken UPDATE instead of INSERT on some versions)
         const savePayload: any = { registrationNumber, state, vin };
-        if (carRegList.length && carRegList[0].id) {
-          savePayload.id = carRegList[0].id;
+        // Use carRegFind (set above from either carRegList or bypassReuseId)
+        // so that bypassCache=true UPDATES the stale row in place instead of
+        // INSERTing a new one. Otherwise the old not-found cache would
+        // linger and re-block any non-bypass query.
+        if (carRegFind != null) {
+          savePayload.id = carRegFind;
         }
 
         const res = await this.orderService.fetchDataWithV2(
@@ -701,8 +709,12 @@ export class VehicleProfileController extends BaseController {
       }
       try {
         const savePayload: any = { registrationNumber, state, vin };
-        if (carRegList.length && carRegList[0].id) {
-          savePayload.id = carRegList[0].id;
+        // Use carRegFind (set above from either carRegList or bypassReuseId)
+        // so that bypassCache=true UPDATES the stale row in place instead of
+        // INSERTing a new one. Otherwise the old not-found cache would
+        // linger and re-block any non-bypass query.
+        if (carRegFind != null) {
+          savePayload.id = carRegFind;
         }
         const res = await this.orderService.fetchDataWithV3(
           registrationNumber,
