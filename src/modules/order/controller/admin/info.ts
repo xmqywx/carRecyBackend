@@ -446,7 +446,12 @@ export class VehicleProfileController extends BaseController {
     @Body('registrationNumber') registrationNumber: string,
     @Body('state') state: string,
     @Body('vin') vin: string,
-    @Body('api') api: number
+    @Body('api') api: number,
+    // Operator-driven force-refresh: skip the cache entirely (including
+    // not-found sentinel rows whose 7-day TTL would otherwise hide a vehicle
+    // that has since been registered or that the third-party temporarily
+    // failed on).
+    @Body('bypassCache') bypassCache = false
   ) {
     if (!registrationNumber && !vin) {
       return this.fail('Registration number or VIN is required');
@@ -460,8 +465,22 @@ export class VehicleProfileController extends BaseController {
     //   searched by rego only) is incomplete, not contradictory — fall through
     //   to the third-party API to refill it.
     // - Only one provided → use it as the cache key.
+    // bypassCache → don't return any cached payload, but still resolve the
+    // existing row's id so the third-party fetch overwrites it in place
+    // instead of inserting a duplicate (which would leave the stale row
+    // around to bite the next non-bypass query).
     let carRegList: any[] = [];
-    if (registrationNumber && vin) {
+    let bypassReuseId: number | undefined;
+    if (bypassCache) {
+      const matches = await this.carRegEntity.find({
+        where: registrationNumber && vin
+          ? [{ registrationNumber, vin }, { registrationNumber }, { vin }]
+          : registrationNumber
+            ? { registrationNumber }
+            : { vin },
+      } as any);
+      if (matches.length) bypassReuseId = matches[0].id;
+    } else if (registrationNumber && vin) {
       const exact = await this.carRegEntity.find({
         where: { registrationNumber, vin },
       } as any);
@@ -496,6 +515,11 @@ export class VehicleProfileController extends BaseController {
     let carRegFind;
     if (carRegList.length) {
       carRegFind = carRegList[0].id ?? undefined;
+    } else if (bypassReuseId != null) {
+      // Force-refresh path: reuse the existing stale row's id so save()
+      // updates it in place. carRegList stays empty so cached json/json_v2
+      // is NOT returned to the caller.
+      carRegFind = bypassReuseId;
     }
     if (api === SEARCH_CAR_API.S1) {
       if (carRegList.length && carRegList[0].xml) {
@@ -630,27 +654,25 @@ export class VehicleProfileController extends BaseController {
           try { await this.carRegEntity.save(savePayload); } catch {}
           return this.fail('This content cannot be found or does not exist.');
         }
-        // Mismatch guard: if both rego AND vin were sent, the third-party
-        // (infoagent.com.au) decides on its own which to prioritize. Whichever
-        // it picks, the OTHER field in the response may not match what the
-        // user typed — the frontend silently overwrites the typed value
-        // (customer report 2026-04-23). Compare BOTH plate and VIN.
+        // Mismatch guard: third-party (infoagent.com.au) decides on its own
+        // how to resolve, sometimes returning a similar but DIFFERENT vehicle
+        // than what was typed (customer report 2026-04-23: typed CRV68T,
+        // got back CVR68T). Reject any response whose plate or VIN doesn't
+        // match what the user actually typed.
         const norm = (s: any) => String(s || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
-        if (registrationNumber && vin) {
-          const apiPlate = norm(jsonData2?.identification?.plate);
-          const apiVin = norm(jsonData2?.identification?.vin);
-          const reqPlate = norm(registrationNumber);
-          const reqVin = norm(vin);
-          if (apiPlate && apiPlate !== reqPlate) {
-            return this.fail(
-              `VIN belongs to ${apiPlate}, not ${reqPlate}. Please verify both fields match the same vehicle.`
-            );
-          }
-          if (apiVin && apiVin !== reqVin) {
-            return this.fail(
-              `Registration ${reqPlate} belongs to VIN ${apiVin}, not the VIN you entered. Please verify both fields match the same vehicle.`
-            );
-          }
+        const apiPlate = norm(jsonData2?.identification?.plate);
+        const apiVin = norm(jsonData2?.identification?.vin);
+        const reqPlate = norm(registrationNumber);
+        const reqVin = norm(vin);
+        if (reqPlate && apiPlate && apiPlate !== reqPlate) {
+          return this.fail(
+            `The registry returned ${apiPlate}, not ${reqPlate}. Please double-check the rego (the third-party API may have auto-corrected to a similar plate).`
+          );
+        }
+        if (reqVin && apiVin && apiVin !== reqVin) {
+          return this.fail(
+            `The registry returned VIN ${apiVin}, not the one you entered. Please double-check the VIN.`
+          );
         }
         const jsonData = { ...jsonData2 };
         savePayload.json_v2 = jsonData;
@@ -701,23 +723,22 @@ export class VehicleProfileController extends BaseController {
           try { await this.carRegEntity.save(savePayload); } catch {}
           return this.fail('This content cannot be found or does not exist.');
         }
-        // Same mismatch guard as V2 — see V2 path for rationale.
+        // Same mismatch guard as V2 — applies whether one or both of rego/vin
+        // were sent. Third-party may auto-correct to a similar plate.
         const normV3 = (s: any) => String(s || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
-        if (registrationNumber && vin) {
-          const apiPlate = normV3(jsonData2?.identification?.plate);
-          const apiVin = normV3(jsonData2?.identification?.vin);
-          const reqPlate = normV3(registrationNumber);
-          const reqVin = normV3(vin);
-          if (apiPlate && apiPlate !== reqPlate) {
-            return this.fail(
-              `VIN belongs to ${apiPlate}, not ${reqPlate}. Please verify both fields match the same vehicle.`
-            );
-          }
-          if (apiVin && apiVin !== reqVin) {
-            return this.fail(
-              `Registration ${reqPlate} belongs to VIN ${apiVin}, not the VIN you entered. Please verify both fields match the same vehicle.`
-            );
-          }
+        const apiPlateV3 = normV3(jsonData2?.identification?.plate);
+        const apiVinV3 = normV3(jsonData2?.identification?.vin);
+        const reqPlateV3 = normV3(registrationNumber);
+        const reqVinV3 = normV3(vin);
+        if (reqPlateV3 && apiPlateV3 && apiPlateV3 !== reqPlateV3) {
+          return this.fail(
+            `The registry returned ${apiPlateV3}, not ${reqPlateV3}. Please double-check the rego.`
+          );
+        }
+        if (reqVinV3 && apiVinV3 && apiVinV3 !== reqVinV3) {
+          return this.fail(
+            `The registry returned VIN ${apiVinV3}, not the one you entered. Please double-check the VIN.`
+          );
         }
         const jsonData = { ...jsonData2 };
         savePayload.json_v3 = jsonData;
